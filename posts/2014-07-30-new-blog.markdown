@@ -1,0 +1,14 @@
+---
+title: newBlog :: IO ()
+author: Sibi
+---
+
+After a lot of thinking, I finally decided to migrate from
+[blogger](http://blog.psibi.in) to a Hakyll based blog. I wanted to
+really like the blogger platform, but the thought of writing posts
+from Emacs vs. Blogger's web platform made this choice too easy.
+
+Two things which I still need to do during this weekend would be:
+
+* Integrate Disqus commenting platform
+* Setup Google web analytic JS
