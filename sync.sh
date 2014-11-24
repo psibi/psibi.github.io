@@ -10,6 +10,8 @@ if [ $# -eq 0 ]; then
 fi
 
 cd $1
+git add . 
+git commit -m "Updated"
 git checkout source
 git add .
 git commit -m "Source branch updated"
