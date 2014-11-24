@@ -34,7 +34,7 @@ File operations:
 * O : Change Owner
 * T : Touch
 * Z : Toggle compress
-* + : Create Directory
+* \+ : Create Directory
 
 Shell Commands:
 
