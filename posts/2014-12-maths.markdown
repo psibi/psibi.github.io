@@ -1,0 +1,57 @@
+---
+title: Interesting discussion and links related to Maths
+author: Sibi
+---
+
+These are some of the interesting discussion I found related to Mathematics:
+
+* [HN discussion on learning Maths](https://news.ycombinator.com/item?id=1449799)
+
+The top comment sums up it well: Practice, practice, practice. Unless
+you start practicing, you cannot learn it. (or learn anything for that matter)
+
+* [Steve Yegge's post on Maths](http://steve-yegge.blogspot.in/2006/03/math-for-programmers.html)
+
+I like the pragmatic approach of his. Basically he recommends to have
+an idea of everything (even if you aren't master of it), so that you
+know what each branch of mathematics solves.
+
+* [Joseph Abrahamson excellent post: There is no royal road to Mathematics](http://jspha.com/posts/there_is_no_royal_road_to_mathematics/)
+
+A must read article. Gives an idea of how big the field is. I
+basically like this sentence: "You should also try to understand your
+goals of learning mathematics—do you seek beauty, power, or
+application? Different branches will be appealing based on your
+goals." Having goal is important! (applies to anything actually).
+
+* [Another HN discussion on learning Maths](https://news.ycombinator.com/item?id=8697772)
+
+This discussion gives a good reason on why most of the Maths books
+suck (or why isn't suited for self-study) except maybe Spivak's
+Calculus and Pugh's "Real Mathematical analysis". Read the top
+comments to get more insights.
+
+* [Rein Heinrich's recommended readings](http://reinh.com/notes/posts/2014-07-25-recommended-reading-material.html)
+
+The readings are more targeted towards Haskell programmer. But
+nonetheless, they all are very important. Category theory is language
+agnostic! Infact, I'm working currently on one of the recommended book
+by the author.
+
+* [Reddit discussion on learning Maths](http://www.reddit.com/r/compsci/comments/2notz5/how_do_you_personally_learn_more_about/)
+
+Not a great discussion as compared to the previous two HN discussion,
+but nonetheless they have some interesting comments.
+
+* [Nice refresh/notes material for Maths](http://tutorial.math.lamar.edu)
+
+Has some nice notes on Algebra, Calculus and Differential equations.
+
+* [Another Review material](http://sosmath.com/)
+
+Another wide variety of review material covering various branches in
+mathematics.
+
+* [Humans should learn](http://scattered-thoughts.net/blog/2014/11/15/humans-should-learn-maths/)
+
+Write here.
