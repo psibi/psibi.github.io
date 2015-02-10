@@ -1,5 +1,5 @@
 ---
-title: Nix multiple channels and managing stuff
+title: Nix: Managing multiple channels
 author: Sibi
 ---
 
@@ -20,7 +20,8 @@ And then update it:
 `$ nix-channel --update nixos-14.12`
 
 Now this will update and download the related nix package expressions
-related to it. To see it, you can do something like this:
+related to it. To see the actual downloaded path, you can do something
+like this:
 
         sibi::monoid { ~ }-> cd ~/.nix-defexpr/        
         sibi::monoid { ~/.nix-defexpr }-> ls
@@ -35,12 +36,16 @@ related to it. To see it, you can do something like this:
         sibi::monoid { ~/.nix-defexpr/channels/nixos-14.12 }-> cd nixpkgs/
         sibi::monoid { ~/.nix-defexpr/channels/nixos-14.12/nixpkgs }->
 
-Now to install or search package from that query, you can do something like this:
+Note that the `nixpkgs` directory above under the `channels` directory
+contains expressions for the unstable channel. Now to install or
+search package from that stable channel, you can do something like this:
 
 `$ nix-env -f nixpkgs_channel_directory -iA package_name`     
 
 which can be something like this:
 
 `$ nix-env -f ~/.nix-defexpr/channels/nixos-14.12/nixpkgs/ -i firefox`
+
+for installing from the stable channel.
 
 Thanks to Lethalman from #nixos for pointing me to the right direction.
