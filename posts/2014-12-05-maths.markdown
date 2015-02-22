@@ -57,3 +57,7 @@ mathematics.
 Another must read article. Tells three rituals for learning maths and
 one involves practice. The article also relates programming with
 Mathematics.
+
+* [Edward Kmett's recommendation](http://www.reddit.com/r/haskell/comments/2p801o/haskell_books_for_the_holidays/)
+
+Nice reddit thread which discusses various books. I like Edward Kmett's recommendation there.
