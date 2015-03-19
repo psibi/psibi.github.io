@@ -7,7 +7,9 @@ childhood in the Awadh region Lucknow, I'm a sofware engineer with a
 strong interest in Functional Programming (especially Haskell). I'm a
 avid Ruskin Bond fan, like A.R.Rahman's music and usually very lazy.
 
-I work in TCS R&D Labs as a Researcher. You can find me here:
+I previously worked in TCS R&D Labs at IIT Madras Research park as a
+Researcher. Currently I'm working with a startup named Inkmonk (I'm
+their first engineering hire!).
 
 * [Github](http://github.com/psibi)
 * [StackOverflow](http://stackoverflow.com/users/1651941/sibi)
