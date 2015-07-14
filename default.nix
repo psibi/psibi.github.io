@@ -1,16 +1,15 @@
-{ haskellPackages ? (import <nixpkgs> {}).haskellPackages }:
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "ghc7101" }:
 let
-  inherit (haskellPackages) cabal cabalInstall 
-    hakyll; # Haskell dependencies here
-
-in cabal.mkDerivation (self: {
-  pname = "sibi-blog";
+  inherit (nixpkgs) pkgs;
+  ghc = pkgs.haskell.packages.${compiler}.ghcWithPackages (ps: with ps; [
+        hakyll
+                    ]); 
+in pkgs.stdenv.mkDerivation {
+  name = "sibi-blog";
   version = "1.0.0";
   src = ./.;
-  buildDepends = [
-    # As imported above
-    hakyll
+  buildInputs = [
+    ghc
   ];
-  buildTools = [ cabalInstall ];
-  enableSplitObjs = false;
-})
+  shellHook = "eval $(egrep ^export ${ghc}/bin/ghc)";
+}
