@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Sibi's Blog - Hacking Persistent</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Sibi's Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Hacking Persistent</h1>
+
+            <div class="info">
+    Posted on August  2, 2015
+    
+        by Sibi
+    
+</div>
+
+<p>I’m a big fan of <a href="https://github.com/yesodweb/persistent/">persistent</a> as it offers compile time integrity checks for your database. Whenever I need to model a new schema, I usually use this tool to come up with the design. As I model and typecheck the code, I usually use the <code>printMigration</code> function to see the translated SQL queries. The code looks something like this:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE EmptyDataDecls             #-}</span>
+<span class="ot">{-# LANGUAGE FlexibleContexts           #-}</span>
+<span class="ot">{-# LANGUAGE GADTs                      #-}</span>
+<span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span>
+<span class="ot">{-# LANGUAGE MultiParamTypeClasses      #-}</span>
+<span class="ot">{-# LANGUAGE OverloadedStrings          #-}</span>
+<span class="ot">{-# LANGUAGE QuasiQuotes                #-}</span>
+<span class="ot">{-# LANGUAGE TemplateHaskell            #-}</span>
+<span class="ot">{-# LANGUAGE TypeFamilies               #-}</span>
+<span class="kw">import </span><span class="dt">Control.Monad.IO.Class</span>  (liftIO)
+<span class="kw">import </span><span class="dt">Control.Monad.Logger</span>    (runStderrLoggingT)
+<span class="kw">import </span><span class="dt">Database.Persist</span>
+<span class="kw">import </span><span class="dt">Database.Persist.Postgresql</span>
+<span class="kw">import </span><span class="dt">Database.Persist.TH</span>
+
+share [mkPersist sqlSettings, mkMigrate <span class="st">&quot;migrateAll&quot;</span>]
+          [persistLowerCase<span class="fu">|</span>
+<span class="dt">Person</span>
+    name <span class="dt">String</span>
+    age <span class="dt">Int</span> <span class="dt">Maybe</span>
+    address <span class="dt">Int</span>
+    <span class="kw">deriving</span> <span class="dt">Show</span>
+<span class="dt">BlogPost</span>
+    title <span class="dt">String</span>
+    authorId <span class="dt">PersonId</span>
+    <span class="kw">deriving</span> <span class="dt">Show</span>
+<span class="fu">|</span>]
+
+connStr <span class="fu">=</span> <span class="st">&quot;host=localhost dbname=test user=test password=test port=5432&quot;</span>
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> runStderrLoggingT <span class="fu">$</span> withPostgresqlPool connStr <span class="dv">10</span> <span class="fu">$</span>
+       \pool <span class="ot">-&gt;</span> liftIO <span class="fu">$</span> <span class="kw">do</span>
+                  flip runSqlPersistMPool pool <span class="fu">$</span> <span class="kw">do</span>
+                           printMigration migrateAll</code></pre></div>
+<p>But there is a slight problem with this code. For the program to run successfully, It needs an actual database to be present in the system. With that being in mind, I filed an <a href="https://github.com/yesodweb/persistent/issues/274">issue</a> hoping it would be fixed. After around 10 months and with a little push from <a href="https://github.com/yesodweb/persistent/issues/274#issuecomment-122727546">Michael Snoyman</a>, I finally started working on the patch. As I studied the code, I sent a <a href="https://github.com/yesodweb/persistent/pull/430">series</a> <a href="https://github.com/yesodweb/persistent/pull/426">of</a> <a href="https://github.com/yesodweb/persistent/pull/425">cleanup</a> <a href="https://github.com/yesodweb/persistent/pull/424">patches</a>. Finally I figured out the problem with the actual issue and wrote a patch for <a href="https://github.com/yesodweb/persistent/pull/436">PostgreSQL driver</a> for it. Right now it is merged and lives in the master. So for the above code to run properly without the actual database being present, make use of the <code>mockMigration</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> mockMigration migrateAll</code></pre></div>
+<p>And that will print the migration for your designed database. And today I have sent a pull request for the <a href="https://github.com/yesodweb/persistent/pull/439">MySQL backend</a>. Once it gets merged, you can also use this functionality for designing schemas for MySQL.</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
