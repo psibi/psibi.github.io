@@ -75,4 +75,4 @@ And that will print the migration for your designed database. And
 today I have sent a pull request for the
 [MySQL backend](https://github.com/yesodweb/persistent/pull/439). Once
 it gets merged, you can also use this functionality for designing
-schemas for MySQL.
+schemas using MySQL too.
