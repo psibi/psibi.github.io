@@ -1,5 +1,5 @@
 ---
-title: Use case for unsafeInterleaveIO
+title: Understanding unsafeInterleaveIO
 author: Sibi
 ---
 
