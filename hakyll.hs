@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
-import           Data.Monoid (mappend)
+import           Data.Monoid (mappend, (<>))
 import           Hakyll
 
 
@@ -64,4 +64,11 @@ main = hakyll $ do
 postCtx :: Context String
 postCtx =
     dateField "date" "%B %e, %Y" `mappend`
+    disqusIdentifier <>
     defaultContext
+
+disqusIdentifier :: Context String
+disqusIdentifier = field "disqus_identifier" someFunc
+
+disqusId :: Item String -> Compiler String
+disqusId item = return $ toFilePath $ itemIdentifier item
