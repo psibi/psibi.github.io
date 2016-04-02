@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta charset="UTF-8" />
         <title>Sibi's Blog - Hacking Persistent</title>
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
     </head>
@@ -69,6 +68,26 @@ main <span class="fu">=</span> runStderrLoggingT <span class="fu">$</span> withP
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span> ()
 main <span class="fu">=</span> mockMigration migrateAll</code></pre></div>
 <p>And that will print the migration for your designed database. And today I have sent a pull request for the <a href="https://github.com/yesodweb/persistent/pull/439">MySQL backend</a>. Once it gets merged, you can also use this functionality for designing schemas using MySQL too. And yes, this is the first time I’m doing the development of Haskell packages using <a href="https://nixos.org/nix/">Nix</a>.</p>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "http://psibi.in/posts/2015-08-02-hacking-persistent.html";
+    this.page.identifier = "posts/2015-08-02-hacking-persistent.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
 
         </div>
         <div id="footer">
