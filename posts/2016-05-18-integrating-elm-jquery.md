@@ -74,4 +74,35 @@ And the corresponding `html` file:
 
 ## The Integration part
 
-Now let's do the integration with the jQuery plugin. 
+Now let's do the integration with the jQuery plugin. There are four steps for it:
+
+* Change the first line of the Elm code to indicate that it is a port module:
+
+    `port module Notify exposing (..)`
+
+* Add type signature for the port function:
+
+    `port alert : String -> Cmd msg`
+
+* Handle `Alert` case properly in the `update` function:
+
+    `    Alert -> (model, alert model.content)`
+
+* Connect the Plugin with the Elm part in the HTML code:
+
+``` html
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
+<script type="text/javascript" src="./notifyLib.js"></script>
+<script src="./notify.js"></script> 
+<script>
+    var app = Elm.Notify.fullscreen();
+    app.ports.alert.subscribe(function(word) {
+      $.notify(word);
+    });
+</script>
+```
+
+And voila, you get a alert:
+
+
+
