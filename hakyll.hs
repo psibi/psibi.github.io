@@ -11,6 +11,10 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
+    match "images/posts/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     match "css/*" $ do
         route   idRoute
         compile compressCssCompiler
@@ -68,7 +72,7 @@ postCtx =
     defaultContext
 
 disqusIdentifier :: Context String
-disqusIdentifier = field "disqus_identifier" someFunc
+disqusIdentifier = field "disqus_identifier" disqusId
 
 disqusId :: Item String -> Compiler String
 disqusId item = return $ toFilePath $ itemIdentifier item
