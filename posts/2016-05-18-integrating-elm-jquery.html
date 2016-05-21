@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sibi's Blog - Integrating Elm with a jQuery plugin</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Sibi's Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Integrating Elm with a jQuery plugin</h1>
+
+            <div class="info">
+    Posted on May 18, 2016
+    
+        by Sibi
+    
+</div>
+
+<p>For the past few days, I have been playing around with <a href="http://elm-lang.org/">Elm language</a> to see if I can use it in one of my upcoming projects. While I was happy with the strongly typed language and the <a href="http://guide.elm-lang.org/architecture/index.html">architecture</a>, I was concerned if I can use the existing ecosystem of Javascript libraries in it without much boilerplate. This post will indeed show how easy that is. Note: if you have already read <a href="http://guide.elm-lang.org/interop/javascript.html">this</a>, then this article offers nothing new (Though I would argue that this gives an example with a real library). But if you haven’t read it, then this may give you an rough idea of how much code is required for it.</p>
+<h2 id="objective">Objective</h2>
+<p>Let’s take some jQuery plugin and then try to integrate it with Elm. I chose <a href="https://notifyjs.com/">notifyjs</a> plugin which allows us to create notification. So our objective is to create a simple UI with a input text and a button. When the button is clicked, the text in the input form will be shown to us via the <code>notifyjs</code> plugin.</p>
+<h2 id="the-elm-part">The Elm part</h2>
+<p>The Elm code without any jQuery integration:</p>
+<pre class="elm"><code>module Notify exposing (..)
+
+import Html exposing (Html, div, input, text, button)
+import Html.App as Html
+import Html.Attributes exposing (..)
+import Html.Events exposing (onInput, onClick)
+import String
+
+main = Html.program { init = model
+                    , view = view
+                    , update = update
+                    , subscriptions = \x -&gt; Sub.none
+                    }
+
+
+type alias Model = { content : String }
+
+model =  (Model &quot;&quot;, Cmd.none)
+
+type Msg  = Change String
+          | Alert
+
+update : Msg -&gt; Model -&gt; (Model, Cmd Msg)
+update msg model =
+  case msg of
+    Change newContent -&gt;
+      ({ model | content = newContent }, Cmd.none)
+    Alert -&gt; (model, Cmd.none)
+
+view : Model -&gt; Html Msg
+view model =
+  div []
+    [ input [ placeholder &quot;Enter alert message&quot;, onInput Change ] []
+    , button [ onClick Alert ] [ text &quot;Show Alert!&quot; ]
+    ]</code></pre>
+<p>Now, compile it to create the js file:</p>
+<p><code>elm-make Notify.elm --output notify.js</code></p>
+<p>And the corresponding <code>html</code> file:</p>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span>
+<span class="kw">&lt;html&gt;</span>
+<span class="kw">&lt;head&gt;</span>
+<span class="kw">&lt;title&gt;</span>Sample Elm app<span class="kw">&lt;/title&gt;</span>
+<span class="kw">&lt;/head&gt;</span>
+<span class="kw">&lt;body&gt;</span>
+<span class="kw">&lt;/body&gt;</span>
+<span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> 
+<span class="kw">&lt;script&gt;</span>
+    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span>
+<span class="op">&lt;</span><span class="ss">/script&gt;</span>
+<span class="ss">&lt;/html</span><span class="op">&gt;</span> </code></pre></div>
+<h2 id="the-integration-part">The Integration part</h2>
+<p>Now let’s do the integration with the jQuery plugin. There are four steps for it:</p>
+<ul>
+<li><p>Change the first line of the Elm code to indicate that it is a port module:</p>
+<p><code>port module Notify exposing (..)</code></p></li>
+<li><p>Add type signature for the port function:</p>
+<p><code>port alert : String -&gt; Cmd msg</code></p></li>
+<li><p>Handle <code>Alert</code> case properly in the <code>update</code> function:</p>
+<p><code>Alert -&gt; (model, alert model.content)</code></p></li>
+<li><p>Connect the Plugin with the Elm part in the HTML code:</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+<span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;./notifyLib.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span>
+<span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> 
+<span class="kw">&lt;script&gt;</span>
+    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span>
+    <span class="va">app</span>.<span class="va">ports</span>.<span class="va">alert</span>.<span class="at">subscribe</span>(<span class="kw">function</span>(word) <span class="op">{</span>
+      <span class="va">$</span>.<span class="at">notify</span>(word)<span class="op">;</span>
+    <span class="op">}</span>)<span class="op">;</span>
+<span class="op">&lt;</span><span class="ss">/script&gt;</span></code></pre></div>
+<p>And voila, you get a alert:</p>
+<div class="figure">
+<img src="../images/posts/elm-alert.png" alt="Alert notification using notifyjs" />
+<p class="caption">Alert notification using notifyjs</p>
+</div>
+<p>For a more complex example, you can refer to the <a href="http://guide.elm-lang.org/interop/javascript.html">elm guide</a> which also shows the use of <code>subscription</code>.</p>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "http://psibi.in/posts/2016-05-18-integrating-elm-jquery.html";
+    this.page.identifier = "posts/2016-05-18-integrating-elm-jquery.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+	<script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-27311575-2', 'auto');
+	    ga('send', 'pageview');
+	</script>
+    </body>
+</html>
