@@ -3,11 +3,11 @@ title: Integrating Elm with a jQuery plugin
 author: Sibi
 ---
 
-For the past few days, I have been playing around with [Elm language]() to see if I can use it in one of my upcoming projects. While I was happy with the strongly typed language and the [architecture](), I was concerned if I can use the existing ecosystem of Javascript libraries in it without much boilerplate. This post will indeed show how easy, it is to achieve that. Note: if you have already read [this](), then this article offers nothing new. But if you haven't, then this may give you an idea of how much code is required for it.
+For the past few days, I have been playing around with [Elm language](http://elm-lang.org/) to see if I can use it in one of my upcoming projects. While I was happy with the strongly typed language and the [architecture](http://guide.elm-lang.org/architecture/index.html), I was concerned if I can use the existing ecosystem of Javascript libraries in it without much boilerplate. This post will indeed show how easy that is. Note: if you have already read [this](http://guide.elm-lang.org/interop/javascript.html), then this article offers nothing new (Though I would argue that this gives an example with a real library). But if you haven't read it, then this may give you an rough idea of how much code is required for it.
 
 ## Objective
 
-Let's take a random jQuery plugin and then try to integrate it with Elm. I chose [notifjs]() plugin which allows us to create notification. So our objective is to create a simple UI with a input text and a button. When the button is clicked, the text in the input form will be shown to us via the `notifyjs` plugin.
+Let's take some jQuery plugin and then try to integrate it with Elm. I chose [notifyjs](https://notifyjs.com/) plugin which allows us to create notification. So our objective is to create a simple UI with a input text and a button. When the button is clicked, the text in the input form will be shown to us via the `notifyjs` plugin.
 
 ## The Elm part
 
@@ -104,5 +104,6 @@ Now let's do the integration with the jQuery plugin. There are four steps for it
 
 And voila, you get a alert:
 
+![Alert notification using notifyjs](/images/posts/elm-alert.png)
 
-
+For a more complex example, you can refer to the [elm guide](http://guide.elm-lang.org/interop/javascript.html) which also shows the use of `subscription`.
