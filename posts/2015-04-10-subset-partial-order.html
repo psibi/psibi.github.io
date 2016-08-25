@@ -1,36 +1,57 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Sibi's Blog - Subset partial order</title>
+        <meta charset="UTF-8" />
+        <title>Sibi - 2015-04-10-subset-partial-order</title>
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
     </head>
     <body>
-        <div id="header">
-            <div id="logo">
-                <a href="../">Sibi's Blog</a>
-            </div>
-            <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../contact.html">Contact</a>
-                <a href="../archive.html">Archive</a>
-            </div>
+	 <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../">Sibi</a>
         </div>
-
-        <div id="content">
-            <h1>Subset partial order</h1>
-
-            <div class="info">
-    Posted on April 10, 2015
-    
-        by Sibi
-    
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="../">Home</a></li>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+	    <li><a href="../archive.html">Archive</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>2015-04-10-subset-partial-order</h1>
+    <span class="date">April 10, 2015</span>
 </div>
 
+<div id="header">
+<div id="logo">
+<a href="../">Sibi’s Blog</a>
+</div>
+<div id="navigation">
+<a href="../">Home</a> <a href="../about.html">About</a> <a href="../contact.html">Contact</a> <a href="../archive.html">Archive</a>
+</div>
+</div>
+<div id="content">
+<h1 id="subset-partial-order">Subset partial order</h1>
+<div class="info">
+Posted on April 10, 2015 by Sibi
+</div>
 <p>What is subset partial order ? Now in my opinion one thing where John Velleman’s fails to explain properly is this. Let’s start from the definition of smallest element to understand it:</p>
-<p>Suppose <span class="math"><em>R</em></span> is a partial order on a set <span class="math"><em>A</em></span>, <span class="math"><em>B</em> ⊆ <em>A</em></span>, and <span class="math"><em>b</em> ∈ <em>B</em></span>. Then <span class="math"><em>b</em></span> is called an <span class="math"><em>R</em></span>-smallest element of <span class="math"><em>B</em></span> if <span class="math">∀<em>x</em> ∈ <em>B</em>(<em>b</em><em>R</em><em>x</em>)</span>.</p>
+<p>Suppose <span class="math"><em>R</em></span> is a partial order on a set <span class="math"><em>A</em></span>, <span class="math"><em>B</em> ⊆ <em>A</em></span>, and <span class="math"><em>b</em> ∈ <em>B</em></span>. Then <span class="math"><em>b</em></span> is called an <span class="math"><em>R</em></span>-smallest element of <span class="math"><em>B</em></span> if <span class="math">∀<em>x</em> ∈ <em>B</em>(<em>bRx</em>)</span>.</p>
 <p>Ok, that’s cool. And now there is this family of set on which it is asked to find the smallest set: <span class="math"><em>F</em> = {<em>X</em> ⊆ <em>R</em> ∣ 5 ∈ <em>X</em> ∧ ∀<em>x</em>∀<em>y</em>((<em>x</em> ∈ <em>X</em> ∧ <em>x</em> &lt; <em>y</em>) ⇒ <em>y</em> ∈ <em>X</em>)}</span>.</p>
 <p>Ok, so basically <span class="math"><em>F</em></span> is a set whose elements are subset of <span class="math"><em>R</em></span> with some property. Now here’s where Velleman strikes with his explanation: “smallest means smallest with respect to the subset partial order”.</p>
 <p>The answer seems much simpler. Subset partial order means partial order in which <span class="math"> ⊆ </span> is the relation. So in the above case the smallest in <span class="math"><em>F</em></span> means an element <span class="math"><em>X</em></span> which satifises this property:</p>
@@ -39,11 +60,61 @@
 <p>Now <span class="math"><em>F</em></span> is a set which contains element which itself is a set. So <span class="math"><em>S</em></span> must be definitely a relation on <span class="math"><em>P</em>(<em>R</em>)</span>. So the definition of <span class="math"><em>S</em></span> goes like this:</p>
 <p><span class="math"><em>S</em> = {(<em>X</em>, <em>Y</em>) ∈ <em>P</em>(<em>R</em>) × <em>P</em>(<em>R</em>) ∣ <em>X</em> ⊆ <em>Y</em>}</span></p>
 <p>The key thing to understand here is that <span class="math"><em>F</em> ⊆ <em>P</em>(<em>R</em>)</span>.</p>
+</div>
+<div id="footer">
+Site proudly generated by <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+</div>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "http://psibi.in/posts/2015-04-10-subset-partial-order.html";
+    this.page.identifier = "posts/2015-04-10-subset-partial-order.html";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+</div>
 
         </div>
         <div id="footer">
-            Site proudly generated by
+            Site generated by
             <a href="http://jaspervdj.be/hakyll">Hakyll</a>
         </div>
+	<script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-27311575-2', 'auto');
+	    ga('send', 'pageview');
+	    
+	    // Hack for adding active class to the li tag.
+	    var litags = document.getElementById("navbar").getElementsByTagName("li");
+	    litags[0].className = "";
+	    litags[1].className = "";
+	    litags[2].className = "";
+	    litags[3].className = "";
+	    var currentPage = window.location.href.split('/')[3];
+	    if (currentPage === "")
+	       litags[0].className = "active";
+	    if (currentPage === "about.html")
+	       litags[1].className = "active";
+	    if (currentPage === "contact.html")
+	       litags[2].className = "active";
+	    if (currentPage === "archive.html")
+	       litags[3].className = "active";
+	</script>
     </body>
 </html>
