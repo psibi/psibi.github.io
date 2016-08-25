@@ -2,30 +2,39 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Sibi's Blog - Quoting functions in Template Haskell</title>
+        <title>Sibi - Quoting functions in Template Haskell</title>
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
     </head>
     <body>
-        <div id="header">
-            <div id="logo">
-                <a href="../">Sibi's Blog</a>
-            </div>
-            <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../contact.html">Contact</a>
-                <a href="../archive.html">Archive</a>
-            </div>
+	 <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Sibi</a>
         </div>
-
-        <div id="content">
-            <h1>Quoting functions in Template Haskell</h1>
-
-            <div class="info">
-    Posted on September  7, 2015
-    
-        by Sibi
-    
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+	    <li><a href="../archive.html">Archive</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>Quoting functions in Template Haskell</h1>
+    <span class="date">September  7, 2015</span>
 </div>
 
 <p>While working on <a href="https://github.com/yesodweb/shakespeare/pull/165/files">this patch</a>, I learned a cool feature of Template Haskell called quoting function. Instead of using <code>VarE (mkName &quot;show&quot;)</code> to create an <code>Exp</code> type, you can safely create the same using this: <code>VarE 'Prelude.show</code>. When generating declartions using splicing, the import of the module will be taken care of by itself. A self contained example:</p>
@@ -76,6 +85,7 @@ main <span class="fu">=</span> <span class="kw">do</span>
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
 <div id="disqus_thread"></div>
+</div>
 
         </div>
         <div id="footer">
@@ -91,5 +101,6 @@ main <span class="fu">=</span> <span class="kw">do</span>
 	    ga('create', 'UA-27311575-2', 'auto');
 	    ga('send', 'pageview');
 	</script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     </body>
 </html>
