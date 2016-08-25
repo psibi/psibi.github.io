@@ -1,7 +1,14 @@
-<ul>
+<ul class="post-index">
     $for(posts)$
         <li>
-            <a href="$url$">$title$</a> - $date$
+	    <h2><a href="$url$">$title$</a></h2>
+	    <span class="date">$date$</span>
+	    <p>
+		lore ipsum fkajfkajfk lore ipsum fkajfkajfk
+		lore ipsum fkajfkajfk lore ipsum fkajfkajfk
+		lore ipsum fkajfkajfk lore ipsum fkajfkajfk
+	    </p>
+	    <a class="btn btn-default" href="$url$">Continue reading</a>
         </li>
     $endfor$
 </ul>
