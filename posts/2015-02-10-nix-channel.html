@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Sibi - 2015-02-10-nix-channel</title>
+        <title>Sibi - Nix: Managing multiple channels</title>
 	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
@@ -33,11 +33,10 @@
         <div id="content" class="container">
             <div class="article">
 <div class="post-index">
-    <h1>2015-02-10-nix-channel</h1>
+    <h1>Nix: Managing multiple channels</h1>
     <span class="date">February 10, 2015</span>
 </div>
 
-<p>“—” title: Nix: Managing multiple channels author: Sibi “—”</p>
 <p>This post will document how to add multiple channels for the Nix package manager and the way to install (or do any other operations) specific software from a particular channel.</p>
 <p>First, go to this <a href="https://nixos.org/channels/">url</a> to find out the specific channel which you want to add. Since by default nix adds the unstable channel, I will add up the stable channel for my profile. Note that the stable channel will be the latest nixos package version. After finding it’s url, add it like this:</p>
 <p><code>$ nix-channel --add https://nixos.org/channels/nixos-14.12</code></p>
