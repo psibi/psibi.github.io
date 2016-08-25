@@ -1,7 +1,7 @@
----
+"---"
 title: newBlog :: IO ()
 author: Sibi
----
+"---"
 
 After a lot of thinking, I finally decided to migrate from
 [blogger](http://blog.psibi.in) to a Hakyll based blog. I wanted to
