@@ -55,7 +55,7 @@ main = hakyll $ do
             let indexCtx =
                     listField "posts" postCtx (return sixPosts) `mappend`
                     constField "title" "Home"                `mappend`
-                    defaultContext
+                    postCtx
 
             getResourceBody
                 >>= applyAsTemplate indexCtx
