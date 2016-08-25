@@ -1,7 +1,7 @@
-"---"
-title: Nix: Managing multiple channels
+---
+title: "Nix: Managing multiple channels"
 author: Sibi
-"---"
+---
 
 This post will document how to add multiple channels for the Nix
 package manager and the way to install (or do any other operations)
