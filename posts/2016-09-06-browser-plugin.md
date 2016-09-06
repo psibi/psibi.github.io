@@ -30,7 +30,7 @@ which is a cross browser system for developing add-ons. While I'm
 happy with having to maintain a single codebase for different
 platforms, it was still a pain. I specifically had to
 [add "tabs" permissions](https://github.com/psibi/stackgo/commit/c70a31dfcaefc94a9ffeb9c359dd3bd559edef05)
-and write code in a different way because
+and wrote code in a different way because
 [originUrl](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/webRequest/onBeforeSendHeaders#Chrome)
 was not supported in Chrome. Maybe, things will become better in
 future. This plugin is expected to work in Opera, although I
