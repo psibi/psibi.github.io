@@ -40,3 +40,7 @@ script:
 - stack --no-terminal test --haddock --no-haddock-deps
 - stack exec website build
 - stack exec website check
+
+branches:
+  only:
+    - source
