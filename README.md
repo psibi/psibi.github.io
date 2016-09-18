@@ -1,4 +1,5 @@
 # psibi.in
+[![Build Status](https://travis-ci.org/psibi/psibi.github.io.svg?branch=source)](https://travis-ci.org/psibi/psibi.github.io)
 
 My website's source
 
