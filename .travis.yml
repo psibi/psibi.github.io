@@ -38,8 +38,8 @@ install:
 script:
 # Build the package, its tests, and its docs and run the tests
 - stack --no-terminal test --haddock --no-haddock-deps
-- stack exec website build
-- stack exec website check
+- stack exec psibi.in build
+- stack exec psibi.in check
 
 branches:
   only:
