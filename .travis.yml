@@ -26,8 +26,10 @@ addons:
       - fpcomplete-precise
     packages:
       - libgmp-dev
-      - stack
 
+before_install:
+- travis_retry sudo apt-get update
+- travis_retry sudo apt-get -y install stack
 
 install:
 # Build dependencies
