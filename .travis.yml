@@ -22,11 +22,12 @@ cache:
 # Ensure necessary system libraries are present
 addons:
   apt:
+    sources:
+      - fpcomplete-precise
     packages:
       - libgmp-dev
       - stack
-    sources:
-      - fpcomplete-precise
+
 
 install:
 # Build dependencies
