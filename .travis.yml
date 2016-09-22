@@ -25,6 +25,8 @@ addons:
     packages:
       - libgmp-dev
       - stack
+    sources:
+      - fpcomplete-precise
 
 install:
 # Build dependencies
