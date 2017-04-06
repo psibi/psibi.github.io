@@ -2,18 +2,17 @@
 title: Experiencing Maths via Coq
 ---
 
-Two years ago, I started doing
+Two years ago, I started working on
 Velleman's [How to prove](https://github.com/psibi/how-to-prove)
-book. While studying, one thing I constantly noted was how easy it was
-to prove something wrong and don't realise it untill I go it again
-with a fresh mind.
+book. While studying it, I realized that it was easy to prove
+something wrong and completely miss it.
 
 I have been recently studying Coq and proving basic properties
 of [Peano numbers](https://wiki.haskell.org/Peano_numbers) using
-it. After using it for a month, I feel that for self-studying Math,
+it. After using it for a month, I feel that for self-studying Maths,
 Coq is much better than the traditional way of writing informal
-proofs. Also, in some cases it has helped me to refine my
-proof. An example case:
+proofs. Also, in some cases, it has helped me to refine my proof. An
+example case:
 
 ``` coq
 Lemma S_injective : forall n m,
@@ -51,4 +50,4 @@ Qed.
 
 I think this kind of rapid iteration is very essential in learning
 maths. The ability to quickly try out another way of solving it and
-having the confirmation that it works is very valuable in my opinion.
+having the confirmation that it works is very valuable.
