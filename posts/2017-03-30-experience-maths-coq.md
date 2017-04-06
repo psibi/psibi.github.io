@@ -30,7 +30,7 @@ Qed.
 ```
 
 My first attempt in the above problem was to use induction. But after
-proving it, I noted that I'm not using the induction hypothesis at
+proving it, I noted that I'm not using induction hypothesis at
 all. So in my second attempt, I proved it using case analysis without
 induction:
 
