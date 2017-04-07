@@ -4,8 +4,9 @@ title: Experiencing Maths via Coq
 
 Two years ago, I started working on
 Velleman's [How to prove](https://github.com/psibi/how-to-prove)
-book. While studying it, I realized that it was easy to prove
-something wrong and completely miss it.
+book. While studying it, I realized that it was easy to
+prove
+[something wrong and completely miss it](http://staffhome.ecm.uwa.edu.au/~00043886/humour/invalid.proofs.html).
 
 I have been recently studying Coq and proving basic properties
 of [Peano numbers](https://wiki.haskell.org/Peano_numbers) using
