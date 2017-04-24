@@ -19,7 +19,8 @@ All the threads running above is synchronized properly via usage
 of
 [STM](https://en.wikipedia.org/wiki/Software_transactional_memory). But
 there was a race condition in the code which always made the
-development server in compile mode. After lot of instrumentation, I found out that the reason behind that was this piece of code:
+development server in compile mode. After lot of instrumentation, I
+found out that the reason behind that was this piece of code:
 
 ``` haskell
 atomically (writeTVar appPortVar (-1))
@@ -69,3 +70,7 @@ Stack build process and then don't do any further writing on the
 sure that it has the ability to write to the `TVar` variable. The
 ability to when to write to the `TVar` is controlled via the locking
 primitive of `MVar (BuildOutput)`.
+
+I have submitted
+a [patch](https://github.com/yesodweb/yesod/pull/1381) for this
+bug. Hoping to see how it goes.
