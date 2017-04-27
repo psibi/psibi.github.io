@@ -19,6 +19,6 @@ stack exec psibi.in -- preview
 
 ``` shellsession
 stack exec psibi.in -- build
-sync.sh
+./sync.sh .
 ```
 
