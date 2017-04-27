@@ -5,13 +5,20 @@ My website's source
 
 # Build
 
-`stack build`
+``` shellsession
+stack build
+```
 
 # Preview the website
 
-`stack exec psibi.in -- preview`
+``` shellsession
+stack exec psibi.in -- preview
+```
 
 # To do deployment
 
-`stack exec psibi.in -- build`
-`sync.sh`
+``` shellsession
+stack exec psibi.in -- build
+sync.sh
+```
+
