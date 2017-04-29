@@ -191,7 +191,7 @@ div.info {
     width: 100%;
 }
 
-.article h1, .article p{
+.article h1, .article p, .article li {
     font-family: 'Source Serif Pro', serif;
 }
 
@@ -212,6 +212,19 @@ div.info {
     line-height: 30px;
 }
 
+.article li {
+    font-size: 19px;
+    line-height: 30px;
+}
+
 .math {
     color: #ff3466;
+}
+
+@media only screen and (max-width:360px) {
+
+    .container {
+        width: 340px;
+    }
+    
 }
