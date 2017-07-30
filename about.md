@@ -19,7 +19,7 @@ their first engineering hire!).
 
 <div class="portfolio">
 * [Github](http://github.com/psibi)
-* <i class="fa fa-stack-overflow" aria-hidden="true">[StackOverflow](http://stackoverflow.com/users/1651941/sibi)</i>
+* [StackOverflow](http://stackoverflow.com/users/1651941/sibi)
 * [Hacker News](https://news.ycombinator.com/user?id=psibi)
 * [Hackage](http://hackage.haskell.org/user/psibi)
 * [Haskeller](http://www.haskellers.com/user/psibi)
