@@ -3,7 +3,9 @@ title: Viewing Stack snapshots
 author: Sibi
 ---
 
-Just some days ago, I [got my pull request for `ls` subcommand](https://github.com/commercialhaskell/stack/pull/3252) feature
+Just some days ago,
+I
+[got my pull request for `ls` subcommand](https://github.com/commercialhaskell/stack/pull/3252) feature
 accepted into Stack. Due to my laziness and unclear design issues
 (mostly the former), it took around five months for me to make it
 upstream. So, this is the interface of the new feature:
@@ -20,6 +22,8 @@ Available commands:
   snapshots                View local snapshot (default option)
 
 Run 'stack --help' for global options that apply to all subcommands.
+
+
 ~ $ stack ls snapshots --help
 Usage: stack ls snapshots [COMMAND] [-l|--lts] [-n|--nightly]
   View local snapshot (default option)
@@ -41,7 +45,15 @@ do `stack upgrade --git`.
 
 ## Origin
 
-So, why did I create this ? I have always wanted this feature when writing scripts using [Stack interpreter](https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter). Pin-pointing to an existing local resolver ensured that I need not download and build the packages again (and saving quite a bit of time). And doing that manually was messy. That's when I went into the source and implemented the feature. Now, all I have to do is this:
+So, why did I create this ? I have always wanted this feature when
+writing scripts
+using
+[Stack interpreter](https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter). Pin-pointing
+to an existing local resolver ensured that I need not download and
+build the packages again (and thereby saving quite a bit of time). And
+trying to find out the local resolvers under `~/.stack` was
+messy. That's when I went into the source and implemented the
+feature. Now, all I have to do is this:
 
 ``` shellsession
 ~ $ stack ls snapshots -n
@@ -55,11 +67,22 @@ nightly-2017-08-15
 nightly-2017-09-07
 ```
 
-Then, I also wanted a way to see the latest released lts resolvers in Stackage. And that's why I added the `remote` command support for it. I specifically had to [patch Stackage servers](https://github.com/fpco/stackage-server/pull/230) to get this functionality working.
+I also wanted a way to see the latest released lts resolvers in
+Stackage. And that's why I added the `remote` command support for
+it. I specifically had
+to
+[patch Stackage servers](https://github.com/fpco/stackage-server/pull/230) to
+get this functionality working.
 
 ## Future work
 
-The future work is to get the [user guide documentation](https://github.com/commercialhaskell/stack/pull/3672) updated describing the functionality. I also have volunteered to bring the `list-dependencies` sub command under this new interface. [Issue 3669](https://github.com/commercialhaskell/stack/issues/3669) has been made to track this.
+The future work is to get
+the
+[user guide documentation](https://github.com/commercialhaskell/stack/pull/3672) updated
+describing the functionality. I also have volunteered to bring the
+`list-dependencies` sub command under this new
+interface. [Issue 3669](https://github.com/commercialhaskell/stack/issues/3669) has
+been made to track this.
 
 
 
