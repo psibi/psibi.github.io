@@ -51,7 +51,7 @@ using
 [Stack interpreter](https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter). Pin-pointing
 to an existing local resolver ensured that I need not download and
 build the packages again (and thereby saving quite a bit of time). And
-trying to find out the local resolvers under `~/.stack` was
+trying to find out the local resolvers manually under `~/.stack` was
 messy. That's when I went into the source and implemented the
 feature. Now, all I have to do is this:
 
