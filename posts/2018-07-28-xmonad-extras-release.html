@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Sibi - Subset partial order</title>
+        <title>Sibi - xmonad-extras 0.13.4 released</title>
 	 <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -36,27 +36,33 @@
         <div id="content" class="container">
             <div class="article">
 <div class="post-index">
-    <h1>Subset partial order</h1>
-    <span class="date">April 16, 2015</span>
+    <h1>xmonad-extras 0.13.4 released</h1>
+    <span class="date">July 28, 2018</span>
 </div>
 
-<p>What is subset partial order ? Now in my opinion one thing where John Velleman’s fails to explain properly is this. Let’s start from the definition of smallest element to understand it:</p>
-<p>Suppose <span class="math inline"><em>R</em></span> is a partial order on a set <span class="math inline"><em>A</em></span>, <span class="math inline"><em>B</em> ⊆ <em>A</em></span>, and <span class="math inline"><em>b</em> ∈ <em>B</em></span>. Then <span class="math inline"><em>b</em></span> is called an <span class="math inline"><em>R</em></span>-smallest element of <span class="math inline"><em>B</em></span> if <span class="math inline">∀<em>x</em> ∈ <em>B</em>(<em>b</em><em>R</em><em>x</em>)</span>.</p>
-<p>Ok, that’s cool. And now there is this family of set on which it is asked to find the smallest set: <span class="math inline"><em>F</em> = {<em>X</em> ⊆ <em>R</em> ∣ 5 ∈ <em>X</em> ∧ ∀<em>x</em>∀<em>y</em>((<em>x</em> ∈ <em>X</em> ∧ <em>x</em> &lt; <em>y</em>) ⇒ <em>y</em> ∈ <em>X</em>)}</span>.</p>
-<p>Ok, so basically <span class="math inline"><em>F</em></span> is a set whose elements are subset of <span class="math inline"><em>R</em></span> with some property. Now here’s where Velleman strikes with his explanation: “smallest means smallest with respect to the subset partial order”.</p>
-<p>The answer seems much simpler. Subset partial order means partial order in which <span class="math inline">⊆</span> is the relation. So in the above case the smallest in <span class="math inline"><em>F</em></span> means an element <span class="math inline"><em>X</em></span> which satifises this property:</p>
-<p><span class="math inline">∀<em>Y</em> ∈ <em>F</em>(<em>X</em> ⊆ <em>Y</em>)</span></p>
-<p>Now, I think what confused me was the initial statement: “when comparing subsets of some set <span class="math inline"><em>A</em></span>, then mathematicians use the parial order <span class="math inline"><em>S</em> = {(<em>X</em>, <em>Y</em>) ∈ <em>P</em>(<em>A</em>) × <em>P</em>(<em>A</em>) ∣ <em>X</em> ⊆ <em>Y</em>}</span>”. And this made me always figure out the set <span class="math inline"><em>S</em></span> for any statement related to smallest element. So is there any set <span class="math inline"><em>S</em></span> for <span class="math inline"><em>F</em></span> ?</p>
-<p>Now <span class="math inline"><em>F</em></span> is a set which contains element which itself is a set. So <span class="math inline"><em>S</em></span> must be definitely a relation on <span class="math inline"><em>P</em>(<em>R</em>)</span>. So the definition of <span class="math inline"><em>S</em></span> goes like this:</p>
-<p><span class="math inline"><em>S</em> = {(<em>X</em>, <em>Y</em>) ∈ <em>P</em>(<em>R</em>) × <em>P</em>(<em>R</em>) ∣ <em>X</em> ⊆ <em>Y</em>}</span></p>
-<p>The key thing to understand here is that <span class="math inline"><em>F</em> ⊆ <em>P</em>(<em>R</em>)</span>.</p>
+<p>In the previous release of xmonad-extras-0.13.3, Giovani Silva added support for <a href="https://github.com/xmonad/xmonad-extras/pull/14">Intel brightness control plugin</a>. I have been using that in my <a href="https://github.com/psibi/dotfiles/blob/11bf30521cb068a8ebef57e05b54c1d12efaede4/.xmonad/xmonad.hs">laptop</a> and have been happy with it.</p>
+<p>The new xmonad-extras 0.13.4 release is basically based on my own refinements on top of it. The notable changes are:</p>
+<ul>
+<li>Previously, you need to pass cabal flag to enable the plugin. I have enabled it by default now. Also, it now supports older version of ghc till 7.10.3. I specifically had to remove the <a href="https://github.com/xmonad/xmonad-extras/commit/b94db07a8e79ee11e1b05c3cd697d85786a3af8a">usage of bitraverse function</a> for it.</li>
+<li>Added a new convienence function named <code>setBrightness</code> in the module. I specifically use this in my Xmonad’s startup hook:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ot">sibiStartupHook ::</span> <span class="dt">X</span> ()</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">sibiStartupHook <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  as <span class="ot">&lt;-</span> io getArgs</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  Bright.setBrightness <span class="dv">1260</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">  <span class="fu">...</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">  <span class="fu">...</span></a></code></pre></div>
+<ul>
+<li>Have improved documentation on how to use the plugin. The new documentation is accessible via the Haddock documentation in the module. Specifically, I use it with systemd to make it properly work.</li>
+</ul>
+<p>Unfortunately, this version still doesn’t work with the latest GHC because of an pending <a href="https://github.com/xmonad/xmonad-extras/issues/15">upstream release</a>.</p>
 
 <div id="disqus_thread">
 </div>
 <script>
     var disqus_config = function () {
-    this.page.url = "http://psibi.in/posts/2015-04-16-subset-partial-order.html";
-    this.page.identifier = "posts/2015-04-16-subset-partial-order.markdown";
+    this.page.url = "http://psibi.in/posts/2018-07-28-xmonad-extras-release.html";
+    this.page.identifier = "posts/2018-07-28-xmonad-extras-release.md";
     };
 
     (function() {  // DON'T EDIT BELOW THIS LINE

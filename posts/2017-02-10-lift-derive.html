@@ -42,36 +42,36 @@
 
 <p>There was a <a href="https://mail.haskell.org/pipermail/ghc-devs/2015-September/009838.html">proposal</a> two years ago from Ryan Scott for automatic derivation of <a href="https://www.stackage.org/haddock/lts-7.19/template-haskell-2.11.0.0/Language-Haskell-TH-Syntax.html#t:Lift">Lift typeclass</a>. This has been implemented in GHC and is available from 8.0.1.</p>
 <p>Writing QuasiQuoter has become much easier and fun now. Let’s try to create <a href="https://www.stackage.org/haddock/lts-6.17/time-1.5.0.1/Data-Time-Clock.html#t:UTCTime">UTCTime</a> from QuasiQuoter by parsing a string in <code>YYYY</code> format. That gives the following code:</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE StandaloneDeriving #-}</span>
-<span class="ot">{-# LANGUAGE DeriveLift #-}</span>
-<span class="ot">{-# LANGUAGE TemplateHaskell #-}</span>
-<span class="ot">{-# LANGUAGE ScopedTypeVariables #-}</span>
-
-<span class="kw">import </span><span class="dt">Language.Haskell.TH</span>
-<span class="kw">import </span><span class="dt">Language.Haskell.TH.Quote</span>
-<span class="kw">import </span><span class="dt">Language.Haskell.TH.Syntax</span>
-<span class="kw">import </span><span class="dt">Data.Time.Format</span>
-<span class="kw">import </span><span class="dt">Data.Time</span>
-
-<span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Lift</span> <span class="dt">Day</span>
-
-<span class="kw">instance</span> <span class="dt">Lift</span> <span class="dt">DiffTime</span> <span class="kw">where</span>
-  lift x <span class="fu">=</span> return <span class="fu">$</span> <span class="dt">LitE</span> (<span class="dt">IntegerL</span> <span class="fu">$</span> diffTimeToPicoseconds x)
-
-<span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Lift</span> <span class="dt">UTCTime</span>
-
-<span class="ot">time ::</span> <span class="dt">QuasiQuoter</span>
-time <span class="fu">=</span>
-  <span class="dt">QuasiQuoter</span>
-  { quoteExp <span class="fu">=</span>
-    \str <span class="ot">-&gt;</span>
-       <span class="kw">let</span> (<span class="ot">item ::</span> <span class="dt">Maybe</span> <span class="dt">UTCTime</span>) <span class="fu">=</span> parseTimeM 
-                                     <span class="dt">True</span> 
-                                     defaultTimeLocale 
-                                     <span class="st">&quot;%Y&quot;</span> 
-                                     str
-       <span class="kw">in</span> [<span class="fu">|</span>item<span class="fu">|</span>]
-  }</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ot">{-# LANGUAGE StandaloneDeriving #-}</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="ot">{-# LANGUAGE DeriveLift #-}</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="ot">{-# LANGUAGE TemplateHaskell #-}</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="ot">{-# LANGUAGE ScopedTypeVariables #-}</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">import</span> <span class="dt">Language.Haskell.TH</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="kw">import</span> <span class="dt">Language.Haskell.TH.Quote</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="kw">import</span> <span class="dt">Language.Haskell.TH.Syntax</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="kw">import</span> <span class="dt">Data.Time.Format</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="kw">import</span> <span class="dt">Data.Time</span></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb1-12" data-line-number="12"><span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Lift</span> <span class="dt">Day</span></a>
+<a class="sourceLine" id="cb1-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14"><span class="kw">instance</span> <span class="dt">Lift</span> <span class="dt">DiffTime</span> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb1-15" data-line-number="15">  lift x <span class="fu">=</span> return <span class="fu">$</span> <span class="dt">LitE</span> (<span class="dt">IntegerL</span> <span class="fu">$</span> diffTimeToPicoseconds x)</a>
+<a class="sourceLine" id="cb1-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb1-17" data-line-number="17"><span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Lift</span> <span class="dt">UTCTime</span></a>
+<a class="sourceLine" id="cb1-18" data-line-number="18"></a>
+<a class="sourceLine" id="cb1-19" data-line-number="19"><span class="ot">time ::</span> <span class="dt">QuasiQuoter</span></a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">time <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-21" data-line-number="21">  <span class="dt">QuasiQuoter</span></a>
+<a class="sourceLine" id="cb1-22" data-line-number="22">  { quoteExp <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-23" data-line-number="23">    \str <span class="ot">-&gt;</span></a>
+<a class="sourceLine" id="cb1-24" data-line-number="24">       <span class="kw">let</span> (<span class="ot">item ::</span> <span class="dt">Maybe</span> <span class="dt">UTCTime</span>) <span class="fu">=</span> parseTimeM </a>
+<a class="sourceLine" id="cb1-25" data-line-number="25">                                     <span class="dt">True</span> </a>
+<a class="sourceLine" id="cb1-26" data-line-number="26">                                     defaultTimeLocale </a>
+<a class="sourceLine" id="cb1-27" data-line-number="27">                                     <span class="st">&quot;%Y&quot;</span> </a>
+<a class="sourceLine" id="cb1-28" data-line-number="28">                                     str</a>
+<a class="sourceLine" id="cb1-29" data-line-number="29">       <span class="kw">in</span> [<span class="fu">|</span>item<span class="fu">|</span>]</a>
+<a class="sourceLine" id="cb1-30" data-line-number="30">  }</a></code></pre></div>
 <p>Now load the above module in ghci:</p>
 <pre class="shellsession"><code>λ&gt; :l Time.hs
 [1 of 1] Compiling Main             ( Time.hs, interpreted )

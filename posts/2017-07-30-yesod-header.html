@@ -45,32 +45,32 @@
 <p>My first question was whether replacing header value was a sane thing to do in the framework level ? I went on to see if other framework are providing this. Both <a href="https://docs.djangoproject.com/en/1.11/ref/request-response/#setting-header-fields">Django framework</a> and <a href="https://stackoverflow.com/a/17219300/1651941">Express.js</a> allowed modifying them. Given that the ecosystem in Python and Node.js allowed that, it meant that we are missing that in our Yesod.</p>
 <h2 id="yeah-go-for-it">Yeah, go for it!</h2>
 <p>So armed with the knowledge that it wouldn’t be a wrong thing to do, I decided to add the relevant functionaity to Yesod. My initial patch didn’t take into the account that the header names are case insensitive according to the specification. After some iteration and refinement, this was the final working code:</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">replaceOrAddHeader ::</span> <span class="dt">MonadHandler</span> m <span class="ot">=&gt;</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> m ()
-replaceOrAddHeader a b <span class="fu">=</span>
-  modify <span class="fu">$</span> \g <span class="ot">-&gt;</span> g {ghsHeaders <span class="fu">=</span> replaceHeader (ghsHeaders g)}
-  <span class="kw">where</span>
-    repHeader <span class="fu">=</span> <span class="dt">Header</span> (encodeUtf8 a) (encodeUtf8 b)
-
-<span class="ot">    sameHeaderName ::</span> <span class="dt">Header</span> <span class="ot">-&gt;</span> <span class="dt">Header</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span>
-    sameHeaderName (<span class="dt">Header</span> n1 _) (<span class="dt">Header</span> n2 _) <span class="fu">=</span> T.toLower (decodeUtf8 n1) <span class="fu">==</span> T.toLower (decodeUtf8 n2)
-    sameHeaderName _ _ <span class="fu">=</span> <span class="dt">False</span>
-
-<span class="ot">    replaceIndividualHeader ::</span> [<span class="dt">Header</span>] <span class="ot">-&gt;</span> [<span class="dt">Header</span>]
-    replaceIndividualHeader [] <span class="fu">=</span> [repHeader]
-    replaceIndividualHeader xs <span class="fu">=</span> aux xs []
-      <span class="kw">where</span>
-        aux [] acc <span class="fu">=</span> acc <span class="fu">++</span> [repHeader]
-        aux (x<span class="fu">:</span>xs') acc <span class="fu">=</span>
-          <span class="kw">if</span> sameHeaderName repHeader x
-            <span class="kw">then</span> acc <span class="fu">++</span>
-                 [repHeader] <span class="fu">++</span>
-                 (filter (\header <span class="ot">-&gt;</span> not (sameHeaderName header repHeader)) xs')
-            <span class="kw">else</span> aux xs' (acc <span class="fu">++</span> [x])
-
-<span class="ot">    replaceHeader ::</span> <span class="dt">Endo</span> [<span class="dt">Header</span>] <span class="ot">-&gt;</span> <span class="dt">Endo</span> [<span class="dt">Header</span>]
-    replaceHeader endo <span class="fu">=</span>
-      <span class="kw">let</span><span class="ot"> allHeaders ::</span> [<span class="dt">Header</span>] <span class="fu">=</span> appEndo endo []
-      <span class="kw">in</span> <span class="dt">Endo</span> (\rest <span class="ot">-&gt;</span> replaceIndividualHeader allHeaders <span class="fu">++</span> rest)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ot">replaceOrAddHeader ::</span> <span class="dt">MonadHandler</span> m <span class="ot">=&gt;</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> <span class="dt">Text</span> <span class="ot">-&gt;</span> m ()</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">replaceOrAddHeader a b <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  modify <span class="fu">$</span> \g <span class="ot">-&gt;</span> g {ghsHeaders <span class="fu">=</span> replaceHeader (ghsHeaders g)}</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">    repHeader <span class="fu">=</span> <span class="dt">Header</span> (encodeUtf8 a) (encodeUtf8 b)</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="ot">    sameHeaderName ::</span> <span class="dt">Header</span> <span class="ot">-&gt;</span> <span class="dt">Header</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">    sameHeaderName (<span class="dt">Header</span> n1 _) (<span class="dt">Header</span> n2 _) <span class="fu">=</span> T.toLower (decodeUtf8 n1) <span class="fu">==</span> T.toLower (decodeUtf8 n2)</a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">    sameHeaderName _ _ <span class="fu">=</span> <span class="dt">False</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="ot">    replaceIndividualHeader ::</span> [<span class="dt">Header</span>] <span class="ot">-&gt;</span> [<span class="dt">Header</span>]</a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">    replaceIndividualHeader [] <span class="fu">=</span> [repHeader]</a>
+<a class="sourceLine" id="cb1-13" data-line-number="13">    replaceIndividualHeader xs <span class="fu">=</span> aux xs []</a>
+<a class="sourceLine" id="cb1-14" data-line-number="14">      <span class="kw">where</span></a>
+<a class="sourceLine" id="cb1-15" data-line-number="15">        aux [] acc <span class="fu">=</span> acc <span class="fu">++</span> [repHeader]</a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">        aux (x<span class="fu">:</span>xs') acc <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-17" data-line-number="17">          <span class="kw">if</span> sameHeaderName repHeader x</a>
+<a class="sourceLine" id="cb1-18" data-line-number="18">            <span class="kw">then</span> acc <span class="fu">++</span></a>
+<a class="sourceLine" id="cb1-19" data-line-number="19">                 [repHeader] <span class="fu">++</span></a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">                 (filter (\header <span class="ot">-&gt;</span> not (sameHeaderName header repHeader)) xs')</a>
+<a class="sourceLine" id="cb1-21" data-line-number="21">            <span class="kw">else</span> aux xs' (acc <span class="fu">++</span> [x])</a>
+<a class="sourceLine" id="cb1-22" data-line-number="22"></a>
+<a class="sourceLine" id="cb1-23" data-line-number="23"><span class="ot">    replaceHeader ::</span> <span class="dt">Endo</span> [<span class="dt">Header</span>] <span class="ot">-&gt;</span> <span class="dt">Endo</span> [<span class="dt">Header</span>]</a>
+<a class="sourceLine" id="cb1-24" data-line-number="24">    replaceHeader endo <span class="fu">=</span></a>
+<a class="sourceLine" id="cb1-25" data-line-number="25">      <span class="kw">let</span><span class="ot"> allHeaders ::</span> [<span class="dt">Header</span>] <span class="fu">=</span> appEndo endo []</a>
+<a class="sourceLine" id="cb1-26" data-line-number="26">      <span class="kw">in</span> <span class="dt">Endo</span> (\rest <span class="ot">-&gt;</span> replaceIndividualHeader allHeaders <span class="fu">++</span> rest)</a></code></pre></div>
 <p>I merged the <a href="https://github.com/yesodweb/yesod/pull/1417">PR</a> two days ago. This function will be available under the module <code>Yesod.Core.Handler</code> from <code>yesod-core-1.4.36</code>. Thanks to Paul Rose and Michael Snoyman for the detailed review. One design issue I observed while creating the patch was the the <code>Header</code> filed was represented by a <code>ByteString</code>. I have opened a <a href="https://github.com/yesodweb/yesod/issues/1418">new issue</a> to move it to a <code>CI</code> type constructor for case insensitive equality checking. I will try to make that change in the next major release of Yesod as it breaks backward compatibility. That will help in cleaning up the above code slightly.</p>
 
 <div id="disqus_thread">

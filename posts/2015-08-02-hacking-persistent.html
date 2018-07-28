@@ -41,44 +41,44 @@
 </div>
 
 <p>I’m a big fan of <a href="https://github.com/yesodweb/persistent/">persistent</a> as it offers compile time integrity checks for your database. Whenever I need to model a new schema, I usually use this tool to come up with the design. As I model and typecheck the code, I usually use the <code>printMigration</code> function to see the translated SQL queries. The code looks something like this:</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE EmptyDataDecls             #-}</span>
-<span class="ot">{-# LANGUAGE FlexibleContexts           #-}</span>
-<span class="ot">{-# LANGUAGE GADTs                      #-}</span>
-<span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span>
-<span class="ot">{-# LANGUAGE MultiParamTypeClasses      #-}</span>
-<span class="ot">{-# LANGUAGE OverloadedStrings          #-}</span>
-<span class="ot">{-# LANGUAGE QuasiQuotes                #-}</span>
-<span class="ot">{-# LANGUAGE TemplateHaskell            #-}</span>
-<span class="ot">{-# LANGUAGE TypeFamilies               #-}</span>
-<span class="kw">import </span><span class="dt">Control.Monad.IO.Class</span>  (liftIO)
-<span class="kw">import </span><span class="dt">Control.Monad.Logger</span>    (runStderrLoggingT)
-<span class="kw">import </span><span class="dt">Database.Persist</span>
-<span class="kw">import </span><span class="dt">Database.Persist.Postgresql</span>
-<span class="kw">import </span><span class="dt">Database.Persist.TH</span>
-
-share [mkPersist sqlSettings, mkMigrate <span class="st">&quot;migrateAll&quot;</span>]
-          [persistLowerCase<span class="fu">|</span>
-<span class="dt">Person</span>
-    name <span class="dt">String</span>
-    age <span class="dt">Int</span> <span class="dt">Maybe</span>
-    address <span class="dt">Int</span>
-    <span class="kw">deriving</span> <span class="dt">Show</span>
-<span class="dt">BlogPost</span>
-    title <span class="dt">String</span>
-    authorId <span class="dt">PersonId</span>
-    <span class="kw">deriving</span> <span class="dt">Show</span>
-<span class="fu">|</span>]
-
-connStr <span class="fu">=</span> <span class="st">&quot;host=localhost dbname=test user=test password=test port=5432&quot;</span>
-
-<span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> runStderrLoggingT <span class="fu">$</span> withPostgresqlPool connStr <span class="dv">10</span> <span class="fu">$</span>
-       \pool <span class="ot">-&gt;</span> liftIO <span class="fu">$</span> <span class="kw">do</span>
-                  flip runSqlPersistMPool pool <span class="fu">$</span> <span class="kw">do</span>
-                           printMigration migrateAll</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ot">{-# LANGUAGE EmptyDataDecls             #-}</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="ot">{-# LANGUAGE FlexibleContexts           #-}</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="ot">{-# LANGUAGE GADTs                      #-}</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="ot">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="ot">{-# LANGUAGE MultiParamTypeClasses      #-}</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="ot">{-# LANGUAGE OverloadedStrings          #-}</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="ot">{-# LANGUAGE QuasiQuotes                #-}</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="ot">{-# LANGUAGE TemplateHaskell            #-}</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="ot">{-# LANGUAGE TypeFamilies               #-}</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="kw">import</span> <span class="dt">Control.Monad.IO.Class</span>  (liftIO)</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="kw">import</span> <span class="dt">Control.Monad.Logger</span>    (runStderrLoggingT)</a>
+<a class="sourceLine" id="cb1-12" data-line-number="12"><span class="kw">import</span> <span class="dt">Database.Persist</span></a>
+<a class="sourceLine" id="cb1-13" data-line-number="13"><span class="kw">import</span> <span class="dt">Database.Persist.Postgresql</span></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14"><span class="kw">import</span> <span class="dt">Database.Persist.TH</span></a>
+<a class="sourceLine" id="cb1-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">share [mkPersist sqlSettings, mkMigrate <span class="st">&quot;migrateAll&quot;</span>]</a>
+<a class="sourceLine" id="cb1-17" data-line-number="17">          [persistLowerCase|</a>
+<a class="sourceLine" id="cb1-18" data-line-number="18">Person</a>
+<a class="sourceLine" id="cb1-19" data-line-number="19">    name String</a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">    age Int Maybe</a>
+<a class="sourceLine" id="cb1-21" data-line-number="21">    address Int</a>
+<a class="sourceLine" id="cb1-22" data-line-number="22">    deriving Show</a>
+<a class="sourceLine" id="cb1-23" data-line-number="23">BlogPost</a>
+<a class="sourceLine" id="cb1-24" data-line-number="24">    title String</a>
+<a class="sourceLine" id="cb1-25" data-line-number="25">    authorId PersonId</a>
+<a class="sourceLine" id="cb1-26" data-line-number="26">    deriving Show</a>
+<a class="sourceLine" id="cb1-27" data-line-number="27">|]</a>
+<a class="sourceLine" id="cb1-28" data-line-number="28"></a>
+<a class="sourceLine" id="cb1-29" data-line-number="29">connStr <span class="fu">=</span> <span class="st">&quot;host=localhost dbname=test user=test password=test port=5432&quot;</span></a>
+<a class="sourceLine" id="cb1-30" data-line-number="30"></a>
+<a class="sourceLine" id="cb1-31" data-line-number="31"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb1-32" data-line-number="32">main <span class="fu">=</span> runStderrLoggingT <span class="fu">$</span> withPostgresqlPool connStr <span class="dv">10</span> <span class="fu">$</span></a>
+<a class="sourceLine" id="cb1-33" data-line-number="33">       \pool <span class="ot">-&gt;</span> liftIO <span class="fu">$</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb1-34" data-line-number="34">                  flip runSqlPersistMPool pool <span class="fu">$</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb1-35" data-line-number="35">                           printMigration migrateAll</a></code></pre></div>
 <p>But there is a slight problem with this code. For the program to run successfully, It needs an actual database to be present in the system. With that being in mind, I filed an <a href="https://github.com/yesodweb/persistent/issues/274">issue</a> hoping it would be fixed. After around 10 months and with a little push from <a href="https://github.com/yesodweb/persistent/issues/274#issuecomment-122727546">Michael Snoyman</a>, I finally started working on the patch. As I studied the code, I sent a <a href="https://github.com/yesodweb/persistent/pull/430">series</a> <a href="https://github.com/yesodweb/persistent/pull/426">of</a> <a href="https://github.com/yesodweb/persistent/pull/425">cleanup</a> <a href="https://github.com/yesodweb/persistent/pull/424">patches</a>. Finally I figured out the problem with the actual issue and wrote a patch for <a href="https://github.com/yesodweb/persistent/pull/436">PostgreSQL driver</a> for it. Right now it is merged and lives in the master. So for the above code to run properly without the actual database being present, make use of the <code>mockMigration</code> function:</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> mockMigration migrateAll</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="ot">main ::</span> <span class="dt">IO</span> ()</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">main <span class="fu">=</span> mockMigration migrateAll</a></code></pre></div>
 <p>And that will print the migration for your designed database. And today I have sent a pull request for the <a href="https://github.com/yesodweb/persistent/pull/439">MySQL backend</a>. Once it gets merged, you can also use this functionality for designing schemas using MySQL too. And yes, this is the first time I’m doing the development of Haskell packages using <a href="https://nixos.org/nix/">Nix</a>.</p>
 
 <div id="disqus_thread">
