@@ -11,9 +11,15 @@ avid Ruskin Bond fan, like A.R.Rahman's music and usually very lazy.
 
 <span class="heading-label">Work History</span>
 
-I previously worked in TCS R&D Labs at IIT Madras Research park as a
-Researcher. Currently I'm working with a startup named Inkmonk (I'm
-their first engineering hire!).
+I previously worked in TCS R&D Labs at IIT Madras Research Park as a
+Researcher where I worked on GIS systems which were used to simulate
+traffic conditions of large cities. Then, I worked on with a startup
+named Inkmonk (I was their first engineering hire!) where my
+responsibilities included frontend, backend and doing devops. After
+that, I led a team at Pneuma Innovations where we built a Haskell
+based system for inventory management systems to support QSR. Then I
+moved on to work as a consultant for McKinsey & Company on some of their
+health-related prototypes.
 
 <span class="heading-label">Internet Handle</span>
 
