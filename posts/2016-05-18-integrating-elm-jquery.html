@@ -83,18 +83,18 @@ view model =
 <p>Now, compile it to create the js file:</p>
 <p><code>elm-make Notify.elm --output notify.js</code></p>
 <p>And the corresponding <code>html</code> file:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">&lt;html&gt;</span></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">&lt;head&gt;</span></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="kw">&lt;title&gt;</span>Sample Elm app<span class="kw">&lt;/title&gt;</span></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="kw">&lt;/head&gt;</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="kw">&lt;body&gt;</span></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="kw">&lt;/body&gt;</span></a>
-<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </a>
-<a class="sourceLine" id="cb2-9" data-line-number="9"><span class="kw">&lt;script&gt;</span></a>
-<a class="sourceLine" id="cb2-10" data-line-number="10">    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span></a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="kw">&lt;/script&gt;</span></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="kw">&lt;/html&gt;</span> </a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb2-1" title="1"><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="kw">&lt;html&gt;</span></a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="kw">&lt;head&gt;</span></a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="kw">&lt;title&gt;</span>Sample Elm app<span class="kw">&lt;/title&gt;</span></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="kw">&lt;/head&gt;</span></a>
+<a class="sourceLine" id="cb2-6" title="6"><span class="kw">&lt;body&gt;</span></a>
+<a class="sourceLine" id="cb2-7" title="7"><span class="kw">&lt;/body&gt;</span></a>
+<a class="sourceLine" id="cb2-8" title="8"><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="kw">&lt;script&gt;</span></a>
+<a class="sourceLine" id="cb2-10" title="10">    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span></a>
+<a class="sourceLine" id="cb2-11" title="11"><span class="kw">&lt;/script&gt;</span></a>
+<a class="sourceLine" id="cb2-12" title="12"><span class="kw">&lt;/html&gt;</span> </a></code></pre></div>
 <h2 id="the-integration-part">The Integration part</h2>
 <p>Now let’s do the integration with the jQuery plugin. There are four steps for it:</p>
 <ul>
@@ -106,15 +106,15 @@ view model =
 <p><code>Alert -&gt; (model, alert model.content)</code></p></li>
 <li><p>Connect the Plugin with the Elm part in the HTML code:</p></li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;./notifyLib.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw">&lt;script&gt;</span></a>
-<a class="sourceLine" id="cb3-5" data-line-number="5">    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span></a>
-<a class="sourceLine" id="cb3-6" data-line-number="6">    <span class="va">app</span>.<span class="va">ports</span>.<span class="va">alert</span>.<span class="at">subscribe</span>(<span class="kw">function</span>(word) <span class="op">{</span></a>
-<a class="sourceLine" id="cb3-7" data-line-number="7">      <span class="va">$</span>.<span class="at">notify</span>(word)<span class="op">;</span></a>
-<a class="sourceLine" id="cb3-8" data-line-number="8">    <span class="op">}</span>)<span class="op">;</span></a>
-<a class="sourceLine" id="cb3-9" data-line-number="9"><span class="kw">&lt;/script&gt;</span></a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;./notifyLib.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="kw">&lt;script&gt;</span></a>
+<a class="sourceLine" id="cb3-5" title="5">    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-6" title="6">    <span class="va">app</span>.<span class="va">ports</span>.<span class="va">alert</span>.<span class="at">subscribe</span>(<span class="kw">function</span>(word) <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-7" title="7">      <span class="va">$</span>.<span class="at">notify</span>(word)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-8" title="8">    <span class="op">}</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-9" title="9"><span class="kw">&lt;/script&gt;</span></a></code></pre></div>
 <p>And voila, you get a alert:</p>
 <figure>
 <img src="../images/posts/elm-alert.png" alt="Alert notification using notifyjs" /><figcaption>Alert notification using notifyjs</figcaption>
