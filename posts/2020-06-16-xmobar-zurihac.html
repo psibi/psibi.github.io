@@ -118,7 +118,12 @@ std dev              899.6 ns   (661.5 ns .. 1.333 μs)</code></pre>
 <span id="cb7-21"><a href="#cb7-21"></a>       ,<span class="ot"> maxTotalWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
 <span id="cb7-22"><a href="#cb7-22"></a>       ,<span class="ot"> maxTotalWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
 <span id="cb7-23"><a href="#cb7-23"></a>       }</span></code></pre></div>
-<p>That’s a whole bunch of <code>IORef</code>. Also for the CPU monitor there seem to be quite a lot of inefficiency going on: * We format all the CPU data even when we only render some of them finally. * The parsing stage does a lot of re-computation again and again for the same set of initial data. * Template parsing is done for components which won’t be rendered finally.</p>
+<p>That’s a whole bunch of <code>IORef</code>. Also for the CPU monitor there seem to be quite a lot of inefficiency going on:</p>
+<ul>
+<li>We format all the CPU data even when we only render some of them finally.</li>
+<li>The parsing stage does a lot of re-computation again and again for the same set of initial data.</li>
+<li>Template parsing is done for components which won’t be rendered finally.</li>
+</ul>
 <p>I have previously opened two related (but not same) issues on Xmobar’s issue tracker:</p>
 <ul>
 <li><a href="https://github.com/jaor/xmobar/issues/453" title="Issue 453 - Optimizing monitors">Issue 453 - Optimizing monitors</a></li>
