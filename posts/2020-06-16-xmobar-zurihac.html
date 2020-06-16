@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sibi - Xmobar updates from ZuriHac</title>
+	 <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+	 <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../">Sibi</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="../">Home</a></li>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+	    <li><a href="../archive.html">Archive</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>Xmobar updates from ZuriHac</h1>
+    <span class="date">June 16, 2020</span>
+</div>
+
+<h2 id="xmobar">Xmobar</h2>
+<p>Xmobar is a minimalistic status bar for X Window Systems. It’s more commonly used alongside with <a href="https://xmonad.org/" title="Xmonad">Xmonad</a> window manager.</p>
+<p>According to Xmobar’s <a href="https://xmobar.org/#system-monitor-plugins%20%22documentation%22">documentation</a>, it has around 38 monitors or plugins with it. I use around 8 monitors in <a href="https://github.com/psibi/dotfiles/blob/master/xmobar/src/Lib.hs%20%22my%20configuration%22">my configuration</a>. It’s very feature rich in that sense and it also offers a very easy way to define your own custom monitor. Although I must admit that it’s documentation isn’t detailed and I figured out most parts of it by looking at the code.</p>
+<h2 id="optimizing-cpu-monitor">Optimizing CPU Monitor</h2>
+<p>The CPU monitor calculates your cpu load between two time intervals. I have been wanting to optimize it for quite some time. I know that it’s not efficient by observing my htop’s output with only <code>CPU</code> and <code>StdinReader</code> monitor present in my Xmobar configuration.</p>
+<p>I decided to tackle this problem at this year’s <a href="https://zfoh.ch/zurihac2020/" title="ZuriHac">ZuriHac Hackathon</a>. Since Xmobar had no benchmarking code, my first task was to add support for benchmarking to it. I did that as part of this <a href="https://github.com/jaor/xmobar/pull/458" title="PR">PR</a>.</p>
+<p>In the above PR, I measure the <code>runCPU</code> function and this was the initial benchmarking numbers:</p>
+<pre class="shellsession"><code>benchmarked Cpu Benchmarks/CPU normal args
+time                 101.6 μs   (100.8 μs .. 102.3 μs)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 103.0 μs   (102.4 μs .. 104.5 μs)
+std dev              2.883 μs   (1.465 μs .. 5.154 μs)
+variance introduced by outliers: 11% (moderately inflated)</code></pre>
+<p>My next task was to add some tests for the CPU monitor since it didn’t have any (I’m sure my plan of optimizing it would likely introduce new bugs :-)). I added five basic tests for the CPU monitor with each of them having a slightly different template to render it’s output differently. In hindsight, it was a good decision as it caught various issues with my implementation. Running the CPU tests is quite easy:</p>
+<pre class="shellsession"><code>~/g/xmobar (remove-mconfig) $ stack test --test-arguments &quot;-m CPU&quot;
+xmobar&gt; test (suite: XmobarTest, args: -m CPU)
+
+Xmobar.Plugins.Monitors.Cpu
+  CPU Spec
+    works with total template
+    works with bar template
+    works with no icon pattern template
+    works with icon pattern template
+    works with other parameters in template
+
+Finished in 0.0024 seconds
+5 examples, 0 failures
+
+xmobar&gt; Test suite XmobarTest passed</code></pre>
+<p>The CPU monitor reads <code>/proc/stat</code> to find information about CPU. The <a href="https://www.kernel.org/doc/Documentation/filesystems/proc.txt%20%22Linux%20kernel%22">Linux kernel</a> has a good documentation on it. We were using Lazy Bytestring to read it. As an experimentation, I changed it to use Strict Bytestring and measured the performance:</p>
+<pre class="shellsession"><code>benchmarked Cpu Benchmarks/CPU normal args
+time                 107.6 μs   (107.0 μs .. 108.9 μs)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 107.5 μs   (107.1 μs .. 108.2 μs)
+std dev              1.764 μs   (1.081 μs .. 2.669 μs)</code></pre>
+<p>Well, that’s bad! I switched it back to Lazy ByteString (Although, it’s best to avoid lazy IO. I won’t go into the details here as it’s discussed in much detail elsewhere in the internet.). Then, I started looking into the code to see if there is any other potential scope for optimization. I came across the following code snippet:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a><span class="ot">cpuParser ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
+<span id="cb4-2"><a href="#cb4-2"></a>cpuParser <span class="ot">=</span> <span class="fu">map</span> (<span class="fu">read</span> <span class="op">.</span> B.unpack) <span class="op">.</span> <span class="fu">tail</span> <span class="op">.</span> B.words <span class="op">.</span> <span class="fu">head</span> <span class="op">.</span> B.lines</span></code></pre></div>
+<p>Using <code>read . B.unpack</code> is definitely not good for performance (<a href="https://stackoverflow.com/questions/19626392/performance-of-reading-string-to-int-in-haskell-bytestring-vs-char" title="More details here">More details here</a>). Fortunately, ByteString comes with <a href="https://www.stackage.org/haddock/lts-16.0/bytestring-0.10.10.0/Data-ByteString-Lazy-Char8.html#v:readInt%20%22readInt%22">readInt</a> function which can be used. So, I converted it to this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">readInt</span><span class="ot"> ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="fu">readInt</span> bs <span class="ot">=</span> <span class="kw">case</span> B.readInt bs <span class="kw">of</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>               <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dv">0</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>               <span class="dt">Just</span> (i, _) <span class="ot">-&gt;</span> i</span>
+<span id="cb5-5"><a href="#cb5-5"></a></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="ot">cpuParser ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
+<span id="cb5-7"><a href="#cb5-7"></a>cpuParser <span class="ot">=</span> <span class="fu">map</span> <span class="fu">readInt</span> <span class="op">.</span> <span class="fu">tail</span> <span class="op">.</span> B.words <span class="op">.</span> <span class="fu">head</span> <span class="op">.</span> B.lines</span></code></pre></div>
+<p>With that, I ran the benchmarks again and this was the result:</p>
+<pre class="shellsession"><code>benchmarked Cpu Benchmarks/CPU normal args
+time                 89.24 μs   (88.78 μs .. 89.94 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 89.79 μs   (89.57 μs .. 90.13 μs)
+std dev              899.6 ns   (661.5 ns .. 1.333 μs)</code></pre>
+<p>That’s nice. We are now 12% faster than before with such a small change!</p>
+<h2 id="re-architecting-cpu-monitor-and-avoiding-mconfig">Re-architecting CPU monitor and avoiding MConfig</h2>
+<p>Right now, in Xmobar we are actually having one giant data type named <code>MConfig</code> to keep track of the configuration. It’s defined as a bunch of different <code>IORef</code>s:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">data</span> <span class="dt">MConfig</span> <span class="ot">=</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="dt">MC</span> {<span class="ot"> normalColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a>       ,<span class="ot"> low ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>       ,<span class="ot"> lowColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>       ,<span class="ot"> high ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>       ,<span class="ot"> highColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb7-7"><a href="#cb7-7"></a>       ,<span class="ot"> template ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a>       ,<span class="ot"> export ::</span> <span class="dt">IORef</span> [<span class="dt">String</span>]</span>
+<span id="cb7-9"><a href="#cb7-9"></a>       ,<span class="ot"> ppad ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>       ,<span class="ot"> decDigits ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a>       ,<span class="ot"> minWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a>       ,<span class="ot"> maxWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>       ,<span class="ot"> maxWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a>       ,<span class="ot"> padChars ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-15"><a href="#cb7-15"></a>       ,<span class="ot"> padRight ::</span> <span class="dt">IORef</span> <span class="dt">Bool</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a>       ,<span class="ot"> barBack ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a>       ,<span class="ot"> barFore ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-18"><a href="#cb7-18"></a>       ,<span class="ot"> barWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>       ,<span class="ot"> useSuffix ::</span> <span class="dt">IORef</span> <span class="dt">Bool</span></span>
+<span id="cb7-20"><a href="#cb7-20"></a>       ,<span class="ot"> naString ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-21"><a href="#cb7-21"></a>       ,<span class="ot"> maxTotalWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-22"><a href="#cb7-22"></a>       ,<span class="ot"> maxTotalWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-23"><a href="#cb7-23"></a>       }</span></code></pre></div>
+<p>That’s a whole bunch of <code>IORef</code>. Also for the CPU monitor there seem to be quite a lot of inefficiency going on: * We format all the CPU data even when we only render some of them finally. * The parsing stage does a lot of re-computation again and again for the same set of initial data. * Template parsing is done for components which won’t be rendered finally.</p>
+<p>I have previously opened two related (but not same) issues on Xmobar’s issue tracker:</p>
+<ul>
+<li><a href="https://github.com/jaor/xmobar/issues/453" title="Issue 453 - Optimizing monitors">Issue 453 - Optimizing monitors</a></li>
+<li><a href="https://github.com/jaor/xmobar/issues/452" title="Issue 452 - Optmizing MConfig">Issue 452 - Optmizing MConfig</a></li>
+</ul>
+<p>After a couple of re-writes (rewrites in Haskell are really easy!), I came up with a design which I’m quite satisfied with. This design introduces pure version of the <code>MConfig</code> data type we see above:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">data</span> <span class="dt">PureConfig</span> <span class="ot">=</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="dt">PureConfig</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>    {<span class="ot"> pNormalColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>    ,<span class="ot"> pLow ::</span> <span class="dt">Int</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>    ,<span class="ot"> pLowColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb8-6"><a href="#cb8-6"></a>    ,<span class="ot"> pHigh ::</span> <span class="dt">Int</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>    ,<span class="ot"> pHighColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb8-8"><a href="#cb8-8"></a>    ,<span class="ot"> pTemplate ::</span> <span class="dt">String</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a>    ,<span class="ot"> pExport ::</span> [<span class="dt">String</span>]</span>
+<span id="cb8-10"><a href="#cb8-10"></a>    ,<span class="ot"> pPpad ::</span> <span class="dt">Int</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a>    ,<span class="ot"> pDecDigits ::</span> <span class="dt">Int</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a>    ,<span class="ot"> pMinWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a>    ,<span class="ot"> pMaxWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-14"><a href="#cb8-14"></a>    ,<span class="ot"> pMaxWidthEllipsis ::</span> <span class="dt">String</span></span>
+<span id="cb8-15"><a href="#cb8-15"></a>    ,<span class="ot"> pPadChars ::</span> <span class="dt">String</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a>    ,<span class="ot"> pPadRight ::</span> <span class="dt">Bool</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a>    ,<span class="ot"> pBarBack ::</span> <span class="dt">String</span></span>
+<span id="cb8-18"><a href="#cb8-18"></a>    ,<span class="ot"> pBarFore ::</span> <span class="dt">String</span></span>
+<span id="cb8-19"><a href="#cb8-19"></a>    ,<span class="ot"> pBarWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a>    ,<span class="ot"> pUseSuffix ::</span> <span class="dt">Bool</span></span>
+<span id="cb8-21"><a href="#cb8-21"></a>    ,<span class="ot"> pNaString ::</span> <span class="dt">String</span></span>
+<span id="cb8-22"><a href="#cb8-22"></a>    ,<span class="ot"> pMaxTotalWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-23"><a href="#cb8-23"></a>    ,<span class="ot"> pMaxTotalWidthEllipsis ::</span> <span class="dt">String</span></span>
+<span id="cb8-24"><a href="#cb8-24"></a>    }</span>
+<span id="cb8-25"><a href="#cb8-25"></a>  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>)</span></code></pre></div>
+<p>The above type is the same as <code>MConfig</code>, but with the <code>IORef</code>s removed. Then I introduced non-monad transformer version of various functions in the parsing module:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1"></a><span class="ot">runExportParser ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">String</span>, [(<span class="dt">String</span>, <span class="dt">String</span>,<span class="dt">String</span>)])]</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="ot">runTemplateParser ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">String</span>, <span class="dt">String</span>, <span class="dt">String</span>)]</span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="ot">pureParseTemplate ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">TemplateInput</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">String</span></span></code></pre></div>
+<p>The idea here is that we will run the <code>runExportParser</code> and <code>runTemplateParser</code> function to compute the data once and then use the same data for the next invocation without doing any extra work.</p>
+<p>I also had to write various other non-monad transformer version of the formatters in the Output module:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1"></a><span class="ot">pShowVerticalBar ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="ot">pShowPercentsWithColors ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> [<span class="dt">Float</span>] <span class="ot">-&gt;</span> m [<span class="dt">String</span>]</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="ot">pShowPercentWithColors ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="ot">pShowPercentBar ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="ot">pShowWithColors ::</span> (<span class="dt">Num</span> a, <span class="dt">Ord</span> a, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="ot">pColorizeString ::</span> (<span class="dt">Num</span> a, <span class="dt">Ord</span> a, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="ot">pSetColor ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">PSelector</span> (<span class="dt">Maybe</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="ot">pShowWithPadding ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="ot">pFloatToPercent ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span></code></pre></div>
+<p>The above implementation was pretty straight forward. All I had to do was to remove the Reader monad environment from it and instead pass the environment explicitly. Once I had everything typechecked and the tests pass, I ran the benchmarks again:</p>
+<pre class="shellsession"><code>time                 75.80 μs   (75.15 μs .. 76.36 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 75.97 μs   (75.74 μs .. 76.41 μs)
+std dev              1.057 μs   (666.6 ns .. 1.927 μs)</code></pre>
+<p>That’s a 15% performance gain from the last run and total 25% perf gain from the initial code. :-) You can see the complete code changes for the above results <a href="https://github.com/jaor/xmobar/pull/460" title="PR 460">in this PR</a>.</p>
+<h2 id="future-improvements">Future improvements</h2>
+<p>Looking into the code further, I think there is one other potential area for optimization. I have read that <code>Double</code> is better optimized than <code>Float</code>. Making this change probably might help us in speeding it up. Unfortunately I didn’t try that out (probably in next year’s ZuriHac ? :-))</p>
+<p>From benchmarking various parts of the code, I found that the most CPU intensive part is the following:</p>
+<pre><code>cpuData :: IO [Int]
+cpuData = cpuParser &lt;$&gt; B.readFile &quot;/proc/stat&quot;</code></pre>
+<p>I’m not sure if that can be improved further. Probably doing <a href="https://en.wikipedia.org/wiki/Mmap" title="mmap based IO">mmap based IO</a> can improve performance. But I’m not sure because <code>/proc</code> is already a <a href="https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html%20%22virtual%20filesystem%22">virtual filesystem</a>. One of my colleagues has told me, that he will try it out. It would be interesting to see those benchmark results. :-)</p>
+<p>I tried a version where I would use the same file handle and do a <a href="https://www.stackage.org/haddock/lts-16.0/base/System-IO.html#v:hSeek%20%22hSeek%22">hSeek</a> before reading it. But that resulted in a bad performance:</p>
+<pre class="shellsession"><code>time                 136.5 μs   (136.2 μs .. 136.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 136.4 μs   (136.4 μs .. 136.6 μs)
+std dev              356.2 ns   (180.7 ns .. 644.9 ns)</code></pre>
+<p>Also, I’m not sure if sharing the same file handle will result in fresh values as the file is updated by the kernel. I’m curious to know how a program like <a href="https://en.wikipedia.org/wiki/Htop" title="Htop">Htop</a> does it and see if we can apply any techniques from there.</p>
+<p>And that summarizes my work on this year’s ZuriHac!</p>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "http://psibi.in/posts/2020-06-16-xmobar-zurihac.html";
+    this.page.identifier = "posts/2020-06-16-xmobar-zurihac.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+</div>
+
+        </div>
+        <div id="footer">
+            Site generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+	<script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-27311575-2', 'auto');
+	    ga('send', 'pageview');
+	    
+	    // Hack for adding active class to the li tag.
+	    var litags = document.getElementById("navbar").getElementsByTagName("li");
+	    litags[0].className = "";
+	    litags[1].className = "";
+	    litags[2].className = "";
+	    litags[3].className = "";
+	    var currentPage = window.location.href.split('/')[3];
+	    if (currentPage === "")
+	       litags[0].className = "active";
+	    if (currentPage === "about.html")
+	       litags[1].className = "active";
+	    if (currentPage === "contact.html")
+	       litags[2].className = "active";
+	    if (currentPage === "archive.html")
+	       litags[3].className = "active";
+	</script>
+    </body>
+</html>

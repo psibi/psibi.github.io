@@ -46,12 +46,12 @@
 <li>Previously, you need to pass cabal flag to enable the plugin. I have enabled it by default now. Also, it now supports older version of ghc till 7.10.3. I specifically had to remove the <a href="https://github.com/xmonad/xmonad-extras/commit/b94db07a8e79ee11e1b05c3cd697d85786a3af8a">usage of bitraverse function</a> for it.</li>
 <li>Added a new convienence function named <code>setBrightness</code> in the module. I specifically use this in my Xmonad’s startup hook:</li>
 </ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">sibiStartupHook ::</span> <span class="dt">X</span> ()</a>
-<a class="sourceLine" id="cb1-2" title="2">sibiStartupHook <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb1-3" title="3">  as <span class="ot">&lt;-</span> io getArgs</a>
-<a class="sourceLine" id="cb1-4" title="4">  Bright.setBrightness <span class="dv">1260</span></a>
-<a class="sourceLine" id="cb1-5" title="5">  <span class="op">...</span></a>
-<a class="sourceLine" id="cb1-6" title="6">  <span class="op">...</span></a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1"></a><span class="ot">sibiStartupHook ::</span> <span class="dt">X</span> ()</span>
+<span id="cb1-2"><a href="#cb1-2"></a>sibiStartupHook <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>  as <span class="ot">&lt;-</span> io getArgs</span>
+<span id="cb1-4"><a href="#cb1-4"></a>  Bright.setBrightness <span class="dv">1260</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="op">...</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>  <span class="op">...</span></span></code></pre></div>
 <ul>
 <li>Have improved documentation on how to use the plugin. The new documentation is accessible via the Haddock documentation in the module. Specifically, I use it with systemd to make it properly work.</li>
 </ul>

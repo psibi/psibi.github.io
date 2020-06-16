@@ -52,47 +52,47 @@
 <li>The web app is run concurrently and is reverse proxied to the running http/https server.</li>
 </ul>
 <p>All the threads running above is synchronized properly via usage of <a href="https://en.wikipedia.org/wiki/Software_transactional_memory">STM</a>. But there was a race condition in the code which always made the development server in compile mode. After lot of instrumentation, I found out that the reason behind that was this piece of code:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1">atomically (writeTVar appPortVar (<span class="op">-</span><span class="dv">1</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1"></a>atomically (writeTVar appPortVar (<span class="op">-</span><span class="dv">1</span>))</span></code></pre></div>
 <p>The Stack build process was emitting out lines even after the build was successful which again lead to overwriting of the port variable with <code>-1</code>. This lead it to compile mode again. Pressing Return key and re-building it again made the entire thing work but that was something I have to guess every now and then.</p>
 <h2 id="solution">Solution</h2>
 <p>My <a href="https://github.com/yesodweb/yesod/issues/1380">initial proposed solution</a> was to simply call the above function only when <code>ExitFailure</code> is emitted. But unfortunately that simple solution won’t work in all cases. After lot of tinkering, I came up with an <code>MVar</code> based solution which worked good enough:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">data</span> <span class="dt">BuildOutput</span> <span class="ot">=</span> <span class="dt">Started</span></a>
-<a class="sourceLine" id="cb2-2" title="2">                   <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Ord</span>)</a>
-<a class="sourceLine" id="cb2-3" title="3"></a>
-<a class="sourceLine" id="cb2-4" title="4"><span class="ot">makeEmptyMVar ::</span> <span class="dt">MVar</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</a>
-<a class="sourceLine" id="cb2-5" title="5">makeEmptyMVar mvar <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb2-6" title="6">  isEmpty <span class="ot">&lt;-</span> isEmptyMVar mvar</a>
-<a class="sourceLine" id="cb2-7" title="7">  <span class="kw">case</span> isEmpty <span class="kw">of</span></a>
-<a class="sourceLine" id="cb2-8" title="8">    <span class="dt">True</span> <span class="ot">-&gt;</span> <span class="fu">return</span> ()</a>
-<a class="sourceLine" id="cb2-9" title="9">    <span class="dt">False</span> <span class="ot">-&gt;</span> takeMVar mvar <span class="op">&gt;&gt;</span> <span class="fu">return</span> ()</a>
-<a class="sourceLine" id="cb2-10" title="10"></a>
-<a class="sourceLine" id="cb2-11" title="11"><span class="ot">updateAppPort ::</span> <span class="dt">ByteString</span> <span class="ot">-&gt;</span> <span class="dt">MVar</span> (<span class="dt">BuildOutput</span>) <span class="ot">-&gt;</span> <span class="dt">TVar</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</a>
-<a class="sourceLine" id="cb2-12" title="12">updateAppPort bs mvar appPortVar <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb2-13" title="13">  isEmpty <span class="ot">&lt;-</span> isEmptyMVar mvar</a>
-<a class="sourceLine" id="cb2-14" title="14">  <span class="kw">let</span> hasEnd <span class="ot">=</span> isInfixOf stackFailureString bs <span class="op">||</span> isInfixOf stackSuccessString bs</a>
-<a class="sourceLine" id="cb2-15" title="15">  <span class="kw">case</span> (isEmpty,hasEnd) <span class="kw">of</span></a>
-<a class="sourceLine" id="cb2-16" title="16">    (<span class="dt">True</span>,<span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb2-17" title="17">      putMVar mvar <span class="dt">Started</span></a>
-<a class="sourceLine" id="cb2-18" title="18">      atomically <span class="op">$</span> writeTVar appPortVar (<span class="op">-</span><span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>)</a>
-<a class="sourceLine" id="cb2-19" title="19">    (_,<span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="fu">return</span> () </a>
-<a class="sourceLine" id="cb2-20" title="20">    (_,<span class="dt">True</span>) <span class="ot">-&gt;</span> makeEmptyMVar mvar</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">data</span> <span class="dt">BuildOutput</span> <span class="ot">=</span> <span class="dt">Started</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>                   <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Ord</span>)</span>
+<span id="cb2-3"><a href="#cb2-3"></a></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="ot">makeEmptyMVar ::</span> <span class="dt">MVar</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-5"><a href="#cb2-5"></a>makeEmptyMVar mvar <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>  isEmpty <span class="ot">&lt;-</span> isEmptyMVar mvar</span>
+<span id="cb2-7"><a href="#cb2-7"></a>  <span class="kw">case</span> isEmpty <span class="kw">of</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>    <span class="dt">True</span> <span class="ot">-&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb2-9"><a href="#cb2-9"></a>    <span class="dt">False</span> <span class="ot">-&gt;</span> takeMVar mvar <span class="op">&gt;&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb2-10"><a href="#cb2-10"></a></span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="ot">updateAppPort ::</span> <span class="dt">ByteString</span> <span class="ot">-&gt;</span> <span class="dt">MVar</span> (<span class="dt">BuildOutput</span>) <span class="ot">-&gt;</span> <span class="dt">TVar</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-12"><a href="#cb2-12"></a>updateAppPort bs mvar appPortVar <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-13"><a href="#cb2-13"></a>  isEmpty <span class="ot">&lt;-</span> isEmptyMVar mvar</span>
+<span id="cb2-14"><a href="#cb2-14"></a>  <span class="kw">let</span> hasEnd <span class="ot">=</span> isInfixOf stackFailureString bs <span class="op">||</span> isInfixOf stackSuccessString bs</span>
+<span id="cb2-15"><a href="#cb2-15"></a>  <span class="kw">case</span> (isEmpty,hasEnd) <span class="kw">of</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a>    (<span class="dt">True</span>,<span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb2-17"><a href="#cb2-17"></a>      putMVar mvar <span class="dt">Started</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a>      atomically <span class="op">$</span> writeTVar appPortVar (<span class="op">-</span><span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>)</span>
+<span id="cb2-19"><a href="#cb2-19"></a>    (_,<span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="fu">return</span> () </span>
+<span id="cb2-20"><a href="#cb2-20"></a>    (_,<span class="dt">True</span>) <span class="ot">-&gt;</span> makeEmptyMVar mvar</span></code></pre></div>
 <p>The main idea is to make the port invalid during the start of the Stack build process and then don’t do any further writing on the <code>TVar</code> variable. When the Stack build process completes, I again make sure that it has the ability to write to the <code>TVar</code> variable. The ability to when to write to the <code>TVar</code> is controlled via the locking primitive of <code>MVar (BuildOutput)</code>.</p>
 <p>After a series of iteration with <a href="https://github.com/snoyberg">Michael</a>, we changed it to a complete STM based solution:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" title="1"><span class="ot">updateAppPort ::</span> <span class="dt">ByteString</span> <span class="ot">-&gt;</span> <span class="dt">TVar</span> <span class="dt">Bool</span> <span class="co">-- ^ Bool to indicate if</span></a>
-<a class="sourceLine" id="cb3-2" title="2">                                         <span class="co">-- output from stack has</span></a>
-<a class="sourceLine" id="cb3-3" title="3">                                         <span class="co">-- started. False indicate</span></a>
-<a class="sourceLine" id="cb3-4" title="4">                                         <span class="co">-- that it hasn't started</span></a>
-<a class="sourceLine" id="cb3-5" title="5">                                         <span class="co">-- yet.</span></a>
-<a class="sourceLine" id="cb3-6" title="6">              <span class="ot">-&gt;</span> <span class="dt">TVar</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">STM</span> ()</a>
-<a class="sourceLine" id="cb3-7" title="7">updateAppPort bs buildStarted appPortVar <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb3-8" title="8">  hasStarted <span class="ot">&lt;-</span> readTVar buildStarted</a>
-<a class="sourceLine" id="cb3-9" title="9">  <span class="kw">let</span> buildEnd <span class="ot">=</span> isInfixOf stackFailureString bs <span class="op">||</span> isInfixOf stackSuccessString bs</a>
-<a class="sourceLine" id="cb3-10" title="10">  <span class="kw">case</span> (hasStarted, buildEnd) <span class="kw">of</span></a>
-<a class="sourceLine" id="cb3-11" title="11">    (<span class="dt">False</span>, <span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb3-12" title="12">      writeTVar appPortVar (<span class="op">-</span><span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>)</a>
-<a class="sourceLine" id="cb3-13" title="13">      writeTVar buildStarted <span class="dt">True</span></a>
-<a class="sourceLine" id="cb3-14" title="14">    (<span class="dt">True</span>, <span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="fu">return</span> ()</a>
-<a class="sourceLine" id="cb3-15" title="15">    (_, <span class="dt">True</span>) <span class="ot">-&gt;</span> writeTVar buildStarted <span class="dt">False</span></a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="ot">updateAppPort ::</span> <span class="dt">ByteString</span> <span class="ot">-&gt;</span> <span class="dt">TVar</span> <span class="dt">Bool</span> <span class="co">-- ^ Bool to indicate if</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>                                         <span class="co">-- output from stack has</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>                                         <span class="co">-- started. False indicate</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>                                         <span class="co">-- that it hasn't started</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a>                                         <span class="co">-- yet.</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a>              <span class="ot">-&gt;</span> <span class="dt">TVar</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">STM</span> ()</span>
+<span id="cb3-7"><a href="#cb3-7"></a>updateAppPort bs buildStarted appPortVar <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a>  hasStarted <span class="ot">&lt;-</span> readTVar buildStarted</span>
+<span id="cb3-9"><a href="#cb3-9"></a>  <span class="kw">let</span> buildEnd <span class="ot">=</span> isInfixOf stackFailureString bs <span class="op">||</span> isInfixOf stackSuccessString bs</span>
+<span id="cb3-10"><a href="#cb3-10"></a>  <span class="kw">case</span> (hasStarted, buildEnd) <span class="kw">of</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>    (<span class="dt">False</span>, <span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>      writeTVar appPortVar (<span class="op">-</span><span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>)</span>
+<span id="cb3-13"><a href="#cb3-13"></a>      writeTVar buildStarted <span class="dt">True</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a>    (<span class="dt">True</span>, <span class="dt">False</span>) <span class="ot">-&gt;</span> <span class="fu">return</span> ()</span>
+<span id="cb3-15"><a href="#cb3-15"></a>    (_, <span class="dt">True</span>) <span class="ot">-&gt;</span> writeTVar buildStarted <span class="dt">False</span></span></code></pre></div>
 <p>I merged the <a href="https://github.com/yesodweb/yesod/pull/1381">PR</a> yesterday. Be ready to have a race free experience in yesod devel! :-)</p>
 
 <div id="disqus_thread">
