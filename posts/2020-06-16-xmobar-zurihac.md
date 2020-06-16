@@ -157,6 +157,7 @@ data MConfig =
 
 That's a whole bunch of `IORef`. Also for the CPU monitor there seem to
 be quite a lot of inefficiency going on:
+
 * We format all the CPU data even when we only render some of them
   finally.
 * The parsing stage does a lot of re-computation again and again for
