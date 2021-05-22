@@ -19,8 +19,9 @@ named Inkmonk (I was their first engineering hire!) where my
 responsibilities included frontend, backend and doing devops. After
 that, I led a team at Pneuma Innovations where we built a Haskell
 based system for inventory management systems to support QSR. Then I
-moved on to work as a consultant for McKinsey & Company on some of their
-health-related prototypes.
+moved on to work as a consultant for McKinsey & Company on some of
+their health-related prototypes. Currently, I work as a Senior
+Engineer for FPComplete.
 
 <span class="heading-label">Internet Handle</span>
 
