@@ -14,7 +14,7 @@ p{
     margin:0 0 15px;
 }
 pre{
-    font-family: 'Space Mono', monospace;    
+    font-family: 'Space Mono', monospace;
 }
 div#header {
     border-bottom: 2px solid black;
@@ -53,6 +53,21 @@ h1 {
 h2 {
     font-size: 20px
 }
+
+a {
+    color: #337ab7;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #337ab7;
+    text-decoration: underline;
+}
+
+li a:hover {
+    text-decoration: none;
+}
+
 div.info {
     color: #555;
     font-size: 14px;
@@ -70,7 +85,7 @@ div.info {
     border-color: #f8f8f8;
     -webkit-box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.05);
     -moz-box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.05);
-    box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.05);                  
+    box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.05);
 }
 
 .navbar-default .navbar-nav>li>a {
@@ -103,7 +118,7 @@ div.info {
 .jumbotron.home h1{
     margin: 0px;
     margin-bottom: 25px;
-    
+
 }
 
 .heading-label {
@@ -142,11 +157,11 @@ div.info {
 }
 
 .post-index li p {
-    
+
 }
 
 .post-index li .btn-default {
-    
+
 }
 
 .portfolio {
@@ -204,7 +219,7 @@ div.info {
 .article h2 {
     font-size: 25px;
     font-weight: bold;
-    
+
 }
 
 .article p {
