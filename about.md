@@ -5,9 +5,10 @@ title: About
 <span class="heading-label">Origin, Hobbies and Interests</span>
 
 Origined from the port city of Tuticorin and spent most parts of my
-childhood in the Awadh region Lucknow, I'm a sofware engineer with a
-strong interest in Functional Programming (especially Haskell). I'm a
-avid Ruskin Bond fan, like A.R.Rahman's music and usually very lazy.
+childhood in the Awadh region Lucknow, currently residing in Bangalore
+with my wife Divya. I'm a sofware engineer with a strong interest in
+Functional Programming (especially Haskell). I'm a avid Ruskin Bond
+fan, like A.R.Rahman's music and usually very lazy.
 
 <span class="heading-label">Work History</span>
 
@@ -23,7 +24,8 @@ health-related prototypes.
 
 <span class="heading-label">Internet Handle</span>
 
-<div class="portfolio">
+<div class="container portfolio">
+<div class="row">
 * [Github](http://github.com/psibi)
 * [StackOverflow](http://stackoverflow.com/users/1651941/sibi)
 * [Hacker News](https://news.ycombinator.com/user?id=psibi)
@@ -35,4 +37,5 @@ health-related prototypes.
 * [Facebook](https://www.facebook.com/psibi)
 * [Twitter](http://twitter.com/psibi)
 * [Identi.ca](http://identi.ca/psibi)
+</div class="row">
 </div>
