@@ -1,0 +1,17 @@
+* psibi.in
+
+Website source for [[https://psibi.in][https://psibi.in]]. This is built via Hakyll.
+
+** Usage
+
+#+begin_src sh :exports both :eval never-export :results verbatim
+make
+#+end_src
+
+#+RESULTS:
+: Please use `make <target>' where <target> is one of\n\n
+: gen                            Generate the site
+: watch                          Watch and run the site
+: clean                          Clean site
+: build                          Watch and install new exectuable
+: help                           Show help screen.
