@@ -6,7 +6,7 @@ import           Hakyll
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = hakyllWith defaultConfiguration { destinationDirectory = "site"} $ do
+main = hakyllWith defaultConfiguration { destinationDirectory = "docs"} $ do
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
