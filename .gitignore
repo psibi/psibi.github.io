@@ -4,4 +4,4 @@
 hakyll
 .stack-work
 .#*
-_site
+drafts/
