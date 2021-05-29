@@ -34,7 +34,7 @@ Engineer for FPComplete.
 * [Haskeller](http://www.haskellers.com/user/psibi)
 * [SpeakerDeck](https://speakerdeck.com/psibi)
 * [LinkedIn](http://www.linkedin.com/in/psibi)
-* [Google+](https://plus.google.com/+SibiPrabakaran)
+* [Crates](https://crates.io/users/psibi)
 * [Facebook](https://www.facebook.com/psibi)
 * [Twitter](http://twitter.com/psibi)
 * [Identi.ca](http://identi.ca/psibi)
