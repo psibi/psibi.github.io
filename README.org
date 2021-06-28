@@ -15,3 +15,18 @@ make
 : clean                          Clean site
 : build                          Watch and install new exectuable
 : help                           Show help screen.
+
+** Getting CSS for syntax highlighting
+
+Source: [[http://fixpt.de/blog/2017-12-03-hakyll-highlighting-themes.html][Hakyll themes]]
+
+#+begin_example haskell
+$ stack ghci --package skylighting
+GHCi, version 8.8.4: https://www.haskell.org/ghc/  :? for help
+Loaded GHCi configuration from /home/sibi/.ghci
+[1 of 1] Compiling Main             ( /home/sibi/github/psibi.github.io/hakyll.hs, interpreted )
+Ok, one module loaded.
+Loaded GHCi configuration from /tmp/haskell-stack-ghci/6bcc45a5/ghci-script
+λ> import Skylighting
+λ> writeFile "pygments.css" $ styleToCss pygments
+#+end_example
