@@ -8,6 +8,7 @@
         <!-- CSS only -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
         <!-- JavaScript Bundle with Popper -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
@@ -61,17 +62,17 @@
 
 <p>After quite a long time, I got some spare hours to hack on open source projects during this Diwali holidays. I added a helper function in <a href="https://github.com/yesodweb/persistent/pull/509">persistent</a> which in my opinion is super cool:</p>
 <p>The <code>liftSqlPersistMPool</code> is simply defined like this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1"></a><span class="ot">liftSqlPersistMPool ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">SqlPersistM</span> a <span class="ot">-&gt;</span> <span class="dt">Pool</span> <span class="dt">SqlBackend</span> <span class="ot">-&gt;</span> m a</span>
-<span id="cb1-2"><a href="#cb1-2"></a>liftSqlPersistMPool x pool <span class="ot">=</span> liftIO (runSqlPersistMPool x pool)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ot">liftSqlPersistMPool ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">SqlPersistM</span> a <span class="ot">-&gt;</span> <span class="dt">Pool</span> <span class="dt">SqlBackend</span> <span class="ot">-&gt;</span> m a</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>liftSqlPersistMPool x pool <span class="ot">=</span> liftIO (runSqlPersistMPool x pool)</span></code></pre></div>
 <p>And this will help in converting code like this:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
-<span id="cb2-2"><a href="#cb2-2"></a>main <span class="ot">=</span> runStderrLoggingT <span class="op">$</span> withPostgresqlPool conn <span class="dv">10</span> <span class="op">$</span> \pool <span class="ot">-&gt;</span> liftIO <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a>         <span class="fu">flip</span> runSqlPersistMPool pool <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a>           runMigration migrateAll</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>main <span class="ot">=</span> runStderrLoggingT <span class="op">$</span> withPostgresqlPool conn <span class="dv">10</span> <span class="op">$</span> \pool <span class="ot">-&gt;</span> liftIO <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>         <span class="fu">flip</span> runSqlPersistMPool pool <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>           runMigration migrateAll</span></code></pre></div>
 <p>to:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">in</span> <span class="ot">=</span> runStderrLoggingT <span class="op">$</span> withPostgresqlPool conn <span class="dv">10</span> <span class="op">$</span> liftSqlPersistMPool <span class="op">$</span> <span class="kw">do</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>         runMigration migrateAll</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="kw">in</span> <span class="ot">=</span> runStderrLoggingT <span class="op">$</span> withPostgresqlPool conn <span class="dv">10</span> <span class="op">$</span> liftSqlPersistMPool <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>         runMigration migrateAll</span></code></pre></div>
 <p>Ain’t that neat? :-)</p>
 <p>The other patches for persistent included <a href="https://github.com/yesodweb/persistent/pull/505">some cleanup</a>, <a href="https://github.com/yesodweb/persistent/pull/504">some documentation</a> and a <a href="https://github.com/yesodweb/persistent/pull/501">ownership related patch</a>. Although, I plan to work on the ownership related code later. (See <a href="https://github.com/yesodweb/persistent/issues/390">Issue 390</a> for more details.)</p>
 <p>Also, I briefly hacked on the emacs haskell-mode package. Sent some minor patch related to <a href="https://github.com/haskell/haskell-mode/pull/984">hayoo</a> and <a href="https://github.com/haskell/haskell-mode/pull/987">cleanup</a>.</p>

@@ -8,6 +8,7 @@
         <!-- CSS only -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
         <!-- JavaScript Bundle with Popper -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
@@ -95,16 +96,16 @@ time                 107.6 μs   (107.0 μs .. 108.9 μs)
 mean                 107.5 μs   (107.1 μs .. 108.2 μs)
 std dev              1.764 μs   (1.081 μs .. 2.669 μs)</code></pre>
 <p>Well, that’s bad! I switched it back to Lazy ByteString (Although, it’s best to avoid lazy IO. I won’t go into the details here as it’s discussed in much detail elsewhere in the internet.). Then, I started looking into the code to see if there is any other potential scope for optimization. I came across the following code snippet:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a><span class="ot">cpuParser ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
-<span id="cb4-2"><a href="#cb4-2"></a>cpuParser <span class="ot">=</span> <span class="fu">map</span> (<span class="fu">read</span> <span class="op">.</span> B.unpack) <span class="op">.</span> <span class="fu">tail</span> <span class="op">.</span> B.words <span class="op">.</span> <span class="fu">head</span> <span class="op">.</span> B.lines</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ot">cpuParser ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>cpuParser <span class="ot">=</span> <span class="fu">map</span> (<span class="fu">read</span> <span class="op">.</span> B.unpack) <span class="op">.</span> <span class="fu">tail</span> <span class="op">.</span> B.words <span class="op">.</span> <span class="fu">head</span> <span class="op">.</span> B.lines</span></code></pre></div>
 <p>Using <code>read . B.unpack</code> is definitely not good for performance (<a href="https://stackoverflow.com/questions/19626392/performance-of-reading-string-to-int-in-haskell-bytestring-vs-char" title="More details here">More details here</a>). Fortunately, ByteString comes with <a href="https://www.stackage.org/haddock/lts-16.0/bytestring-0.10.10.0/Data-ByteString-Lazy-Char8.html#v:readInt%20%22readInt%22">readInt</a> function which can be used. So, I converted it to this:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">readInt</span><span class="ot"> ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="fu">readInt</span> bs <span class="ot">=</span> <span class="kw">case</span> B.readInt bs <span class="kw">of</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>               <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dv">0</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>               <span class="dt">Just</span> (i, _) <span class="ot">-&gt;</span> i</span>
-<span id="cb5-5"><a href="#cb5-5"></a></span>
-<span id="cb5-6"><a href="#cb5-6"></a><span class="ot">cpuParser ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
-<span id="cb5-7"><a href="#cb5-7"></a>cpuParser <span class="ot">=</span> <span class="fu">map</span> <span class="fu">readInt</span> <span class="op">.</span> <span class="fu">tail</span> <span class="op">.</span> B.words <span class="op">.</span> <span class="fu">head</span> <span class="op">.</span> B.lines</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="fu">readInt</span><span class="ot"> ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="fu">readInt</span> bs <span class="ot">=</span> <span class="kw">case</span> B.readInt bs <span class="kw">of</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>               <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dv">0</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>               <span class="dt">Just</span> (i, _) <span class="ot">-&gt;</span> i</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a><span class="ot">cpuParser ::</span> <span class="dt">B.ByteString</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>cpuParser <span class="ot">=</span> <span class="fu">map</span> <span class="fu">readInt</span> <span class="op">.</span> <span class="fu">tail</span> <span class="op">.</span> B.words <span class="op">.</span> <span class="fu">head</span> <span class="op">.</span> B.lines</span></code></pre></div>
 <p>With that, I ran the benchmarks again and this was the result:</p>
 <pre class="shellsession"><code>benchmarked Cpu Benchmarks/CPU normal args
 time                 89.24 μs   (88.78 μs .. 89.94 μs)
@@ -114,29 +115,29 @@ std dev              899.6 ns   (661.5 ns .. 1.333 μs)</code></pre>
 <p>That’s nice. We are now 12% faster than before with such a small change!</p>
 <h2 id="re-architecting-cpu-monitor-and-avoiding-mconfig">Re-architecting CPU monitor and avoiding MConfig</h2>
 <p>Right now, in Xmobar we are actually having one giant data type named <code>MConfig</code> to keep track of the configuration. It’s defined as a bunch of different <code>IORef</code>s:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">data</span> <span class="dt">MConfig</span> <span class="ot">=</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a>    <span class="dt">MC</span> {<span class="ot"> normalColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
-<span id="cb7-3"><a href="#cb7-3"></a>       ,<span class="ot"> low ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-4"><a href="#cb7-4"></a>       ,<span class="ot"> lowColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
-<span id="cb7-5"><a href="#cb7-5"></a>       ,<span class="ot"> high ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a>       ,<span class="ot"> highColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
-<span id="cb7-7"><a href="#cb7-7"></a>       ,<span class="ot"> template ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-8"><a href="#cb7-8"></a>       ,<span class="ot"> export ::</span> <span class="dt">IORef</span> [<span class="dt">String</span>]</span>
-<span id="cb7-9"><a href="#cb7-9"></a>       ,<span class="ot"> ppad ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a>       ,<span class="ot"> decDigits ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-11"><a href="#cb7-11"></a>       ,<span class="ot"> minWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-12"><a href="#cb7-12"></a>       ,<span class="ot"> maxWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-13"><a href="#cb7-13"></a>       ,<span class="ot"> maxWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-14"><a href="#cb7-14"></a>       ,<span class="ot"> padChars ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-15"><a href="#cb7-15"></a>       ,<span class="ot"> padRight ::</span> <span class="dt">IORef</span> <span class="dt">Bool</span></span>
-<span id="cb7-16"><a href="#cb7-16"></a>       ,<span class="ot"> barBack ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-17"><a href="#cb7-17"></a>       ,<span class="ot"> barFore ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-18"><a href="#cb7-18"></a>       ,<span class="ot"> barWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-19"><a href="#cb7-19"></a>       ,<span class="ot"> useSuffix ::</span> <span class="dt">IORef</span> <span class="dt">Bool</span></span>
-<span id="cb7-20"><a href="#cb7-20"></a>       ,<span class="ot"> naString ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-21"><a href="#cb7-21"></a>       ,<span class="ot"> maxTotalWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
-<span id="cb7-22"><a href="#cb7-22"></a>       ,<span class="ot"> maxTotalWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
-<span id="cb7-23"><a href="#cb7-23"></a>       }</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">MConfig</span> <span class="ot">=</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>    <span class="dt">MC</span> {<span class="ot"> normalColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>       ,<span class="ot"> low ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>       ,<span class="ot"> lowColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>       ,<span class="ot"> high ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>       ,<span class="ot"> highColor ::</span> <span class="dt">IORef</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>       ,<span class="ot"> template ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>       ,<span class="ot"> export ::</span> <span class="dt">IORef</span> [<span class="dt">String</span>]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>       ,<span class="ot"> ppad ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>       ,<span class="ot"> decDigits ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>       ,<span class="ot"> minWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>       ,<span class="ot"> maxWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>       ,<span class="ot"> maxWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>       ,<span class="ot"> padChars ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>       ,<span class="ot"> padRight ::</span> <span class="dt">IORef</span> <span class="dt">Bool</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a>       ,<span class="ot"> barBack ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a>       ,<span class="ot"> barFore ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a>       ,<span class="ot"> barWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a>       ,<span class="ot"> useSuffix ::</span> <span class="dt">IORef</span> <span class="dt">Bool</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a>       ,<span class="ot"> naString ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a>       ,<span class="ot"> maxTotalWidth ::</span> <span class="dt">IORef</span> <span class="dt">Int</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a>       ,<span class="ot"> maxTotalWidthEllipsis ::</span> <span class="dt">IORef</span> <span class="dt">String</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a>       }</span></code></pre></div>
 <p>That’s a whole bunch of <code>IORef</code>. Also for the CPU monitor there seem to be quite a lot of inefficiency going on:</p>
 <ul>
 <li>We format all the CPU data even when we only render some of them finally.</li>
@@ -149,46 +150,46 @@ std dev              899.6 ns   (661.5 ns .. 1.333 μs)</code></pre>
 <li><a href="https://github.com/jaor/xmobar/issues/452" title="Issue 452 - Optmizing MConfig">Issue 452 - Optmizing MConfig</a></li>
 </ul>
 <p>After a couple of re-writes (rewrites in Haskell are really easy!), I came up with a design which I’m quite satisfied with. This design introduces pure version of the <code>MConfig</code> data type we see above:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">data</span> <span class="dt">PureConfig</span> <span class="ot">=</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a>  <span class="dt">PureConfig</span></span>
-<span id="cb8-3"><a href="#cb8-3"></a>    {<span class="ot"> pNormalColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
-<span id="cb8-4"><a href="#cb8-4"></a>    ,<span class="ot"> pLow ::</span> <span class="dt">Int</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a>    ,<span class="ot"> pLowColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
-<span id="cb8-6"><a href="#cb8-6"></a>    ,<span class="ot"> pHigh ::</span> <span class="dt">Int</span></span>
-<span id="cb8-7"><a href="#cb8-7"></a>    ,<span class="ot"> pHighColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
-<span id="cb8-8"><a href="#cb8-8"></a>    ,<span class="ot"> pTemplate ::</span> <span class="dt">String</span></span>
-<span id="cb8-9"><a href="#cb8-9"></a>    ,<span class="ot"> pExport ::</span> [<span class="dt">String</span>]</span>
-<span id="cb8-10"><a href="#cb8-10"></a>    ,<span class="ot"> pPpad ::</span> <span class="dt">Int</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a>    ,<span class="ot"> pDecDigits ::</span> <span class="dt">Int</span></span>
-<span id="cb8-12"><a href="#cb8-12"></a>    ,<span class="ot"> pMinWidth ::</span> <span class="dt">Int</span></span>
-<span id="cb8-13"><a href="#cb8-13"></a>    ,<span class="ot"> pMaxWidth ::</span> <span class="dt">Int</span></span>
-<span id="cb8-14"><a href="#cb8-14"></a>    ,<span class="ot"> pMaxWidthEllipsis ::</span> <span class="dt">String</span></span>
-<span id="cb8-15"><a href="#cb8-15"></a>    ,<span class="ot"> pPadChars ::</span> <span class="dt">String</span></span>
-<span id="cb8-16"><a href="#cb8-16"></a>    ,<span class="ot"> pPadRight ::</span> <span class="dt">Bool</span></span>
-<span id="cb8-17"><a href="#cb8-17"></a>    ,<span class="ot"> pBarBack ::</span> <span class="dt">String</span></span>
-<span id="cb8-18"><a href="#cb8-18"></a>    ,<span class="ot"> pBarFore ::</span> <span class="dt">String</span></span>
-<span id="cb8-19"><a href="#cb8-19"></a>    ,<span class="ot"> pBarWidth ::</span> <span class="dt">Int</span></span>
-<span id="cb8-20"><a href="#cb8-20"></a>    ,<span class="ot"> pUseSuffix ::</span> <span class="dt">Bool</span></span>
-<span id="cb8-21"><a href="#cb8-21"></a>    ,<span class="ot"> pNaString ::</span> <span class="dt">String</span></span>
-<span id="cb8-22"><a href="#cb8-22"></a>    ,<span class="ot"> pMaxTotalWidth ::</span> <span class="dt">Int</span></span>
-<span id="cb8-23"><a href="#cb8-23"></a>    ,<span class="ot"> pMaxTotalWidthEllipsis ::</span> <span class="dt">String</span></span>
-<span id="cb8-24"><a href="#cb8-24"></a>    }</span>
-<span id="cb8-25"><a href="#cb8-25"></a>  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">PureConfig</span> <span class="ot">=</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>  <span class="dt">PureConfig</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>    {<span class="ot"> pNormalColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>    ,<span class="ot"> pLow ::</span> <span class="dt">Int</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>    ,<span class="ot"> pLowColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>    ,<span class="ot"> pHigh ::</span> <span class="dt">Int</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>    ,<span class="ot"> pHighColor ::</span> (<span class="dt">Maybe</span> <span class="dt">String</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>    ,<span class="ot"> pTemplate ::</span> <span class="dt">String</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>    ,<span class="ot"> pExport ::</span> [<span class="dt">String</span>]</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>    ,<span class="ot"> pPpad ::</span> <span class="dt">Int</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>    ,<span class="ot"> pDecDigits ::</span> <span class="dt">Int</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a>    ,<span class="ot"> pMinWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a>    ,<span class="ot"> pMaxWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a>    ,<span class="ot"> pMaxWidthEllipsis ::</span> <span class="dt">String</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a>    ,<span class="ot"> pPadChars ::</span> <span class="dt">String</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a>    ,<span class="ot"> pPadRight ::</span> <span class="dt">Bool</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a>    ,<span class="ot"> pBarBack ::</span> <span class="dt">String</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true"></a>    ,<span class="ot"> pBarFore ::</span> <span class="dt">String</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true"></a>    ,<span class="ot"> pBarWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true"></a>    ,<span class="ot"> pUseSuffix ::</span> <span class="dt">Bool</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true"></a>    ,<span class="ot"> pNaString ::</span> <span class="dt">String</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true"></a>    ,<span class="ot"> pMaxTotalWidth ::</span> <span class="dt">Int</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true"></a>    ,<span class="ot"> pMaxTotalWidthEllipsis ::</span> <span class="dt">String</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true"></a>    }</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Ord</span>)</span></code></pre></div>
 <p>The above type is the same as <code>MConfig</code>, but with the <code>IORef</code>s removed. Then I introduced non-monad transformer version of various functions in the parsing module:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1"></a><span class="ot">runExportParser ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">String</span>, [(<span class="dt">String</span>, <span class="dt">String</span>,<span class="dt">String</span>)])]</span>
-<span id="cb9-2"><a href="#cb9-2"></a><span class="ot">runTemplateParser ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">String</span>, <span class="dt">String</span>, <span class="dt">String</span>)]</span>
-<span id="cb9-3"><a href="#cb9-3"></a><span class="ot">pureParseTemplate ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">TemplateInput</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">String</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ot">runExportParser ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">String</span>, [(<span class="dt">String</span>, <span class="dt">String</span>,<span class="dt">String</span>)])]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ot">runTemplateParser ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> [(<span class="dt">String</span>, <span class="dt">String</span>, <span class="dt">String</span>)]</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="ot">pureParseTemplate ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">TemplateInput</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">String</span></span></code></pre></div>
 <p>The idea here is that we will run the <code>runExportParser</code> and <code>runTemplateParser</code> function to compute the data once and then use the same data for the next invocation without doing any extra work.</p>
 <p>I also had to write various other non-monad transformer version of the formatters in the Output module:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1"></a><span class="ot">pShowVerticalBar ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="ot">pShowPercentsWithColors ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> [<span class="dt">Float</span>] <span class="ot">-&gt;</span> m [<span class="dt">String</span>]</span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="ot">pShowPercentWithColors ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="ot">pShowPercentBar ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a><span class="ot">pShowWithColors ::</span> (<span class="dt">Num</span> a, <span class="dt">Ord</span> a, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
-<span id="cb10-6"><a href="#cb10-6"></a><span class="ot">pColorizeString ::</span> (<span class="dt">Num</span> a, <span class="dt">Ord</span> a, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
-<span id="cb10-7"><a href="#cb10-7"></a><span class="ot">pSetColor ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">PSelector</span> (<span class="dt">Maybe</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a><span class="ot">pShowWithPadding ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
-<span id="cb10-9"><a href="#cb10-9"></a><span class="ot">pFloatToPercent ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="ot">pShowVerticalBar ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ot">pShowPercentsWithColors ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> [<span class="dt">Float</span>] <span class="ot">-&gt;</span> m [<span class="dt">String</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="ot">pShowPercentWithColors ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="ot">pShowPercentBar ::</span> (<span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="ot">pShowWithColors ::</span> (<span class="dt">Num</span> a, <span class="dt">Ord</span> a, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="ot">pColorizeString ::</span> (<span class="dt">Num</span> a, <span class="dt">Ord</span> a, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> m <span class="dt">String</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="ot">pSetColor ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">PSelector</span> (<span class="dt">Maybe</span> <span class="dt">String</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="ot">pShowWithPadding ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a><span class="ot">pFloatToPercent ::</span> <span class="dt">PureConfig</span> <span class="ot">-&gt;</span> <span class="dt">Float</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span></code></pre></div>
 <p>The above implementation was pretty straight forward. All I had to do was to remove the Reader monad environment from it and instead pass the environment explicitly. Once I had everything typechecked and the tests pass, I ran the benchmarks again:</p>
 <pre class="shellsession"><code>time                 75.80 μs   (75.15 μs .. 76.36 μs)
                      1.000 R²   (0.999 R² .. 1.000 R²)

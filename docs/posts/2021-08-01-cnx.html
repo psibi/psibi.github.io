@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sibi - Cnx: Release 0.3.0</title>
+	 <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-JTDENDXYYY');
+        </script>
+        <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+        <link rel="manifest" href="../images/site.webmanifest">
+    </head>
+    <body>
+	 <!-- Fixed navbar -->
+         <!-- sibi: navbar-default is my custom class -->
+    <nav class="navbar navbar-expand-md navbar-default fixed-top bg-white">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="navbar-toggler-icon">
+          </button>
+          <a class="navbar-brand" href="../">Sibi</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse justify-content-end">
+          <ul class="navbar-nav mr-auto mb-2 mb-md-0">
+            <li class="nav-item">
+              <a class="nav-link active" href="../">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../about.html">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../contact.html">Contact</a>
+            </li>
+	    <li class="nav-item">
+              <a class="nav-link" href="../archive.html">Archive</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>Cnx: Release 0.3.0</h1>
+    <span class="date">August  1, 2021</span>
+</div>
+
+<h2 id="introduction">Introduction</h2>
+<p>Cnx is a simple, yet powerful X11 status bar which can be used with window managers. It gets the data from generic properties defined in <a href="https://en.wikipedia.org/wiki/Extended_Window_Manager_Hints">Extended Window Manager Hints</a>.</p>
+<p>It’s last release happened 2 years ago and I started working on it around 6 months ago.</p>
+<h2 id="why-cnx">Why Cnx</h2>
+<p>We have various X11 status bar like <a href="https://github.com/jaor/xmobar">xmobar</a>, <a href="https://github.com/polybar/polybar">polybar</a> etc. But the reason I got interested in Cnx was:</p>
+<ul>
+<li>I wanted something simple, efficient and resource friendly.</li>
+<li>I wanted the source program to be either written in Haskell or Rust as these are the languages I’m most comfortable with.</li>
+</ul>
+<p>Note that I had been using Xmobar for more than five years, but I was not very happy with it’s performance. I did attempt to improve it and you can find more details about this in my other <a href="https://psibi.in/posts/2020-06-16-xmobar-zurihac.html">blog post</a>.</p>
+<p>But despite the above work, I was not able to see significant improvement even if I used a single optimized widget in my Xmobar setup. This led me to believe that there is some overhead within Xmobar itself. The reason for this is the not so efficient event loop in Xmobar (despite the excellent work done by <a href="https://github.com/liskin">liskin</a> on optimizing it). To give you a rough idea, this is my CPU consumption time when using Xmobar for around 9 hours:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ex">USER</span>       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">sibi</span>      3795  0.6  0.1 1076208404 34036 ?    Sl   10:38   4:10 sibi-xmobar</span></code></pre></div>
+<p>The <strong>TIME</strong> column above indicates the cumulative CPU time used by the process. In this case, Xmobar took a total time of 4 minutes and 10 seconds.</p>
+<p>And similar statistics when using Cnx with a similar set of widgets:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">USER</span>       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">sibi</span>      5549  0.0  0.0 1191672 23740 tty1    Sl   09:17   0:11 cnx</span></code></pre></div>
+<p>So that’s a huge time difference but xmobar’s performance is good enough and it may not be worth worrying too much about it. I would also like to mention the caveat that Cnx is quite young and it has lesser number of widgets available compared to Xmobar. It could possibly have more bugs too. :-)</p>
+<p>There is also <a href="https://github.com/greshake/i3status-rust/issues/514">i3status-rust</a> written in Rust which seemed interesting to me. It has a pretty display and seemed more popular with a bigger community behind it. But unfortunately, it <a href="https://github.com/greshake/i3status-rust/issues/514">doesn’t seem to work outside of sway or i3</a> because it works only on window managers that supports i3bar protocol.</p>
+<h2 id="my-requirements">My requirements</h2>
+<p>These are my requirements from a status bar:</p>
+<ul>
+<li>Needs to be kind on resources and shouldn’t hog the CPU.</li>
+<li>It should have all the widgets I use in Xmobar:
+<ul>
+<li>CPU consumption</li>
+<li>Disk usage statistics</li>
+<li>Wireless connection strength</li>
+<li>Battery information</li>
+<li>Volume level</li>
+<li>Clock</li>
+</ul></li>
+</ul>
+<p>This is how my Xmobar status bar looks (splitting into two images for better display):</p>
+<p><img src="../images/posts/xmobar_1.png" /></p>
+<p><img src="../images/posts/xmobar_2.png" /></p>
+<h2 id="getting-started-with-cnx">Getting started with Cnx</h2>
+<p>When I started working on Cnx, its main branch seemed to be slightly different than the one published in <a href="https://docs.rs/cnx/0.2.0/cnx/">Rust crates registry</a>. For starters, it didn’t compile on Linux. The author of the program, Michael Killough had moved on to use OpenBSD and Cnx’s master version only compiled for that platform. I opened an <a href="https://github.com/mjkillough/cnx/issues/33">issue</a> about it and got a reply from the author in a couple of days. Part of the author’s response:</p>
+<p><em> Unfortunately I’m not going to be able to help beyond merging PRs, and I may be quite slow to do that. Please don’t let that put you off though! I wrote Cnx because I wanted to write something that I could use (and I do, everyday!), so I’d encourage you to do the same. :-) </em></p>
+<p>Given that the author was happy to accept my patches, I decided to go ahead with the implementation of the features that I required.</p>
+<h2 id="cnx-0.3.0">Cnx 0.3.0</h2>
+<p>Release 0.3.0 includes the following things:</p>
+<ul>
+<li>New crate named <a href="https://crates.io/crates/cnx-contrib">cnx-contrib</a> (Similar to <code>xmonad-contrib</code>) with support for following new widgets:
+<ul>
+<li>CPU consumption</li>
+<li>Disk statistics</li>
+<li>Wireless strength information</li>
+<li>Weather station information</li>
+</ul></li>
+<li>Ability to control rendering for most of the widgets. When we instantiate a new widget, we can pass an optional closure which can be used to render based on the current state of a widget. Example code to demonstrate it for the CPU widget where if the CPU consumption is less than 5%, it will be shown in green. But if it’s more than 50%, it will be shown in red.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">let</span> cpu_render <span class="op">=</span> <span class="dt">Box</span><span class="pp">::</span>new(<span class="op">|</span>load<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="kw">let</span> <span class="kw">mut</span> color <span class="op">=</span> <span class="pp">Color::</span>yellow()<span class="op">.</span>to_hex()<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    <span class="kw">if</span> load <span class="op">&lt;</span> <span class="dv">5</span> <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>        color <span class="op">=</span> <span class="pp">Color::</span>green()<span class="op">.</span>to_hex()<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>    <span class="op">}</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>    <span class="kw">if</span> load <span class="op">&gt;</span> <span class="dv">50</span> <span class="op">{</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>        color <span class="op">=</span> <span class="pp">Color::</span>red()<span class="op">.</span>to_hex()<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    <span class="op">}</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>   pango_markup_single_render(color<span class="op">,</span> load)<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="op">}</span>)<span class="op">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">let</span> cpu <span class="op">=</span> <span class="pp">cpu::Cpu::</span>new(attr<span class="op">.</span>clone()<span class="op">,</span> <span class="cn">Some</span>(cpu_render))<span class="op">?;</span></span></code></pre></div>
+<p>So you now have the ability to control it’s behavior programatically in Rust!</p>
+<ul>
+<li>Support <a href="https://developer.gimp.org/api/2.0/pango/PangoMarkupFormat.html">pango markup</a> for better display.</li>
+<li>Replaced Travis CI with Github actions.</li>
+<li>Tokio related changes:
+<ul>
+<li>The initial code was written for tokio 0.2.0 and by the time I started working on it <a href="https://tokio.rs/blog/2020-12-tokio-1-0">tokio 1.0</a> was available, so did tokio upgrade to “1.2.0”.</li>
+<li>Removed the <a href="https://github.com/tokio-rs/mio">mio</a> dependency as it wasn’t needed anymore.</li>
+<li>Moved from the usage of <a href="https://docs.rs/tokio/0.2.9/tokio/io/struct.PollEvented.html">PollEvented</a> to <a href="https://docs.rs/tokio/1.7.1/tokio/io/unix/struct.AsyncFd.html">AsyncFd</a> and implement the Stream trait for XcbEventStream accordingly.</li>
+<li>Started using <a href="https://crates.io/crates/tokio-stream">tokio-stream</a> package for working with asynchronous streams.</li>
+</ul></li>
+</ul>
+<p>With the above changes, this is how my setup with Cnx looks like (splitting into three images for better clarity):</p>
+<p><img src="../images/posts/cnx_1.png" /></p>
+<p><img src="../images/posts/cnx_2.png" /></p>
+<p><img src="../images/posts/cnx_3.png" /></p>
+<p>You can see that it’s pretty close to my Xmobar setup. I found Cnx’s rendering works slightly better because of <a href="https://pango.gnome.org/">Pango</a>.</p>
+<h2 id="using-cnx-along-with-xmonad">Using Cnx along with Xmonad</h2>
+<p>I currently use Cnx along with Xmonad and it was quite easy to integrate it. All you have to do is to use the <a href="https://hackage.haskell.org/package/xmonad-contrib-0.16/docs/XMonad-Hooks-EwmhDesktops.html#v:ewmh">ewmh</a> function to add EWMH functionality to your configuration. A minimal working configuration will look like this:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">XMonad</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">XMonad.Hooks.EwmhDesktops</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>main <span class="ot">=</span> xmonad <span class="op">$</span> ewmh def{ handleEventHook <span class="ot">=</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>           handleEventHook def <span class="op">&lt;+&gt;</span> fullscreenEventHook }</span></code></pre></div>
+<p>If you are interested to see my entire configuration, you can find it <a href="https://github.com/psibi/dotfiles/blob/514baf36e6eebfbc161bcdd2630cc67da744836d/xmonad/xmonad.hs#L1">here</a>. I start <code>cnx</code> via the hook I have defined in my configuration:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="ot">sibiStartupHook ::</span> <span class="dt">X</span> ()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>sibiStartupHook <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>  as <span class="ot">&lt;-</span> io getArgs</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>  Bright.setBrightness <span class="dv">1260</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>  setWMName <span class="st">&quot;LG3D&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>  when (<span class="fu">null</span> as) <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>    void <span class="op">$</span> startProcess (proc myTerminal [])</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>    void <span class="op">$</span> (startProcess (proc <span class="st">&quot;emacs&quot;</span> [<span class="st">&quot;--daemon&quot;</span>]))</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>    void <span class="op">$</span> startProcess <span class="st">&quot;google-chrome-stable&quot;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>    void <span class="op">$</span> startProcess <span class="st">&quot;cnx&quot;</span></span></code></pre></div>
+<h2 id="writing-new-widgets">Writing new widgets</h2>
+<p>I really like how easy it is to implement a new widget for Cnx. All you have to do is this:</p>
+<ul>
+<li>Create a new struct for your widget</li>
+<li>Implement a function to create the above struct</li>
+<li>Implement <a href="https://github.com/mjkillough/cnx/blob/1df493312d8d16c3d399e5c248f420cdd378724d/cnx/src/widgets/mod.rs#L35">Widget</a> trait for your struct.</li>
+</ul>
+<p>And that’s all! You can have a look at the various widgets inside <code>cnx-contrib</code>. The weather widget and clock widget are good starting points if you want to add new widgets.</p>
+<h2 id="future">Future</h2>
+<p>While I’m quite happy with the current state of Cnx, I believe Cnx is far from complete. Some of the things which would be nice to have are:</p>
+<ul>
+<li>Themes like polybar.</li>
+<li>More widgets! Xmobar supports a ton of different widgets, so having feature parity with them would be good.</li>
+<li><a href="https://nixos.wiki/wiki/Module">NixOS module</a> integration.</li>
+</ul>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "https://psibi.in/posts/2021-08-01-cnx.html";
+    this.page.identifier = "posts/2021-08-01-cnx.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+</div>
+
+        </div>
+        <div id="footer">
+            Site generated by
+            <a href="https://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+	<script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-27311575-2', 'auto');
+	    ga('send', 'pageview');
+
+	    // Hack for adding active class to the li tag.
+	    var litags = document.getElementById("navbar").getElementsByTagName("li");
+	    litags[0].className = "";
+	    litags[1].className = "";
+	    litags[2].className = "";
+	    litags[3].className = "";
+	    var currentPage = window.location.href.split('/')[3];
+	    if (currentPage === "")
+	       litags[0].className = "active";
+	    if (currentPage === "about.html")
+	       litags[1].className = "active";
+	    if (currentPage === "contact.html")
+	       litags[2].className = "active";
+	    if (currentPage === "archive.html")
+	       litags[3].className = "active";
+	</script>
+    </body>
+</html>

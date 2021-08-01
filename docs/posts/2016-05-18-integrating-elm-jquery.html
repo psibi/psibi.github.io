@@ -8,6 +8,7 @@
         <!-- CSS only -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
         <!-- JavaScript Bundle with Popper -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
@@ -64,56 +65,56 @@
 <p>Let’s take some jQuery plugin and then try to integrate it with Elm. I chose <a href="https://notifyjs.com/">notifyjs</a> plugin which allows us to create notification. So our objective is to create a simple UI with a input text and a button. When the button is clicked, the text in the input form will be shown to us via the <code>notifyjs</code> plugin.</p>
 <h2 id="the-elm-part">The Elm part</h2>
 <p>The Elm code without any jQuery integration:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode elm"><code class="sourceCode elm"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">module</span> <span class="dt">Notify</span> <span class="kw">exposing</span> (<span class="op">..</span>)</span>
-<span id="cb1-2"><a href="#cb1-2"></a></span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">import</span> <span class="dt">Html</span> <span class="kw">exposing</span> (<span class="dt">Html</span><span class="op">,</span> <span class="fu">div</span><span class="op">,</span> <span class="fu">input</span><span class="op">,</span> <span class="fu">text</span><span class="op">,</span> <span class="fu">button</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">import</span> <span class="dt">Html</span><span class="op">.</span><span class="dt">App</span> <span class="kw">as</span> <span class="dt">Html</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">import</span> <span class="dt">Html</span><span class="op">.</span><span class="dt">Attributes</span> <span class="kw">exposing</span> (<span class="op">..</span>)</span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="kw">import</span> <span class="dt">Html</span><span class="op">.</span><span class="dt">Events</span> <span class="kw">exposing</span> (<span class="fu">onInput</span><span class="op">,</span> <span class="fu">onClick</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="kw">import</span> <span class="dt">String</span></span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a><span class="fu">main</span> <span class="op">=</span> <span class="dt">Html</span><span class="op">.</span><span class="fu">program</span> { <span class="fu">init</span> <span class="op">=</span> <span class="fu">model</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>                    <span class="op">,</span> <span class="fu">view</span> <span class="op">=</span> <span class="fu">view</span></span>
-<span id="cb1-11"><a href="#cb1-11"></a>                    <span class="op">,</span> <span class="fu">update</span> <span class="op">=</span> <span class="fu">update</span></span>
-<span id="cb1-12"><a href="#cb1-12"></a>                    <span class="op">,</span> <span class="fu">subscriptions</span> <span class="op">=</span> \<span class="fu">x</span> <span class="op">-&gt;</span> <span class="dt">Sub</span><span class="op">.</span><span class="fu">none</span></span>
-<span id="cb1-13"><a href="#cb1-13"></a>                    }</span>
-<span id="cb1-14"><a href="#cb1-14"></a></span>
-<span id="cb1-15"><a href="#cb1-15"></a></span>
-<span id="cb1-16"><a href="#cb1-16"></a><span class="kw">type</span> <span class="kw">alias</span> <span class="dt">Model</span> <span class="op">=</span> { <span class="fu">content</span> : <span class="dt">String</span> }</span>
-<span id="cb1-17"><a href="#cb1-17"></a></span>
-<span id="cb1-18"><a href="#cb1-18"></a><span class="fu">model</span> <span class="op">=</span>  (<span class="dt">Model</span> <span class="st">&quot;&quot;</span><span class="op">,</span> <span class="dt">Cmd</span><span class="op">.</span><span class="fu">none</span>)</span>
-<span id="cb1-19"><a href="#cb1-19"></a></span>
-<span id="cb1-20"><a href="#cb1-20"></a><span class="kw">type</span> <span class="dt">Msg</span>  <span class="op">=</span> <span class="dt">Change</span> <span class="dt">String</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>          <span class="op">|</span> <span class="dt">Alert</span></span>
-<span id="cb1-22"><a href="#cb1-22"></a></span>
-<span id="cb1-23"><a href="#cb1-23"></a><span class="fu">update</span> : <span class="dt">Msg</span> <span class="op">-&gt;</span> <span class="dt">Model</span> <span class="op">-&gt;</span> (<span class="dt">Model</span><span class="op">,</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>)</span>
-<span id="cb1-24"><a href="#cb1-24"></a><span class="fu">update</span> <span class="fu">msg</span> <span class="fu">model</span> <span class="op">=</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a>  <span class="cf">case</span> <span class="fu">msg</span> <span class="cf">of</span></span>
-<span id="cb1-26"><a href="#cb1-26"></a>    <span class="dt">Change</span> <span class="fu">newContent</span> <span class="op">-&gt;</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a>      ({ <span class="fu">model</span> <span class="op">|</span> <span class="fu">content</span> <span class="op">=</span> <span class="fu">newContent</span> }<span class="op">,</span> <span class="dt">Cmd</span><span class="op">.</span><span class="fu">none</span>)</span>
-<span id="cb1-28"><a href="#cb1-28"></a>    <span class="dt">Alert</span> <span class="op">-&gt;</span> (<span class="fu">model</span><span class="op">,</span> <span class="dt">Cmd</span><span class="op">.</span><span class="fu">none</span>)</span>
-<span id="cb1-29"><a href="#cb1-29"></a></span>
-<span id="cb1-30"><a href="#cb1-30"></a><span class="fu">view</span> : <span class="dt">Model</span> <span class="op">-&gt;</span> <span class="dt">Html</span> <span class="dt">Msg</span></span>
-<span id="cb1-31"><a href="#cb1-31"></a><span class="fu">view</span> <span class="fu">model</span> <span class="op">=</span></span>
-<span id="cb1-32"><a href="#cb1-32"></a>  <span class="fu">div</span> []</span>
-<span id="cb1-33"><a href="#cb1-33"></a>    [ <span class="fu">input</span> [ <span class="fu">placeholder</span> <span class="st">&quot;Enter alert message&quot;</span><span class="op">,</span> <span class="fu">onInput</span> <span class="dt">Change</span> ] []</span>
-<span id="cb1-34"><a href="#cb1-34"></a>    <span class="op">,</span> <span class="fu">button</span> [ <span class="fu">onClick</span> <span class="dt">Alert</span> ] [ <span class="fu">text</span> <span class="st">&quot;Show Alert!&quot;</span> ]</span>
-<span id="cb1-35"><a href="#cb1-35"></a>    ]</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode elm"><code class="sourceCode elm"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">module</span> <span class="dt">Notify</span> <span class="kw">exposing</span> (<span class="op">..</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Html</span> <span class="kw">exposing</span> (<span class="dt">Html</span><span class="op">,</span> <span class="fu">div</span><span class="op">,</span> <span class="fu">input</span><span class="op">,</span> <span class="fu">text</span><span class="op">,</span> <span class="fu">button</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Html</span><span class="op">.</span><span class="dt">App</span> <span class="kw">as</span> <span class="dt">Html</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Html</span><span class="op">.</span><span class="dt">Attributes</span> <span class="kw">exposing</span> (<span class="op">..</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Html</span><span class="op">.</span><span class="dt">Events</span> <span class="kw">exposing</span> (<span class="fu">onInput</span><span class="op">,</span> <span class="fu">onClick</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">String</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="fu">main</span> <span class="op">=</span> <span class="dt">Html</span><span class="op">.</span><span class="fu">program</span> { <span class="fu">init</span> <span class="op">=</span> <span class="fu">model</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>                    <span class="op">,</span> <span class="fu">view</span> <span class="op">=</span> <span class="fu">view</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>                    <span class="op">,</span> <span class="fu">update</span> <span class="op">=</span> <span class="fu">update</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>                    <span class="op">,</span> <span class="fu">subscriptions</span> <span class="op">=</span> \<span class="fu">x</span> <span class="op">-&gt;</span> <span class="dt">Sub</span><span class="op">.</span><span class="fu">none</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>                    }</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a><span class="kw">type</span> <span class="kw">alias</span> <span class="dt">Model</span> <span class="op">=</span> { <span class="fu">content</span> : <span class="dt">String</span> }</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a><span class="fu">model</span> <span class="op">=</span>  (<span class="dt">Model</span> <span class="st">&quot;&quot;</span><span class="op">,</span> <span class="dt">Cmd</span><span class="op">.</span><span class="fu">none</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a><span class="kw">type</span> <span class="dt">Msg</span>  <span class="op">=</span> <span class="dt">Change</span> <span class="dt">String</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>          <span class="op">|</span> <span class="dt">Alert</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a><span class="fu">update</span> : <span class="dt">Msg</span> <span class="op">-&gt;</span> <span class="dt">Model</span> <span class="op">-&gt;</span> (<span class="dt">Model</span><span class="op">,</span> <span class="dt">Cmd</span> <span class="dt">Msg</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a><span class="fu">update</span> <span class="fu">msg</span> <span class="fu">model</span> <span class="op">=</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>  <span class="cf">case</span> <span class="fu">msg</span> <span class="cf">of</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>    <span class="dt">Change</span> <span class="fu">newContent</span> <span class="op">-&gt;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>      ({ <span class="fu">model</span> <span class="op">|</span> <span class="fu">content</span> <span class="op">=</span> <span class="fu">newContent</span> }<span class="op">,</span> <span class="dt">Cmd</span><span class="op">.</span><span class="fu">none</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>    <span class="dt">Alert</span> <span class="op">-&gt;</span> (<span class="fu">model</span><span class="op">,</span> <span class="dt">Cmd</span><span class="op">.</span><span class="fu">none</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true"></a><span class="fu">view</span> : <span class="dt">Model</span> <span class="op">-&gt;</span> <span class="dt">Html</span> <span class="dt">Msg</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true"></a><span class="fu">view</span> <span class="fu">model</span> <span class="op">=</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true"></a>  <span class="fu">div</span> []</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true"></a>    [ <span class="fu">input</span> [ <span class="fu">placeholder</span> <span class="st">&quot;Enter alert message&quot;</span><span class="op">,</span> <span class="fu">onInput</span> <span class="dt">Change</span> ] []</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true"></a>    <span class="op">,</span> <span class="fu">button</span> [ <span class="fu">onClick</span> <span class="dt">Alert</span> ] [ <span class="fu">text</span> <span class="st">&quot;Show Alert!&quot;</span> ]</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true"></a>    ]</span></code></pre></div>
 <p>Now, compile it to create the js file:</p>
 <p><code>elm-make Notify.elm --output notify.js</code></p>
 <p>And the corresponding <code>html</code> file:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb2-1"><a href="#cb2-1"></a><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">&lt;html&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">&lt;head&gt;</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">&lt;title&gt;</span>Sample Elm app<span class="kw">&lt;/title&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">&lt;/head&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6"></a><span class="kw">&lt;body&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="kw">&lt;/body&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="kw">&lt;script&gt;</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a>    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a><span class="kw">&lt;/script&gt;</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a><span class="kw">&lt;/html&gt;</span> </span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="dt">&lt;!DOCTYPE </span>html<span class="dt">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="kw">&lt;html&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">&lt;head&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="kw">&lt;title&gt;</span>Sample Elm app<span class="kw">&lt;/title&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="kw">&lt;/head&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="kw">&lt;body&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="kw">&lt;/body&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="kw">&lt;script&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>    <span class="kw">var</span> app <span class="op">=</span> Elm<span class="op">.</span><span class="at">Notify</span><span class="op">.</span><span class="fu">fullscreen</span>()<span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a><span class="kw">&lt;/script&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a><span class="kw">&lt;/html&gt;</span> </span></code></pre></div>
 <h2 id="the-integration-part">The Integration part</h2>
 <p>Now let’s do the integration with the jQuery plugin. There are four steps for it:</p>
 <ul>
@@ -125,15 +126,15 @@
 <p><code>Alert -&gt; (model, alert model.content)</code></p></li>
 <li><p>Connect the Plugin with the Elm part in the HTML code:</p></li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;./notifyLib.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </span>
-<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">&lt;script&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a>    <span class="kw">var</span> app <span class="op">=</span> <span class="va">Elm</span>.<span class="va">Notify</span>.<span class="at">fullscreen</span>()<span class="op">;</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a>    <span class="va">app</span>.<span class="va">ports</span>.<span class="va">alert</span>.<span class="at">subscribe</span>(<span class="kw">function</span>(word) <span class="op">{</span></span>
-<span id="cb3-7"><a href="#cb3-7"></a>      <span class="va">$</span>.<span class="at">notify</span>(word)<span class="op">;</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>    <span class="op">}</span>)<span class="op">;</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a><span class="kw">&lt;/script&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="kw">&lt;script</span><span class="ot"> type=</span><span class="st">&quot;text/javascript&quot;</span><span class="ot"> src=</span><span class="st">&quot;./notifyLib.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="kw">&lt;script</span><span class="ot"> src=</span><span class="st">&quot;./notify.js&quot;</span><span class="kw">&gt;&lt;/script&gt;</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="kw">&lt;script&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>    <span class="kw">var</span> app <span class="op">=</span> Elm<span class="op">.</span><span class="at">Notify</span><span class="op">.</span><span class="fu">fullscreen</span>()<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>    app<span class="op">.</span><span class="at">ports</span><span class="op">.</span><span class="at">alert</span><span class="op">.</span><span class="fu">subscribe</span>(<span class="kw">function</span>(word) {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>      $<span class="op">.</span><span class="fu">notify</span>(word)<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    })<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">&lt;/script&gt;</span></span></code></pre></div>
 <p>And voila, you get a alert:</p>
 <figure>
 <img src="../images/posts/elm-alert.png" alt /><figcaption>Alert notification using notifyjs</figcaption>

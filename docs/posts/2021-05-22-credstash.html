@@ -8,6 +8,7 @@
         <!-- CSS only -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
         <!-- JavaScript Bundle with Popper -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
@@ -94,7 +95,7 @@ hi has been stored</code></pre>
 <ul>
 <li>Integrate <a href="https://github.com/rust-lang/rust-clippy">clippy</a> to the CI.</li>
 <li>While the <a href="https://github.com/psibi/rucredstash/blob/c315f1428dfd02b143eb9404fe08b9f37d41ccf7/src/lib.rs#L1">library module</a> is completely panic free, I think the <a href="https://github.com/psibi/rucredstash/blob/master/src/main.rs">CLI driver</a> still has scope for improvement. There are several places where I’m using <a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.expect">expect</a> method which needs to be fixed. It shouldn’t be hard IMO. :-)</li>
-<li>Add a new subcommand for <code>setup</code>. Something along the line of <code>setup cmk</code> probably which should setup the <a href="https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#master_keys">Customer master key</a>. Note that this functionality isn’t present in the original credstash program.</li>
+<li>Add a new subcommand for <code>setup</code>. Something along the line of <code>setup   cmk</code> probably which should setup the <a href="https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#master_keys">Customer master key</a>. Note that this functionality isn’t present in the original credstash program.</li>
 <li>Experiment with structopt crate and see how it goes!</li>
 </ul>
 <p>I should create a github issues for all the above points.</p>
