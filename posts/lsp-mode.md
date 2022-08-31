@@ -1,27 +1,24 @@
 ---
-title: Terraform support improvements for lsp-mode
+title: Improvements to Terraform support for lsp-mode
 author: Sibi
 date: 2022-05-22
 ---
 
-I have been working on improving the `lsp-mode` support for the
-terraform language. My goal is to make it on par with the official
-Visual Studio extension.
+I have been working on improving the Terraform language support
+for `lsp-mode`, that is, `lsp-terraform`. My goal is to ensure
+feature parity with the official Visual Studio extension.
 
-This post will summarize the recent improvements which I have been
-bringing to `lsp-terraform` which is part of `lsp-mode`.
-
-Currently, there are two language servers available for terraform:
+Currently, there are two language servers available for Terraform:
 
 - [terraform-ls](https://github.com/hashicorp/terraform-ls)
 - [terraform-lsp](https://github.com/juliosueiras/terraform-lsp)
 
-The above links contain information about them and how they differ
-from each other. In my case, all of my improvements were done
-targeting `terraform-ls` server which is the official language server
-from HashiCorp.
+All of my improvements were done targeting `terraform-ls` server which
+is the official language server from HashiCorp. The above links
+contain information about both the language servers and how they differ
+from each other.
 
-## New commands
+## New commands for validate and init operations
 
 Two new commands were implemented for easily running validate and
 init operations:
@@ -29,24 +26,27 @@ init operations:
 - lsp-terraform-ls-validate
 - lsp-terraform-ls-init
 
-`lsp-terraform-ls-validate` runs the [validate subcommand](https://www.terraform.io/cli/commands/validate) on
-project root. All the violations that happens are published back to
+#### lsp-terraform-ls-validate
+`lsp-terraform-ls-validate` runs the [validate subcommand](https://www.terraform.io/cli/commands/validate)
+on project root. All the violations detected are published back to 
 the buffer:
 
 <img class="img-fluid" src="../images/posts/lsp-terraform-validate.png">
 
-`lsp-terraform-ls-init` runs the init subcommand on the project
-root. Note that if your terraform project requires credentials, then
-you have to make sure that they are properly propagated. I have been
-using Steve Purcell's [envrc](https://github.com/purcell/envrc) package for it, and it has been
-working good. Note that this is a synchronous operation and init takes
-quite a bit of time to complete. If your terraform project has quite a
-bit of dependencies, then it's probably not a good idea to use this.
+#### lsp-terraform-ls-init
+`lsp-terraform-ls-init` runs the [init subcommand](https://www.terraform.io/cli/commands/init)
+on the project root. Note that if your Terraform project requires
+credentials, then you have to make sure that they are properly propagated.
+I have been using Steve Purcell's [envrc](https://github.com/purcell/envrc)
+package for this, and it has been working well for me. Note that this is a
+synchronous operation and init takes quite a bit of time to complete.
+If your Terraform project has a lot of dependencies, then it's
+probably not a good idea to use this.
 
-This is the [pull request](https://github.com/emacs-lsp/lsp-mode/pull/3509) which adds support for the above
-commands.
+This is the [pull request](https://github.com/emacs-lsp/lsp-mode/pull/3509) which adds support
+for the above commands.
 
-## References support using Code Lens
+## Support for References using Code Lens
 
 This is a feature which has greatly improved my productivity. It's
 best to demonstrate this feature using the following GIF:
@@ -111,7 +111,7 @@ Corresponding PR's for the same:
 ## Improved documentation
 
 Also, as part of the changes, I have written a separate user manual on
-how to use `lsp-mode` effectively with terraform. This is the official
+how to use `lsp-mode` effectively with Terraform. This is the official
 [documentation page](https://emacs-lsp.github.io/lsp-mode/page/lsp-terraform-ls/).
 
 These are the various PRs that were done to improve it:
@@ -129,8 +129,8 @@ planning to work on further:
 - Tweak the semantic token faces for better contextual display.
 - Better icon for treemacs widgets
 - Ability to refresh treemacs widgets
-- Test suite for terraform client
+- Test suite for Terraform client
 
 And that concludes my post on the various improvements that have gone
-to the terraform client. Do try out the latest version and open an
+to the Terraform client. Do try out the latest version and open an
 issue if something doesn't work!
