@@ -84,37 +84,36 @@ There are text properties here:
   fontified            t
 ```
 
-This is the [PR](https://github.com/emacs-lsp/lsp-mode/pull/3535) supporting semantic token support. I found
+This is the [pull request](https://github.com/emacs-lsp/lsp-mode/pull/3535) for semantic tokens. I found
 implementing this more involved as I had to touch both `lsp-mode.el`
 and `semantic-tokens.el`. Most of my other changes just involved
 extending the client code, but this involved understanding how various
 pieces fit together.
 
-## Treeview controls
+## Tree view controls
 
 I have introduced a couple of functions that will allow you to visualize
- [providers](https://www.terraform.io/language/providers) and module calls. I used [lsp-treemacs](https://github.com/emacs-lsp/lsp-treemacs.git) to provide
+ [providers](https://www.terraform.io/language/providers) and [module](https://www.terraform.io/language/modules) calls. I used [lsp-treemacs](https://github.com/emacs-lsp/lsp-treemacs.git) to provide
  the integration. This is how your Emacs frame will look with them:
 
 <img class="img-fluid" src="../images/posts/lsp-terraform-widgets.png">
 
-To call the above widgets you have to use these functions:
+To call the above widgets you have to use the following functions:
 
 - lsp-terraform-ls-providers
 - lsp-terraform-ls-module-calls
 
-Corresponding PR's for the same:
+Corresponding pull requests for the same:
 
-- [PR for providers integration](https://github.com/emacs-lsp/lsp-mode/pull/3537)
-- [PR for module-calls integration](https://github.com/emacs-lsp/lsp-mode/pull/3538)
+- [Providers integration](https://github.com/emacs-lsp/lsp-mode/pull/3537)
+- [Module calls integration](https://github.com/emacs-lsp/lsp-mode/pull/3538)
 
 ## Improved documentation
 
 Also, as part of the changes, I have written a separate user manual on
-how to use `lsp-mode` effectively with Terraform. This is the official
-[documentation page](https://emacs-lsp.github.io/lsp-mode/page/lsp-terraform-ls/).
+how to use `lsp-mode` effectively with Terraform. This is the [official documentation page](https://emacs-lsp.github.io/lsp-mode/page/lsp-terraform-ls/).
 
-These are the various PRs that were done to improve it:
+These are the some of the documentation related pull requests:
 
 - [Initial documentation](https://github.com/emacs-lsp/lsp-mode/pull/3522)
 - [Revamp entire documentation for the terraform client](https://github.com/emacs-lsp/lsp-mode/pull/3540)
@@ -127,10 +126,10 @@ the Visual Studio experience, these are some of the things which I'm
 planning to work on further:
 
 - Tweak the semantic token faces for better contextual display.
-- Better icon for treemacs widgets
-- Ability to refresh treemacs widgets
-- Test suite for Terraform client
+- Better icon for treemacs widgets.
+- Ability to refresh treemacs widgets.
+- Test suite for Terraform client.
 
-And that concludes my post on the various improvements that have gone
-to the Terraform client. Do try out the latest version and open an
-issue if something doesn't work!
+That concludes my post on the various improvements made
+to the Terraform client. Do try out the latest version! Open an
+issue if you encounter any bugs or have suggestions for enhancements.
