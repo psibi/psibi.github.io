@@ -128,19 +128,17 @@ These are some of the documentation related pull requests:
 
 While I'm happy with current state of Terraform client in lsp-mode and
 believe it's on-par with the Visual Studio Code experience, these are some
-of the tasks which I'm planning to work on:
+of the tasks which I'm planning to work on next:
 
 - Tweak the semantic token faces for better contextual display.
 - Better icon for treemacs widgets.
 - Ability to refresh treemacs widgets.
 - Test suite for Terraform client.
 
-Also, I have been following every new [release of terraform-ls](https://github.com/hashicorp/terraform-ls/releases) and
-implementing the additional features. Most of the time I hardly have
-to do any explicit changes as it's supported out of the box by
-lsp-mode. Although, I do have to implement some features now and
-then. This was the [pull request](https://github.com/emacs-lsp/lsp-mode/pull/3684) for making it compatible with the
-new features provided by terraform-ls [v0.29.0](https://github.com/hashicorp/terraform-ls/releases/tag/v0.29.0).
+Also, I have been following the [releases of terraform-ls](https://github.com/hashicorp/terraform-ls/releases) and
+implementing the additional features like [this pull request](https://github.com/emacs-lsp/lsp-mode/pull/3684) for making it compatible with the
+new features provided by [terraform-ls v0.29.0](https://github.com/hashicorp/terraform-ls/releases/tag/v0.29.0). Although, most of the time I didn't have to
+make any explicit changes as it's supported out of the box by lsp-mode.
 
 That concludes my post on the various improvements made to the
 Terraform client. Do try out the latest version! Open an issue if you
