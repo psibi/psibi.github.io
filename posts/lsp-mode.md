@@ -1,7 +1,7 @@
 ---
 title: Improvements to Terraform support for lsp-mode
 author: Sibi
-date: 2022-05-22
+date: 2022-09-04
 ---
 
 I have been working on improving the Terraform language support
@@ -118,7 +118,7 @@ Corresponding pull requests for the same:
 Also, as part of the changes, I have written a separate user manual on
 how to use `lsp-mode` effectively with Terraform. This is the [official documentation page](https://emacs-lsp.github.io/lsp-mode/page/lsp-terraform-ls/).
 
-These are some of the documentation related pull requests:
+These are some documentation related pull requests:
 
 - [Initial documentation](https://github.com/emacs-lsp/lsp-mode/pull/3522)
 - [Revamp entire documentation for the terraform client](https://github.com/emacs-lsp/lsp-mode/pull/3540)
@@ -136,9 +136,10 @@ of the tasks which I'm planning to work on next:
 - Test suite for Terraform client.
 
 Also, I have been following the [releases of terraform-ls](https://github.com/hashicorp/terraform-ls/releases) and
-implementing the additional features like [this pull request](https://github.com/emacs-lsp/lsp-mode/pull/3684) for making it compatible with the
-new features provided by [terraform-ls v0.29.0](https://github.com/hashicorp/terraform-ls/releases/tag/v0.29.0). Although, most of the time I didn't have to
-make any explicit changes as it's supported out of the box by lsp-mode.
+working on keeping the Terraform client compatible with the latest
+version like [this pull request](https://github.com/emacs-lsp/lsp-mode/pull/3684) for [v0.29.0](https://github.com/hashicorp/terraform-ls/releases/tag/v0.29.0). But most of the
+time it worked out of the box and I didn't have to make any explicit
+changes.
 
 That concludes my post on the various improvements made to the
 Terraform client. Do try out the latest version! Open an issue if you

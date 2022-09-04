@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sibi - Improvements to Terraform support for lsp-mode</title>
+	 <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-JTDENDXYYY');
+        </script>
+        <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+        <link rel="manifest" href="../images/site.webmanifest">
+    </head>
+    <body>
+	 <!-- Fixed navbar -->
+         <!-- sibi: navbar-default is my custom class -->
+    <nav class="navbar navbar-expand-md navbar-default fixed-top bg-white">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="navbar-toggler-icon">
+          </button>
+          <a class="navbar-brand" href="../">Sibi</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse justify-content-end">
+          <ul class="navbar-nav mr-auto mb-2 mb-md-0">
+            <li class="nav-item">
+              <a class="nav-link active" href="../">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../about.html">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../contact.html">Contact</a>
+            </li>
+	    <li class="nav-item">
+              <a class="nav-link" href="../archive.html">Archive</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>Improvements to Terraform support for lsp-mode</h1>
+    <span class="date">September  4, 2022</span>
+</div>
+
+<p>I have been working on improving the Terraform language support for <code>lsp-mode</code>, that is, <code>lsp-terraform</code>. My goal is to ensure feature parity with the official Visual Studio extension.</p>
+<p>Currently, there are two language servers available for Terraform:</p>
+<ul>
+<li><a href="https://github.com/hashicorp/terraform-ls">terraform-ls</a></li>
+<li><a href="https://github.com/juliosueiras/terraform-lsp">terraform-lsp</a></li>
+</ul>
+<p>All of my improvements were done targeting <code>terraform-ls</code> server which is the official language server from HashiCorp. The above links contain information about both the language servers and how they differ from each other.</p>
+<h2 id="new-commands-for-validate-and-init-operations">New commands for validate and init operations</h2>
+<p>Two new commands were implemented for easily running validate and init operations:</p>
+<ul>
+<li>lsp-terraform-ls-validate</li>
+<li>lsp-terraform-ls-init</li>
+</ul>
+<h4 id="lsp-terraform-ls-validate">lsp-terraform-ls-validate</h4>
+<p><code>lsp-terraform-ls-validate</code> runs the <a href="https://www.terraform.io/cli/commands/validate">validate subcommand</a> on project root. All the violations detected are published back to the buffer:</p>
+<p><img class="img-fluid" src="../images/posts/lsp-terraform-validate.png"></p>
+<h4 id="lsp-terraform-ls-init">lsp-terraform-ls-init</h4>
+<p><code>lsp-terraform-ls-init</code> runs the <a href="https://www.terraform.io/cli/commands/init">init subcommand</a> on the project root. Note that if your Terraform project requires credentials, then you have to make sure that they are properly propagated. I have been using Steve Purcell’s <a href="https://github.com/purcell/envrc">envrc</a> package for this, and it has been working well for me. Note that this is a synchronous operation and init takes quite a bit of time to complete. If your Terraform project has a lot of dependencies, then it’s probably not a good idea to use this.</p>
+<p>This is the <a href="https://github.com/emacs-lsp/lsp-mode/pull/3509">pull request</a> which adds support for the above commands.</p>
+<h2 id="support-for-references-using-code-lens">Support for References using Code Lens</h2>
+<p>This is a feature which has greatly improved my productivity. It’s best to demonstrate this feature using the following GIF:</p>
+<p><img class="img-fluid" src="../images/posts/tf_code_lens.gif"></p>
+<p>Note that this is an experimental feature and should be enabled via the option <code>lsp-terraform-ls-enable-show-reference</code>.</p>
+<p>This is the <a href="https://github.com/emacs-lsp/lsp-mode/pull/3524">pull request</a> which adds support for reference counts.</p>
+<h2 id="semantic-tokens-support">Semantic tokens support</h2>
+<p>Using semantic tokens, you get additional contextual information for your source code. Usually the syntax highlighting for your code is done via major mode, and they are typically implemented via regular expressions. While it’s good for immediate instant feedback, using semantic token additionally is nice as it gives you a good contextual highlighting. This snapshot is before enabling semantic token:</p>
+<p><img class="img-fluid" src="../images/posts/without_semantic_token_module.png"></p>
+<p>And this is the same piece of code with semantic token:</p>
+<p><img class="img-fluid" src="../images/posts/new_st_module.png"></p>
+<p>One way to verify that your code is actually using semantic token is to go to a piece of code and do <code>C-u M-x what-cursor-position</code>. It will give you lots of detail but checking its <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Faces.html">face</a> will ensure that it’s using one defined by the lsp-semantic-tokens:</p>
+<pre class="shellsession"><code>There are text properties here:
+  face                 lsp-face-semhl-label
+  fontified            t</code></pre>
+<p>This is the <a href="https://github.com/emacs-lsp/lsp-mode/pull/3535">pull request</a> for semantic tokens. I found implementing this more involved as I had to touch both <code>lsp-mode.el</code> and <code>semantic-tokens.el</code>. Most of my other changes just involved extending the client code, but this involved understanding how various pieces fit together.</p>
+<p>There is also <a href="https://github.com/emacs-lsp/lsp-mode/pull/3680#issuecomment-1236039244">this recent work</a> by Sebastian which will lead to improvement in the way semantic tokens code is initialized by the client. I’m looking forward to doing the relevant changes for the terraform client once it’s merged.</p>
+<h2 id="tree-view-controls">Tree view controls</h2>
+<p>I have introduced a couple of functions that will allow you to visualize <a href="https://www.terraform.io/language/providers">providers</a> and <a href="https://www.terraform.io/language/modules">module</a> calls. I used <a href="https://github.com/emacs-lsp/lsp-treemacs.git">lsp-treemacs</a> to provide the integration. This is how your Emacs frame will look with them:</p>
+<p><img class="img-fluid" src="../images/posts/lsp-terraform-widgets.png"></p>
+<p>To call the above widgets you have to use the following functions:</p>
+<ul>
+<li>lsp-terraform-ls-providers</li>
+<li>lsp-terraform-ls-module-calls</li>
+</ul>
+<p>Corresponding pull requests for the same:</p>
+<ul>
+<li><a href="https://github.com/emacs-lsp/lsp-mode/pull/3537">Providers integration</a></li>
+<li><a href="https://github.com/emacs-lsp/lsp-mode/pull/3538">Module calls integration</a></li>
+</ul>
+<h2 id="improved-documentation">Improved documentation</h2>
+<p>Also, as part of the changes, I have written a separate user manual on how to use <code>lsp-mode</code> effectively with Terraform. This is the <a href="https://emacs-lsp.github.io/lsp-mode/page/lsp-terraform-ls/">official documentation page</a>.</p>
+<p>These are some documentation related pull requests:</p>
+<ul>
+<li><a href="https://github.com/emacs-lsp/lsp-mode/pull/3522">Initial documentation</a></li>
+<li><a href="https://github.com/emacs-lsp/lsp-mode/pull/3540">Revamp entire documentation for the terraform client</a></li>
+<li><a href="https://github.com/hashicorp/terraform-ls/pull/932">Update documentation for terraform-ls server</a></li>
+</ul>
+<h2 id="future-improvements">Future improvements</h2>
+<p>While I’m happy with current state of Terraform client in lsp-mode and believe it’s on-par with the Visual Studio Code experience, these are some of the tasks which I’m planning to work on next:</p>
+<ul>
+<li>Tweak the semantic token faces for better contextual display.</li>
+<li>Better icon for treemacs widgets.</li>
+<li>Ability to refresh treemacs widgets.</li>
+<li>Test suite for Terraform client.</li>
+</ul>
+<p>Also, I have been following the <a href="https://github.com/hashicorp/terraform-ls/releases">releases of terraform-ls</a> and working on keeping the Terraform client compatible with the latest version like <a href="https://github.com/emacs-lsp/lsp-mode/pull/3684">this pull request</a> for <a href="https://github.com/hashicorp/terraform-ls/releases/tag/v0.29.0">v0.29.0</a>. But most of the time it worked out of the box and I didn’t have to make any explicit changes.</p>
+<p>That concludes my post on the various improvements made to the Terraform client. Do try out the latest version! Open an issue if you encounter any bugs or have suggestions for enhancements.</p>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "https://psibi.in/posts/lsp-mode.html";
+    this.page.identifier = "posts/lsp-mode.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+</div>
+
+        </div>
+        <div id="footer">
+            Site generated by
+            <a href="https://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+	<script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-27311575-2', 'auto');
+	    ga('send', 'pageview');
+
+	    // Hack for adding active class to the li tag.
+	    var litags = document.getElementById("navbar").getElementsByTagName("li");
+	    litags[0].className = "";
+	    litags[1].className = "";
+	    litags[2].className = "";
+	    litags[3].className = "";
+	    var currentPage = window.location.href.split('/')[3];
+	    if (currentPage === "")
+	       litags[0].className = "active";
+	    if (currentPage === "about.html")
+	       litags[1].className = "active";
+	    if (currentPage === "contact.html")
+	       litags[2].className = "active";
+	    if (currentPage === "archive.html")
+	       litags[3].className = "active";
+	</script>
+    </body>
+</html>
