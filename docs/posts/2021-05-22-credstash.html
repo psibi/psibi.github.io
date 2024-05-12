@@ -61,11 +61,26 @@
 </div>
 
 <h2 id="credstash">Credstash</h2>
-<p>Credstash is a cli utility for managing credentials securely in AWS cloud. It uses a combination of AWS Key Management Service (KMS) and DynamoDB to achieve it. One of my co-worker has written a more <a href="https://www.fpcomplete.com/blog/2017/08/credstash">detailed tutorial</a> here. The original tool was written by a company named <a href="https://github.com/fugue/credstash">Fugue</a> in Python. It has been implemented in <a href="https://github.com/fugue/credstash#compatibility-with-other-languages">various languages</a> including Rust which I have authored (Rucredstash).</p>
+<p>Credstash is a cli utility for managing credentials securely in AWS
+cloud. It uses a combination of AWS Key Management Service (KMS) and
+DynamoDB to achieve it. One of my co-worker has written a more
+<a href="https://www.fpcomplete.com/blog/2017/08/credstash">detailed tutorial</a>
+here. The original tool was written by a company named
+<a href="https://github.com/fugue/credstash">Fugue</a> in Python. It has been
+implemented in <a href="https://github.com/fugue/credstash#compatibility-with-other-languages">various
+languages</a>
+including Rust which I have authored (Rucredstash).</p>
 <h2 id="release-v0.8.0">Release v0.8.0</h2>
-<p>I released a new version of <a href="https://github.com/psibi/rucredstash/releases/tag/v0.8.0">rucredstash</a> quite some time ago and with that, <em>rucredstash</em> cli executable becomes a drop in replacement to the original credstash program. While you could use it previously too, it lacked the <em>putall</em> subcommand. This subcommand had three different ways of passing data to it:</p>
+<p>I released a new version of
+<a href="https://github.com/psibi/rucredstash/releases/tag/v0.8.0">rucredstash</a>
+quite some time ago and with that, <em>rucredstash</em> cli executable
+becomes a drop in replacement to the original credstash program. While
+you could use it previously too, it lacked the <em>putall</em>
+subcommand. This subcommand had three different ways of passing data
+to it:</p>
 <h3 id="passing-data-via-file">Passing data via file</h3>
-<p>You can pass the input from a file using the special symbol <code>@</code> to indicate that the data is fed from the file:</p>
+<p>You can pass the input from a file using the special symbol <code>@</code> to
+indicate that the data is fed from the file:</p>
 <pre class="shellsession"><code>$ bat secrets.json
 ───────┬────────────────────────────────────────
        │ File: secrets.json
@@ -83,24 +98,49 @@ hi has been stored</code></pre>
 <pre class="shellsession"><code>$ rucredstash putall -
 { &quot;hello&quot;: &quot;world&quot; }
 hello has been stored</code></pre>
-<p>You have to press the <a href="https://en.wikipedia.org/wiki/Enter_key" title="Enter key">Return key</a> to indicate that you have finished passing the data.</p>
+<p>You have to press the <a href="https://en.wikipedia.org/wiki/Enter_key" title="Enter key">Return
+key</a> to indicate
+that you have finished passing the data.</p>
 <h3 id="passing-data-directly">Passing data directly</h3>
 <p>Or can you just pass the data as an explicit command line argument:</p>
 <pre class="shellsession"><code>$ rucredstash putall '{&quot;hello&quot;:&quot;world&quot;,&quot;hi&quot;:&quot;bye&quot;}'
 hello has been stored
 hi has been stored</code></pre>
-<p>I disliked the above overloaded behavior and wanted to give a <del>different</del> better user experience in my Rust implementation. But that meant breaking compatibility with the original program. So, I finally bit the bullet and implemented it. With that, it becomes a drop in replacement to the original Python program which was my primary goal when I started working on rucredstash.</p>
+<p>I disliked the above overloaded behavior and wanted to give a
+<del>different</del> better user experience in my Rust implementation. But
+that meant breaking compatibility with the original program. So, I
+finally bit the bullet and implemented it. With that, it becomes a
+drop in replacement to the original Python program which was my
+primary goal when I started working on rucredstash.</p>
 <h2 id="future-improvements">Future improvements</h2>
-<p>With v0.8.0 of rucredstash released, I still think there are lots of improvements which can be done. Some of them are:</p>
+<p>With v0.8.0 of rucredstash released, I still think there are lots of
+improvements which can be done. Some of them are:</p>
 <ul>
 <li>Integrate <a href="https://github.com/rust-lang/rust-clippy">clippy</a> to the CI.</li>
-<li>While the <a href="https://github.com/psibi/rucredstash/blob/c315f1428dfd02b143eb9404fe08b9f37d41ccf7/src/lib.rs#L1">library module</a> is completely panic free, I think the <a href="https://github.com/psibi/rucredstash/blob/master/src/main.rs">CLI driver</a> still has scope for improvement. There are several places where I’m using <a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.expect">expect</a> method which needs to be fixed. It shouldn’t be hard IMO. :-)</li>
-<li>Add a new subcommand for <code>setup</code>. Something along the line of <code>setup   cmk</code> probably which should setup the <a href="https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#master_keys">Customer master key</a>. Note that this functionality isn’t present in the original credstash program.</li>
+<li>While the <a href="https://github.com/psibi/rucredstash/blob/c315f1428dfd02b143eb9404fe08b9f37d41ccf7/src/lib.rs#L1">library
+module</a>
+is completely panic free, I think the <a href="https://github.com/psibi/rucredstash/blob/master/src/main.rs">CLI
+driver</a>
+still has scope for improvement. There are several places where I’m
+using
+<a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.expect">expect</a>
+method which needs to be fixed. It shouldn’t be hard IMO. :-)</li>
+<li>Add a new subcommand for <code>setup</code>. Something along the line of <code>setup   cmk</code> probably which should setup the <a href="https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#master_keys">Customer master
+key</a>. Note
+that this functionality isn’t present in the original credstash
+program.</li>
 <li>Experiment with structopt crate and see how it goes!</li>
 </ul>
 <p>I should create a github issues for all the above points.</p>
 <h2 id="comparing-rust-with-haskell">Comparing Rust with Haskell</h2>
-<p>Now that I have <em>some</em> experience with Rust and have been working on it for a couple of years or so, I would like to compare it with the other language I prefer: Haskell. My primary language at work and hobby is Haskell. I mainly want to compare Rust with Haskell in terms of library quality, community and documentation. Note that my experience is based on writing and maintaining <em>rucredstash</em> and also doing some other minor work on Rust. Also, my codebase isn’t that big so probably my view would change based on more experience.</p>
+<p>Now that I have <em>some</em> experience with Rust and have been working on
+it for a couple of years or so, I would like to compare it with the
+other language I prefer: Haskell. My primary language at work and
+hobby is Haskell. I mainly want to compare Rust with Haskell in terms
+of library quality, community and documentation. Note that my
+experience is based on writing and maintaining <em>rucredstash</em> and also
+doing some other minor work on Rust. Also, my codebase isn’t that big
+so probably my view would change based on more experience.</p>
 <pre class="shellsession"><code>$ cloc src tests/
        5 text files.
        5 unique files.
@@ -115,9 +155,27 @@ Bourne Shell                     1             13              0             27
 -------------------------------------------------------------------------------
 SUM:                             5            162            123           1945
 -------------------------------------------------------------------------------</code></pre>
-<p>So it’s roughly around 2000 Rust source lines. My initial code was based on futures as <a href="https://crates.io/crates/rusoto">rusoto crate</a> which I use to interact with the AWS APIs didn’t support async/await yet. And that was pretty ugly. But once the crate supported async/await, the migration was smooth and the new code was much simpler to write and read.</p>
-<p>I find the Rust community to be quite active and responsive. It was easy for me to <a href="https://github.com/rusoto/rusoto/pull/1649/files">contribute</a> to it. I find that there is a cultural difference between the Rust and the Haskell community. In Haskell, there is no consensus if using <a href="https://www.reddit.com/r/haskell/comments/5gospp/dont_use_typeclasses_to_define_default_values/">Default typeclass</a> is a good idea. As compared to this, Rust provides a <a href="https://doc.rust-lang.org/std/default/trait.Default.html">Default trait</a> in the standard library itself. In fact, Rust’s <a href="https://github.com/rust-lang/rust-clippy">lint checker</a> suggested me to use that in one of the places!</p>
-<p>Let’s compare the libraries in Rust and Haskell for doing the same task. Let me pick two equivalent (or close to equivalent!) libraries from both the languages:</p>
+<p>So it’s roughly around 2000 Rust source lines. My initial code was
+based on futures as <a href="https://crates.io/crates/rusoto">rusoto crate</a>
+which I use to interact with the AWS APIs didn’t support async/await
+yet. And that was pretty ugly. But once the crate supported
+async/await, the migration was smooth and the new code was much
+simpler to write and read.</p>
+<p>I find the Rust community to be quite active and responsive. It was
+easy for me to
+<a href="https://github.com/rusoto/rusoto/pull/1649/files">contribute</a> to
+it. I find that there is a cultural difference between the Rust and
+the Haskell community. In Haskell, there is no consensus if using
+<a href="https://www.reddit.com/r/haskell/comments/5gospp/dont_use_typeclasses_to_define_default_values/">Default
+typeclass</a>
+is a good idea. As compared to this, Rust provides a <a href="https://doc.rust-lang.org/std/default/trait.Default.html">Default
+trait</a> in
+the standard library itself. In fact, Rust’s <a href="https://github.com/rust-lang/rust-clippy">lint
+checker</a> suggested me to use
+that in one of the places!</p>
+<p>Let’s compare the libraries in Rust and Haskell for doing the same
+task. Let me pick two equivalent (or close to equivalent!) libraries
+from both the languages:</p>
 <table class="table">
 <thead>
 <tr>
@@ -157,15 +215,68 @@ AWS API
 </tr>
 </tbody>
 </table>
-<p>Compared to Haskell’s optparse-applicative, my experience with clap was that I had to write a lots of boilerplate code to parse the value from <a href="https://docs.rs/clap/2.33.3/clap/struct.ArgMatches.html">ArgMatches</a>. One of my co-workers mentioned to me that I should use <a href="https://github.com/TeXitoi/structopt">structopt</a> to avoid that. Also, there are various method in the clap crate like <a href="https://docs.rs/clap/2.33.3/clap/struct.Arg.html#method.conflicts_with">conflicts_with</a>, <a href="https://docs.rs/clap/2.33.3/clap/struct.Arg.html#method.requires">requires</a> and the related method which is quite nice. In my experience, expressing that kind of relationship using optparse-applicative is quite hard and the reason I guess is technical (optparse-applicative being based on Applicative).</p>
-<p>I think comparing amazonka with rusoto is unfair. Mostly because amazonka is <a href="https://github.com/brendanhay/amazonka/issues/574">unmaintained</a>. But even <a href="https://github.com/rusoto/rusoto/issues/1651">Rusoto</a> is in maintenance mode now. I guess it’s just hard to maintain wrapper for AWS APIs! But AWS has released <a href="https://aws.amazon.com/blogs/developer/a-new-aws-sdk-for-rust-alpha-launch/">an alpha launch</a> of an official Rust SDK. So in future we might even see a full blown Rust wrapper from them. My experience of building amazonka package is that it takes huge amount of memory to build. In fact, <a href="https://github.com/brendanhay/amazonka/issues/549">amazonka-ec2</a> needs around 7GB of memory. I dread every time a CI job tries to build it without having a cache. I have had a much better experience with Rusoto’s compile times comparatively.</p>
-<p>Let’s compare optparse-applicative library. An <a href="https://github.com/pcapriotti/optparse-applicative/issues/118">issue was opened in 2014</a> on the optparse-applicative repository regarding supporting options via environment variables. A similar <a href="https://github.com/clap-rs/clap/issues/814">issue was opened in 2017</a> on clap and a <a href="https://github.com/clap-rs/clap/pull/1062">PR for that</a> was merged in the same year. But compared to this, there is no such feature implemented for optparse-applicative yet.</p>
-<p>Also, the documentation of Rust libraries is in general top notch. Although there has been recent efforts in the Haskell community to improve the base docs, the Rust standard library is way ahead. The <a href="https://doc.rust-lang.org/book/">Rust book</a> is really nice and makes it easy to learn the language itself. The crate platform encourages writing more documentation by displaying coverage statistics in the page:</p>
+<p>Compared to Haskell’s optparse-applicative, my experience with clap
+was that I had to write a lots of boilerplate code to parse the value
+from
+<a href="https://docs.rs/clap/2.33.3/clap/struct.ArgMatches.html">ArgMatches</a>. One
+of my co-workers mentioned to me that I should use
+<a href="https://github.com/TeXitoi/structopt">structopt</a> to avoid that. Also,
+there are various method in the clap crate like
+<a href="https://docs.rs/clap/2.33.3/clap/struct.Arg.html#method.conflicts_with">conflicts_with</a>,
+<a href="https://docs.rs/clap/2.33.3/clap/struct.Arg.html#method.requires">requires</a>
+and the related method which is quite nice. In my experience,
+expressing that kind of relationship using optparse-applicative is
+quite hard and the reason I guess is technical (optparse-applicative
+being based on Applicative).</p>
+<p>I think comparing amazonka with rusoto is unfair. Mostly because
+amazonka is
+<a href="https://github.com/brendanhay/amazonka/issues/574">unmaintained</a>. But
+even <a href="https://github.com/rusoto/rusoto/issues/1651">Rusoto</a> is in
+maintenance mode now. I guess it’s just hard to maintain wrapper for
+AWS APIs! But AWS has released <a href="https://aws.amazon.com/blogs/developer/a-new-aws-sdk-for-rust-alpha-launch/">an alpha
+launch</a>
+of an official Rust SDK. So in future we might even see a full blown
+Rust wrapper from them. My experience of building amazonka package is
+that it takes huge amount of memory to build. In fact,
+<a href="https://github.com/brendanhay/amazonka/issues/549">amazonka-ec2</a>
+needs around 7GB of memory. I dread every time a CI job tries to build
+it without having a cache. I have had a much better experience with
+Rusoto’s compile times comparatively.</p>
+<p>Let’s compare optparse-applicative library. An <a href="https://github.com/pcapriotti/optparse-applicative/issues/118">issue was opened in
+2014</a>
+on the optparse-applicative repository regarding supporting options
+via environment variables. A similar <a href="https://github.com/clap-rs/clap/issues/814">issue was opened in
+2017</a> on clap and a <a href="https://github.com/clap-rs/clap/pull/1062">PR
+for that</a> was merged in the
+same year. But compared to this, there is no such feature implemented
+for optparse-applicative yet.</p>
+<p>Also, the documentation of Rust libraries is in general top
+notch. Although there has been recent efforts in the Haskell community
+to improve the base docs, the Rust standard library is way ahead. The
+<a href="https://doc.rust-lang.org/book/">Rust book</a> is really nice and makes
+it easy to learn the language itself. The crate platform encourages
+writing more documentation by displaying coverage statistics in the
+page:</p>
 <figure>
-<img src="../images/posts/credstash-doc.png" alt /><figcaption>Documentation statistics</figcaption>
+<img src="../images/posts/credstash-doc.png" alt="Documentation statistics" />
+<figcaption aria-hidden="true">Documentation statistics</figcaption>
 </figure>
-<p>That being said, I should note that Rust and Haskell are different languages with different trade offs. It would be unfair to compare them on a purely language basis. (Although I feel this <a href="https://www.fpcomplete.com/blog/2018/11/haskell-and-rust/">blog post</a> does a nice job of comparing them!). One part of the Rust language which I’m starting to prefer is error handling. It’s much easier to understand than Haskell’s exception mechanism. Doing safe <a href="https://www.fpcomplete.com/haskell/tutorial/exceptions/">exception handling</a> in Haskell isn’t easy and with the presence of async exceptions things get more complicated. You don’t have to deal with such issues in Rust as errors are modeled via enum type and you can use the <code>?</code> operator to easily propagate it. Also this will likely make the FFI integration story much easier. I still prefer the convenience of using Haskell when I’m okay using a garbage collector.</p>
-<p>This kind of summarizes my experience with Rust as a Haskell programmer. I’m planning to reach out more to Rust in future!</p>
+<p>That being said, I should note that Rust and Haskell are different
+languages with different trade offs. It would be unfair to compare
+them on a purely language basis. (Although I feel this <a href="https://www.fpcomplete.com/blog/2018/11/haskell-and-rust/">blog
+post</a> does
+a nice job of comparing them!). One part of the Rust language which
+I’m starting to prefer is error handling. It’s much easier to
+understand than Haskell’s exception mechanism. Doing safe <a href="https://www.fpcomplete.com/haskell/tutorial/exceptions/">exception
+handling</a> in
+Haskell isn’t easy and with the presence of async exceptions things
+get more complicated. You don’t have to deal with such issues in Rust
+as errors are modeled via enum type and you can use the <code>?</code> operator
+to easily propagate it. Also this will likely make the FFI integration
+story much easier. I still prefer the convenience of using Haskell
+when I’m okay using a garbage collector.</p>
+<p>This kind of summarizes my experience with Rust as a Haskell
+programmer. I’m planning to reach out more to Rust in future!</p>
 
 <div id="disqus_thread">
 </div>
@@ -194,14 +305,6 @@ AWS API
             <a href="https://jaspervdj.be/hakyll">Hakyll</a>
         </div>
 	<script>
-	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-	    ga('create', 'UA-27311575-2', 'auto');
-	    ga('send', 'pageview');
-
 	    // Hack for adding active class to the li tag.
 	    var litags = document.getElementById("navbar").getElementsByTagName("li");
 	    litags[0].className = "";

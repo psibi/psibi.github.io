@@ -1,7 +1,4 @@
-resolver: lts-16.31
+resolver: lts-21.25
 
 packages:
 - '.'
-
-nix:
-  shell-file: shell.nix

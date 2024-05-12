@@ -60,41 +60,48 @@
     <span class="date">July 14, 2015</span>
 </div>
 
-<p>While answering some <a href="http://stackoverflow.com/q/31342002/1651941">question</a> in StackOverflow, I came across this following piece of code which won’t terminate:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ot">g ::</span> <span class="dt">IO</span> [<span class="dt">Integer</span>]</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>g <span class="ot">=</span> <span class="kw">do</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>  n <span class="ot">&lt;-</span> randomRIO (<span class="dv">1</span>,<span class="dv">6</span>)<span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">Integer</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>  f <span class="ot">&lt;-</span> g</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>  <span class="fu">return</span> (n <span class="op">:</span> f)</span></code></pre></div>
-<p>So, now we can see why this piece of computation doesn’t terminate. The line <code>f &lt;- g</code> specifically makes it go on and on. Now can we make it work using <code>unsafeInterleaveIO</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">System.IO.Unsafe</span> (unsafeInterleaveIO)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ot">g ::</span> <span class="dt">IO</span> [<span class="dt">Integer</span>]</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>g <span class="ot">=</span> <span class="kw">do</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>  n <span class="ot">&lt;-</span> randomRIO (<span class="dv">1</span>,<span class="dv">6</span>)<span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">Integer</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>  f <span class="ot">&lt;-</span> unsafeInterleaveIO g</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>  <span class="fu">return</span> (n <span class="op">:</span> f)</span></code></pre></div>
+<p>While answering some
+<a href="http://stackoverflow.com/q/31342002/1651941">question</a> in
+StackOverflow, I came across this following piece of code which won’t
+terminate:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> <span class="dt">IO</span> [<span class="dt">Integer</span>]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> randomRIO (<span class="dv">1</span>,<span class="dv">6</span>)<span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">Integer</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> g</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (n <span class="op">:</span> f)</span></code></pre></div>
+<p>So, now we can see why this piece of computation doesn’t terminate.
+The line <code>f &lt;- g</code> specifically makes it go on and on. Now can we make
+it work using <code>unsafeInterleaveIO</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO.Unsafe</span> (unsafeInterleaveIO)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> <span class="dt">IO</span> [<span class="dt">Integer</span>]</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> randomRIO (<span class="dv">1</span>,<span class="dv">6</span>)<span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">Integer</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> unsafeInterleaveIO g</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (n <span class="op">:</span> f)</span></code></pre></div>
 <p>In a sample GHCI session:</p>
 <pre><code>λ&gt; g &gt;&gt;= \x -&gt; return $ take 5 $ x
 [1,2,2,5,6]</code></pre>
 <p>With a Bang!, we can again make it non-terminating:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ot">{-#LANGUAGE BangPatterns#-}</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">System.IO.Unsafe</span> (unsafeInterleaveIO)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="ot">g ::</span> <span class="dt">IO</span> [<span class="dt">Integer</span>]</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>g <span class="ot">=</span> <span class="kw">do</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>  n <span class="ot">&lt;-</span> randomRIO (<span class="dv">1</span>,<span class="dv">6</span>)<span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">Integer</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>  <span class="op">!</span>f <span class="ot">&lt;-</span> unsafeInterleaveIO g</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>  <span class="fu">return</span> (n <span class="op">:</span> f)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-#LANGUAGE BangPatterns#-}</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.Random</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">System.IO.Unsafe</span> (unsafeInterleaveIO)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> <span class="dt">IO</span> [<span class="dt">Integer</span>]</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> randomRIO (<span class="dv">1</span>,<span class="dv">6</span>)<span class="ot"> ::</span> <span class="dt">IO</span> <span class="dt">Integer</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">!</span>f <span class="ot">&lt;-</span> unsafeInterleaveIO g</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span> (n <span class="op">:</span> f)</span></code></pre></div>
 <p>And in GHCI:</p>
 <pre><code>λ&gt; g &gt;&gt;= \x -&gt; return $ take 5 $ x
   C-c C-c Interrupted.</code></pre>
-<p>Note that I still believe it’s a bad option to use <code>unsafeInterleaveIO</code> unless there is no other go. But I find this example as a nice way to understand the working of <code>unsafeInterleaveIO</code>.</p>
+<p>Note that I still believe it’s a bad option to use
+<code>unsafeInterleaveIO</code> unless there is no other go. But I find this
+example as a nice way to understand the working of <code>unsafeInterleaveIO</code>.</p>
 
 <div id="disqus_thread">
 </div>
@@ -123,14 +130,6 @@
             <a href="https://jaspervdj.be/hakyll">Hakyll</a>
         </div>
 	<script>
-	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-	    ga('create', 'UA-27311575-2', 'auto');
-	    ga('send', 'pageview');
-
 	    // Hack for adding active class to the li tag.
 	    var litags = document.getElementById("navbar").getElementsByTagName("li");
 	    litags[0].className = "";

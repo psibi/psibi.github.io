@@ -61,9 +61,23 @@
 </div>
 
 <h2 id="nixos">NixOS</h2>
-<p>I had tried out <a href="https://nixos.org/download.html">NixOS</a> around 4 to 5 years ago to see if I can use it in one of my machines, but unfortunately there was a known driver issue at that time. I have been trying it on VMs on and off in the last couple of years and the experience has been okay, but I didn’t feel comfortable enough to use it for my day to day work.</p>
-<p>About a year ago I started using plain nixpkgs in my Ubuntu distribution to manage the software installation. Most of the packages worked fine, except some packages like <code>xscreensaver</code>, <code>alacritty</code> etc. This helped me understand nixpkgs better. I became comfortable doing package overrides, managing my xmonad configuration via nixpkgs etc.</p>
-<p>Recently, my laptop got a motherboard upgrade and I decided to install the latest Ubuntu LTS version. While everything seemed to be fine, some of the dev dependencies caused issues. I was eventually able to fix it, but then decided that this is probably a good time for me to try out NixOS since it won’t be having these kind of issues. This post is my review of NixOS after using it for almost a year.</p>
+<p>I had tried out <a href="https://nixos.org/download.html">NixOS</a> around 4 to 5 years ago to see if I can use
+it in one of my machines, but unfortunately there was a known driver
+issue at that time. I have been trying it on VMs on and off in the
+last couple of years and the experience has been okay, but I didn’t
+feel comfortable enough to use it for my day to day work.</p>
+<p>About a year ago I started using plain nixpkgs in my Ubuntu
+distribution to manage the software installation. Most of the packages
+worked fine, except some packages like <code>xscreensaver</code>, <code>alacritty</code>
+etc. This helped me understand nixpkgs better. I became comfortable
+doing package overrides, managing my xmonad configuration via nixpkgs
+etc.</p>
+<p>Recently, my laptop got a motherboard upgrade and I decided to install
+the latest Ubuntu LTS version. While everything seemed to be fine,
+some of the dev dependencies caused issues. I was eventually able to
+fix it, but then decided that this is probably a good time for me to
+try out NixOS since it won’t be having these kind of issues. This post
+is my review of NixOS after using it for almost a year.</p>
 <h2 id="my-requirements">My requirements</h2>
 <p>My requirements from an operating system would be:</p>
 <ul>
@@ -73,78 +87,128 @@
 <li>GUI softwares like gnucash, keepassxc, mysql-workbench etc.</li>
 <li>Easy availability of other softwares like latex, emacs, fish etc.</li>
 </ul>
-<p>At a high level, it looked like NixOS might satisfy all these requirements.</p>
+<p>At a high level, it looked like NixOS might satisfy all these
+requirements.</p>
 <h2 id="ease-of-use">Ease of Use</h2>
-<p>In my opinion, knowing Nix language and how nixpkgs is structured are pre-requisites to use NixOS comfortably. Fortunately my previous experience with functional languages helped me.</p>
-<p>So I wouldn’t recommend NixOS to non-programmers. Although, I believe a project like <a href="https://github.com/nix-gui/nix-gui">nix-gui</a> might simplify things in future.</p>
+<p>In my opinion, knowing Nix language and how nixpkgs is structured are
+pre-requisites to use NixOS comfortably. Fortunately my previous
+experience with functional languages helped me.</p>
+<p>So I wouldn’t recommend NixOS to non-programmers. Although, I believe
+a project like <a href="https://github.com/nix-gui/nix-gui">nix-gui</a> might simplify things in future.</p>
 <h2 id="installation-experience">Installation experience</h2>
-<p>I went through the NixOS manual and downloaded the <a href="https://nixos.org/download.html">minimal ISO image</a>. For Ubuntu distribution, I usually install using bootable USB drives created through <a href="https://unetbootin.github.io/">unetbootin</a>. There was a note in <a href="https://nixos.wiki/wiki/NixOS_Installation_Guide/Unetbootin">this wiki</a> saying Unetbootin wasn’t supported for NixOS. But I went ahead and gave it a shot. The process seemed to be successful, but the installation failed with no useful error message. I then did a fresh format of the USB and used the <code>dd</code> utility to write the image. The installation process worked fine after that.</p>
-<p>Another thing which was surprising to me was that <a href="https://en.wikipedia.org/wiki/Unified_Extensible_Firmware_Interface#Secure_Boot">secure boot</a> is not yet possible via NixOS. I had to go and disable it in my <a href="https://en.wikipedia.org/wiki/BIOS">BIOS</a>. That seems to be a <a href="https://github.com/NixOS/nixpkgs/issues/42127">known upstream issue</a>.</p>
-<p>Overall, I believe the installation experience was fine. I guess if I had used a Graphical ISO image instead of the minimal one, it would have been easier.</p>
+<p>I went through the NixOS manual and downloaded the <a href="https://nixos.org/download.html">minimal ISO
+image</a>. For Ubuntu distribution, I usually install using bootable
+USB drives created through <a href="https://unetbootin.github.io/">unetbootin</a>. There was a note in <a href="https://nixos.wiki/wiki/NixOS_Installation_Guide/Unetbootin">this
+wiki</a> saying Unetbootin wasn’t supported for NixOS. But I went
+ahead and gave it a shot. The process seemed to be successful, but the
+installation failed with no useful error message. I then did a fresh
+format of the USB and used the <code>dd</code> utility to write the image. The
+installation process worked fine after that.</p>
+<p>Another thing which was surprising to me was that <a href="https://en.wikipedia.org/wiki/Unified_Extensible_Firmware_Interface#Secure_Boot">secure boot</a> is
+not yet possible via NixOS. I had to go and disable it in my
+<a href="https://en.wikipedia.org/wiki/BIOS">BIOS</a>. That seems to be a <a href="https://github.com/NixOS/nixpkgs/issues/42127">known upstream issue</a>.</p>
+<p>Overall, I believe the installation experience was fine. I guess if I
+had used a Graphical ISO image instead of the minimal one, it would
+have been easier.</p>
 <h2 id="development-experience">Development experience</h2>
 <h4 id="rust">Rust</h4>
-<p>I installed <code>rustup</code> globally and was able to easily do development without any issues. For the packages which needed system libraries, I could easily figure out the dependencies. For the <a href="https://github.com/mjkillough/cnx">cnx</a> package, I had to create a <a href="https://github.com/mjkillough/cnx/blob/master/shell.nix">shell.nix</a> like this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ex">with</span> import <span class="op">&lt;</span>nixpkgs<span class="op">&gt;</span> { };</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">stdenv.mkDerivation</span> {</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>  <span class="ex">name</span> = <span class="st">&quot;cnx&quot;</span><span class="kw">;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>  <span class="ex">buildInputs</span> = [</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    <span class="ex">pkg-config</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    <span class="ex">alsaLib</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>    <span class="ex">gobject-introspection</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>    <span class="ex">cairo</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>    <span class="ex">glib</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>    <span class="ex">pango</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>    <span class="ex">xorg.libxcb</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>    <span class="ex">python3Full</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>    <span class="ex">openssl</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>    <span class="ex">wirelesstools</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>    <span class="ex">libllvm</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>    <span class="fu">clang</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>    <span class="ex">libclang</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>    <span class="ex">rust-bindgen</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a>    <span class="ex">llvmPackages.libclang</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>    <span class="ex">xorg.libxcb</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>    <span class="ex">xorg.xcbutilwm</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a>  ];</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a>  <span class="ex">shellHook</span> = <span class="st">''</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>    <span class="bu">export</span> <span class="va">LIBCLANG_PATH=</span><span class="st">&quot;</span><span class="va">${llvmPackages</span><span class="er">.libclang.lib</span><span class="va">}</span><span class="st">/lib&quot;</span>;</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>  <span class="st">''</span>;</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>}</span></code></pre></div>
+<p>I installed <code>rustup</code> globally and was able to easily do development
+without any issues. For the packages which needed system libraries, I
+could easily figure out the dependencies. For the <a href="https://github.com/mjkillough/cnx">cnx</a> package, I
+had to create a <a href="https://github.com/mjkillough/cnx/blob/master/shell.nix">shell.nix</a> like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">with</span> <span class="bu">import</span> &lt;nixpkgs&gt; <span class="op">{</span> <span class="op">};</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>stdenv.mkDerivation <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">name</span> <span class="op">=</span> <span class="st">&quot;cnx&quot;</span><span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">buildInputs</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    pkg-config</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    alsaLib</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    gobject-introspection</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    cairo</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    glib</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    pango</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    xorg.libxcb</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    python3Full</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    openssl</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    wirelesstools</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    libllvm</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    clang</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    libclang</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    rust-bindgen</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    llvmPackages.libclang</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    xorg.libxcb</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    xorg.xcbutilwm</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">];</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="va">shellHook</span> <span class="op">=</span> <span class="st">''</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="st">    export LIBCLANG_PATH=&quot;</span><span class="sc">${</span>llvmPackages.libclang.lib<span class="sc">}</span><span class="st">/lib&quot;;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="st">  ''</span><span class="op">;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h4 id="haskell">Haskell</h4>
-<p>Compared to Rust, with Haskell it was slightly more challenging. There were two options:</p>
+<p>Compared to Rust, with Haskell it was slightly more challenging. There
+were two options:</p>
 <ul>
 <li>Using the nixpkgs infrastructure by itself</li>
 <li><a href="https://github.com/input-output-hk/haskell.nix">IOHK’s Haskell infrastructure for nix</a></li>
 </ul>
-<p>I wanted to use <a href="http://haskellstack.org/">the Stack</a> build tool since I was already familiar with it and had a good experience using it. Since Stack doesn’t manage GHC in NixOS, this proved challenging to me as the compiler version I wanted wasn’t in the current nixpkgs package set.</p>
-<p>Since <code>rustup</code> worked well, I installed <code>ghcup</code> and tried installing the compiler through it. Unfortunately that didn’t work. It downloaded a Fedora based GHC for NixOS and failed during the installation. But after looking around a bit, I was able to find the <a href="https://lazamar.co.uk/nix-versions/">Nix package versions</a> search page which can be used to find old versions of different packages in nixpkgs revisions easily. And that solved my problem of finding an older GHC version. Also, Cheng Shao at Zurihac made this <a href="https://github.com/TerrorJack/old-ghc-nix">repository</a> which list downs all the old GHC versions from old nixpkgs revisions.</p>
-<p>After the above problem was solved, I was able to use Stack build tool for development work seamlessly.</p>
+<p>I wanted to use <a href="http://haskellstack.org/">the Stack</a> build tool since I was already familiar
+with it and had a good experience using it. Since Stack doesn’t manage
+GHC in NixOS, this proved challenging to me as the compiler version I
+wanted wasn’t in the current nixpkgs package set.</p>
+<p>Since <code>rustup</code> worked well, I installed <code>ghcup</code> and tried installing
+the compiler through it. Unfortunately that didn’t work. It downloaded
+a Fedora based GHC for NixOS and failed during the installation. But
+after looking around a bit, I was able to find the <a href="https://lazamar.co.uk/nix-versions/">Nix package
+versions</a> search page which can be used to find old versions of
+different packages in nixpkgs revisions easily. And that solved my
+problem of finding an older GHC version. Also, Cheng Shao at Zurihac
+made this <a href="https://github.com/TerrorJack/old-ghc-nix">repository</a> which list downs all the old GHC versions
+from old nixpkgs revisions.</p>
+<p>After the above problem was solved, I was able to use Stack build tool
+for development work seamlessly.</p>
 <h2 id="other-softwares">Other softwares</h2>
-<p>Most of the other softwares seemed to work. I didn’t face any issue with either docker, keepassxc or gnucash. But I faced an issue with mysql-workbench. It initially greeted me with an unsupported OS dialog:</p>
+<p>Most of the other softwares seemed to work. I didn’t face any issue
+with either docker, keepassxc or gnucash. But I faced an issue with
+mysql-workbench. It initially greeted me with an unsupported OS
+dialog:</p>
 <figure>
-<img src="../images/posts/mysql_nixos.png" alt /><figcaption>Mysql-workbench on NixOS</figcaption>
+<img src="../images/posts/mysql_nixos.png" alt="Mysql-workbench on NixOS" />
+<figcaption aria-hidden="true">Mysql-workbench on NixOS</figcaption>
 </figure>
-<p>And when I tried to connect a database, it errored out saying <code>org.freedesktop.secrets</code> was not provided. I wasn’t able to provide it with the database credentials properly. I tried to switch to <a href="https://search.nixos.org/packages?channel=21.05&amp;show=dbeaver&amp;from=0&amp;size=50&amp;sort=relevance&amp;query=dbeave">dbeaver</a> instead and fortunately it worked for me.</p>
-<p>Also, one of the packages I was using for Emacs (<a href="https://github.com/jacktasia/dumb-jump/pull/400">dumb-jump</a>) didn’t work. But I was able to easily create an <a href="https://github.com/jacktasia/dumb-jump/pull/400">upstream fix</a> for it. This was easy for me because other nix users had faced similar issues for other Emacs packages. I wanted to try running the test suite for the package locally based on <a href="https://github.com/jacktasia/dumb-jump/tree/542e72d3feba986a12119f6def515ef1347cb4ca#basicclassic">these instructions</a>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>❯ <span class="bu">cd</span> <span class="op">&lt;</span>path_to_dumb_jump<span class="op">&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>❯ <span class="ex">cask</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>❯ <span class="fu">make</span> test</span></code></pre></div>
-<p>I have to execute <code>cask</code> and then do <code>make test</code>. I used <code>nix-shell</code> to get <code>cask</code> executable available in the <code>$PATH</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>❯ <span class="ex">nix-shell</span> -p cask</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>❯ <span class="ex">cask</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">bash</span>: /nix/store/bva3nw2nvcxlrqn24f90mnm2hb60hqxw-cask-0.8.7/bin/cask:</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">/bin</span>/bash: <span class="ex">bad</span> interpreter: No such file or directory</span></code></pre></div>
-<p>The above error indicates that cask has some hard-coded paths and it won’t play nicely in NixOS without some fixes. So I thought I would try fixing this later and just used the upstream CI service to run the test suite instead.</p>
-<p>One final issue which I found annoying was whenever I tried to run any program which didn’t exist in <code>$PATH</code>, I saw an error message like this:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="ex">invalid_program</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">DBI</span> connect(<span class="st">'dbname=/nix/var/nix/profiles/per-user/root/channels/nixos/programs.sqlite'</span>,<span class="st">''</span>,...)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="ex">failed</span>: unable to open database file at /run/current-system/sw/bin/command-not-found line 13.</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="ex">cannot</span> open database <span class="kw">`</span><span class="ex">/nix/var/nix/profiles/per-user/root/channels/nixos/programs.sqlite</span><span class="st">'</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="st">at /run/current-system/sw/bin/command-not-found line 13.</span></span></code></pre></div>
-<p>I solved it using <a href="https://discourse.nixos.org/t/command-not-found-unable-to-open-database/3807/4">this discourse answer</a>, but I hope that this will be fixed soon.</p>
+<p>And when I tried to connect a database, it errored out saying
+<code>org.freedesktop.secrets</code> was not provided. I wasn’t able to provide
+it with the database credentials properly. I tried to switch to
+<a href="https://search.nixos.org/packages?channel=21.05&amp;show=dbeaver&amp;from=0&amp;size=50&amp;sort=relevance&amp;query=dbeave">dbeaver</a> instead and fortunately it worked for me.</p>
+<p>Also, one of the packages I was using for Emacs (<a href="https://github.com/jacktasia/dumb-jump/pull/400">dumb-jump</a>) didn’t
+work. But I was able to easily create an <a href="https://github.com/jacktasia/dumb-jump/pull/400">upstream fix</a> for
+it. This was easy for me because other nix users had faced similar
+issues for other Emacs packages. I wanted to try running the test suite
+for the package locally based on <a href="https://github.com/jacktasia/dumb-jump/tree/542e72d3feba986a12119f6def515ef1347cb4ca#basicclassic">these instructions</a>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> cd <span class="op">&lt;</span>path_to_dumb_jump<span class="op">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> cask</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> make test</span></code></pre></div>
+<p>I have to execute <code>cask</code> and then do <code>make test</code>. I used <code>nix-shell</code>
+to get <code>cask</code> executable available in the <code>$PATH</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> nix-shell <span class="at">-p</span> cask</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> cask</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">bash:</span> /nix/store/bva3nw2nvcxlrqn24f90mnm2hb60hqxw-cask-0.8.7/bin/cask:</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash:</span> bad interpreter: No such file or directory</span></code></pre></div>
+<p>The above error indicates that cask has some hard-coded paths
+and it won’t play nicely in NixOS without some fixes. So I thought I
+would try fixing this later and just used the upstream CI service to
+run the test suite instead.</p>
+<p>One final issue which I found annoying was whenever I tried to run any
+program which didn’t exist in <code>$PATH</code>, I saw an error message like
+this:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> invalid_program</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">DBI</span> connect<span class="er">(</span><span class="st">'dbname=/nix/var/nix/profiles/per-user/root/channels/nixos/programs.sqlite'</span><span class="ex">,</span><span class="st">''</span><span class="ex">,...</span><span class="kw">)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">failed:</span> unable to open database file at /run/current-system/sw/bin/command-not-found line 13.</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">cannot</span> open database <span class="kw">`</span><span class="ex">/nix/var/nix/profiles/per-user/root/channels/nixos/programs.sqlite</span><span class="st">'</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">at /run/current-system/sw/bin/command-not-found line 13.</span></span></code></pre></div>
+<p>I solved it using <a href="https://discourse.nixos.org/t/command-not-found-unable-to-open-database/3807/4">this discourse answer</a>, but I hope that this
+will be fixed soon.</p>
 <h2 id="upgrade">Upgrade</h2>
-<p>After I had used NixOS for a few months, a new version was available. Upgrading to it was quite simple:</p>
+<p>After I had used NixOS for a few months, a new version was
+available. Upgrading to it was quite simple:</p>
 <pre class="shellsession"><code>❯ sudo nix-channel --add https://nixos.org/channels/nixos-21.11 nixos
 ❯ sudo nixos-rebuild switch --upgrade</code></pre>
 <p>After around 15 to 20 minutes, I had the newer version running:</p>
@@ -154,9 +218,12 @@
 <p>After:</p>
 <pre class="shellsession"><code>❯ nixos-version
 21.11.334247.573095944e7 (Porcupine)</code></pre>
-<p>I found it nice that I have the ability to boot back into my previous NixOS version in case something went wrong.</p>
+<p>I found it nice that I have the ability to boot back into my previous
+NixOS version in case something went wrong.</p>
 <h2 id="community">Community</h2>
-<p>The community around NixOS seems to be quite active and the github model makes it easy to contribute fixes. I was able to easily package various softwares which I use and didn’t find in nixpkgs:</p>
+<p>The community around NixOS seems to be quite active and the github
+model makes it easy to contribute fixes. I was able to easily package
+various softwares which I use and didn’t find in nixpkgs:</p>
 <ul>
 <li><a href="https://github.com/NixOS/nixpkgs/pull/129346">tfswitch</a></li>
 <li><a href="https://github.com/NixOS/nixpkgs/pull/131538">ouch</a></li>
@@ -169,16 +236,25 @@
 <li><a href="https://github.com/NixOS/nixos-hardware/pull/330">Dell latitude 7490</a></li>
 <li><a href="https://github.com/NixOS/nixos-hardware/pull/343">Intel NUC 8i7BEH</a></li>
 </ul>
-<p>Both of the above patches enabled running <a href="https://github.com/intel/thermal_daemon">thermald</a> by default for the machines.</p>
-<p>I also found the <a href="https://zfoh.ch/zurihac2021/">Zurihac 2021</a> voice channel discussions quite helpful. I would like to thank everyone who answered my questions and also a special shout out to <a href="https://github.com/fakedata-haskell/fakedata-quickcheck/pull/5#issuecomment-864372669">Dennis</a>.</p>
+<p>Both of the above patches enabled running <a href="https://github.com/intel/thermal_daemon">thermald</a> by default for
+the machines.</p>
+<p>I also found the <a href="https://zfoh.ch/zurihac2021/">Zurihac 2021</a> voice channel discussions quite
+helpful. I would like to thank everyone who answered my questions and
+also a special shout out to <a href="https://github.com/fakedata-haskell/fakedata-quickcheck/pull/5#issuecomment-864372669">Dennis</a>.</p>
 <h2 id="recommendation">Recommendation</h2>
 <p>If you are planning to switch to NixOS, my recommendation would be:</p>
 <ul>
-<li>Try to use nixpkgs in your existing Linux distribution to get familiar with it.</li>
-<li>Check if any software you rely on works fine using nix package set. There might be cases where the software might work on NixOS but not on other Linux distributions (using nixpkgs).</li>
-<li>Check if you are able to do your existing development work using nixpkgs.</li>
+<li>Try to use nixpkgs in your existing Linux distribution to get
+familiar with it.</li>
+<li>Check if any software you rely on works fine using nix package
+set. There might be cases where the software might work on NixOS but
+not on other Linux distributions (using nixpkgs).</li>
+<li>Check if you are able to do your existing development work using
+nixpkgs.</li>
 </ul>
-<p>NixOS has a come a long way since the last time I tried it seriously. I’m now using NixOS exclusively on all my work and home machines.</p>
+<p>NixOS has a come a long way since the last time I tried it
+seriously. I’m now using NixOS exclusively on all my work and home
+machines.</p>
 
 <div id="disqus_thread">
 </div>
@@ -207,14 +283,6 @@
             <a href="https://jaspervdj.be/hakyll">Hakyll</a>
         </div>
 	<script>
-	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-	    ga('create', 'UA-27311575-2', 'auto');
-	    ga('send', 'pageview');
-
 	    // Hack for adding active class to the li tag.
 	    var litags = document.getElementById("navbar").getElementsByTagName("li");
 	    litags[0].className = "";

@@ -8,7 +8,7 @@ gen:
 
 # Watch and run the site
 watch:
-	psibi.in watch
+	stack run -- psibi.in watch
 
 # Clean site
 clean:
@@ -16,4 +16,4 @@ clean:
 
 # Watch and install new exectuable
 build:
-	stack install --fast --file-watch --local-bin-path=/home/sibi/bin
+	stack build --fast --file-watch

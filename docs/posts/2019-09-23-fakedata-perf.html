@@ -60,31 +60,34 @@
     <span class="date">September 23, 2019</span>
 </div>
 
-<p><a href="https://github.com/psibi/fakedata">fakedata</a> is a library for producing fake data (duh!). The API for generating fake data is simple. Let’s say you have a data type named <code>Person</code>:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">Person</span> <span class="ot">=</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  <span class="dt">Person</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    {<span class="ot"> personName ::</span> <span class="dt">Text</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    ,<span class="ot"> personAddress ::</span> <span class="dt">Text</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    ,<span class="ot"> personCountry ::</span> <span class="dt">Text</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    ,<span class="ot"> personEmail ::</span> <span class="dt">Text</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>    }</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">NFData</span>, <span class="dt">Generic</span>)</span></code></pre></div>
-<p>For generating fake values for the above type, you can use this library to create a function like this:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ot">{-# LANGUAGE RecordWildCards #-}</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Data.Text</span> (<span class="dt">Text</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Faker</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Faker.Address</span> (country, fullAddress)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Faker.Name</span> (name)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="kw">import</span> <span class="dt">Faker.TvShow.SiliconValley</span> (email)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="ot">fakePerson ::</span> <span class="dt">Fake</span> <span class="dt">Person</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>fakePerson <span class="ot">=</span> <span class="kw">do</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>  personName <span class="ot">&lt;-</span> name</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>  personAddress <span class="ot">&lt;-</span> fullAddress</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>  personCountry <span class="ot">&lt;-</span> country</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a>  personEmail <span class="ot">&lt;-</span> email</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>  <span class="fu">pure</span> <span class="op">$</span> <span class="dt">Person</span> {<span class="op">..</span>}</span></code></pre></div>
+<p><a href="https://github.com/psibi/fakedata">fakedata</a> is a library for
+producing fake data (duh!). The API for generating fake data is
+simple. Let’s say you have a data type named <code>Person</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Person</span> <span class="ot">=</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Person</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> personName ::</span> <span class="dt">Text</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> personAddress ::</span> <span class="dt">Text</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> personCountry ::</span> <span class="dt">Text</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> personEmail ::</span> <span class="dt">Text</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">NFData</span>, <span class="dt">Generic</span>)</span></code></pre></div>
+<p>For generating fake values for the above type, you can use this
+library to create a function like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE RecordWildCards #-}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Text</span> (<span class="dt">Text</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Faker</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Faker.Address</span> (country, fullAddress)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Faker.Name</span> (name)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Faker.TvShow.SiliconValley</span> (email)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="ot">fakePerson ::</span> <span class="dt">Fake</span> <span class="dt">Person</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>fakePerson <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  personName <span class="ot">&lt;-</span> name</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  personAddress <span class="ot">&lt;-</span> fullAddress</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  personCountry <span class="ot">&lt;-</span> country</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  personEmail <span class="ot">&lt;-</span> email</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pure</span> <span class="op">$</span> <span class="dt">Person</span> {<span class="op">..</span>}</span></code></pre></div>
 <p>And then you can use the <code>generate</code> function to produce fake values:</p>
 <pre class="shellsession"><code>λ&gt; generate fakePerson
 Person
@@ -107,29 +110,45 @@ Person
     , personEmail = &quot;monica@raviga.test&quot;
     }
 ]</code></pre>
-<p>There are various other <a href="https://www.stackage.org/haddock/nightly-2019-09-21/fakedata-0.3.0/Faker-Combinators.html">combinators</a> which can be used. One of my coworker played around with it and observed that it was too slow. This post will demonstrate the steps involved in finding out why it is slow and operating on that data to see if we can improve the performance. The first step to determine why something is slow is by adding benchmarks to it. I decided to use the <a href="https://tech.fpcomplete.com/haskell/library/gauge">gauge library</a> to perform the analysis.</p>
-<p>I added two different benchmarks using the above function <code>fakePerson</code> and the <code>email</code> function exposed from the module <code>Faker.TvShow.SiliconValley</code>. The difference between both of them is that the “Person benchmark” is comprised of four different fake fields whereas the “Email benchmark” is a single fake field:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>main <span class="ot">=</span> defaultMain benchs</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>  <span class="kw">where</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>    benchs <span class="ot">=</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>      [ bgroup</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>          <span class="st">&quot;Email benchmark&quot;</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>          [ bench <span class="st">&quot;single email&quot;</span> <span class="op">$</span> nfIO (generate singleEmail)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>          , bench <span class="st">&quot;thousand emails&quot;</span> <span class="op">$</span> nfIO (generate thousandEmail)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>          ]</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>      , bgroup</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>          <span class="st">&quot;Person benchmark&quot;</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a>          [ bench <span class="st">&quot;single person&quot;</span> <span class="op">$</span> nfIO (generate fakePerson)</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a>          , bench <span class="st">&quot;1000 persons&quot;</span> <span class="op">$</span> nfIO (generate <span class="op">$</span> listOf <span class="dv">1000</span> fakePerson)</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a>          ]</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a>      ]</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true"></a>      <span class="kw">where</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true"></a><span class="ot">        singleEmail ::</span> <span class="dt">Fake</span> <span class="dt">Text</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true"></a>        singleEmail <span class="ot">=</span> email</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true"></a><span class="ot">        thousandEmail ::</span> <span class="dt">Fake</span> [<span class="dt">Text</span>]</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true"></a>        thousandEmail <span class="ot">=</span> listOf <span class="dv">1000</span> email</span></code></pre></div>
-<p>Now, when I ran <code>stack bench</code> to measure it, the benchmark continued to run after 5 minutes which clearly indicated that the performance was bad as observed by my coworker. I reduced the generation of 1000 persons to 10 persons so that the benchmark gets completed in a reasonable time. This was the result once it got finished:</p>
+<p>There are various other
+<a href="https://www.stackage.org/haddock/nightly-2019-09-21/fakedata-0.3.0/Faker-Combinators.html">combinators</a>
+which can be used. One of my coworker played around with it and
+observed that it was too slow. This post will demonstrate the steps
+involved in finding out why it is slow and operating on that data to
+see if we can improve the performance. The first step to determine why
+something is slow is by adding benchmarks to it. I decided to use the
+<a href="https://tech.fpcomplete.com/haskell/library/gauge">gauge library</a> to
+perform the analysis.</p>
+<p>I added two different benchmarks using the above function <code>fakePerson</code>
+and the <code>email</code> function exposed from the module
+<code>Faker.TvShow.SiliconValley</code>. The difference between both of them is
+that the “Person benchmark” is comprised of four different fake fields
+whereas the “Email benchmark” is a single fake field:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> defaultMain benchs</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    benchs <span class="ot">=</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>      [ bgroup</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;Email benchmark&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>          [ bench <span class="st">&quot;single email&quot;</span> <span class="op">$</span> nfIO (generate singleEmail)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>          , bench <span class="st">&quot;thousand emails&quot;</span> <span class="op">$</span> nfIO (generate thousandEmail)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>          ]</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>      , bgroup</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;Person benchmark&quot;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>          [ bench <span class="st">&quot;single person&quot;</span> <span class="op">$</span> nfIO (generate fakePerson)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>          , bench <span class="st">&quot;1000 persons&quot;</span> <span class="op">$</span> nfIO (generate <span class="op">$</span> listOf <span class="dv">1000</span> fakePerson)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>          ]</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>      ]</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="ot">        singleEmail ::</span> <span class="dt">Fake</span> <span class="dt">Text</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        singleEmail <span class="ot">=</span> email</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="ot">        thousandEmail ::</span> <span class="dt">Fake</span> [<span class="dt">Text</span>]</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        thousandEmail <span class="ot">=</span> listOf <span class="dv">1000</span> email</span></code></pre></div>
+<p>Now, when I ran <code>stack bench</code> to measure it, the benchmark continued
+to run after 5 minutes which clearly indicated that the performance
+was bad as observed by my coworker. I reduced the generation of 1000
+persons to 10 persons so that the benchmark gets completed in a
+reasonable time. This was the result once it got finished:</p>
 <pre class="shell"><code>benchmarked Email benchmark/single email
 time                 160.7 μs   (160.1 μs .. 161.4 μs)
                      1.000 R²   (0.999 R² .. 1.000 R²)
@@ -155,35 +174,60 @@ time                 905.0 ms   (884.2 ms .. 921.1 ms)
                      0.999 R²   (0.998 R² .. 1.000 R²)
 mean                 897.7 ms   (892.4 ms .. 904.5 ms)
 std dev              10.22 ms   (7.192 ms .. 13.69 ms)</code></pre>
-<p>For generating 10 persons, it took around a second which is clearly bad. Before trying to debug it further, let me give you a brief overview of how the package fakedata works internally. Internally, it uses <a href="https://github.com/faker-ruby/faker">Ruby’s faker</a> for it’s fake source. We have various <a href="https://www.stackage.org/haddock/nightly-2019-09-21/fakedata-0.3.0/Faker-TH.html">template haskell functions</a> which are used extensively to generate the fake functions. Let’s take the <code>email</code> function from the <code>Faker.TvShow.SiliconValley</code> module to see how it’s implemented (Note that in the recent version of fakedata, the below code is generated through template haskell):</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ot">email ::</span> <span class="dt">Fake</span> <span class="dt">Text</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>email <span class="ot">=</span> <span class="dt">Fake</span> (\settings <span class="ot">-&gt;</span> randomVec settings siliconValleyEmailProvider)</span></code></pre></div>
-<p>The <code>randomVec</code> function will give a random value out of the <code>Vector</code> based on the <code>settings</code> which has an appropriately seeded random number generator. This function shouldn’t be that expensive, so let’s move on to the <code>siliconValleyEmailProvider</code> function. It is implemented like this:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="ot">siliconValleyEmailProvider ::</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>     (<span class="dt">MonadThrow</span> m, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">FakerSettings</span> <span class="ot">-&gt;</span> m (<span class="dt">Vector</span> <span class="dt">Text</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>siliconValleyEmailProvider settings <span class="ot">=</span> fetchData settings <span class="dt">SiliconValley</span> parseSiliconValleyEmail</span></code></pre></div>
-<p>Okay, this function seems to be calling a function named <code>fetchData</code>. Let’s see how that is implemented:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="ot">fetchData ::</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>     (<span class="dt">MonadThrow</span> m, <span class="dt">MonadIO</span> m)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>  <span class="ot">=&gt;</span> <span class="dt">FakerSettings</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>  <span class="ot">-&gt;</span> <span class="dt">SourceData</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>  <span class="ot">-&gt;</span> (<span class="dt">FakerSettings</span> <span class="ot">-&gt;</span> <span class="dt">Value</span> <span class="ot">-&gt;</span> <span class="dt">Parser</span> a)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>  <span class="ot">-&gt;</span> m a</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>fetchData settings sdata parser <span class="ot">=</span> <span class="kw">do</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>  <span class="kw">let</span> fname <span class="ot">=</span> guessSourceFile sdata (getLocale settings)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>  afile <span class="ot">&lt;-</span> getSourceFile fname</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>  yaml <span class="ot">&lt;-</span> decodeFileThrow afile</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>  parseMonad (parser settings) yaml</span></code></pre></div>
-<p>So, the above function fetches the fake data source based on the locale settings and gives out the parsed value. Now when we do <code>generate (listOf 1000 email)</code>, it will fetch the same fake data source 1000 times. This is likely the cause of our slowdown. So, let’s try to cache it. We modify our <code>FakerSettings</code> type, to add an <code>IORef</code> where we cache the fake source using an <code>HashMap</code>:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ot">fsCacheFile ::</span> (<span class="dt">IORef</span> (<span class="dt">HM.HashMap</span> <span class="dt">CacheFileKey</span> <span class="dt">ByteString</span>))</span></code></pre></div>
+<p>For generating 10 persons, it took around a second which is clearly
+bad. Before trying to debug it further, let me give you a brief
+overview of how the package fakedata works internally. Internally, it
+uses <a href="https://github.com/faker-ruby/faker">Ruby’s faker</a> for it’s fake
+source. We have various <a href="https://www.stackage.org/haddock/nightly-2019-09-21/fakedata-0.3.0/Faker-TH.html">template haskell
+functions</a>
+which are used extensively to generate the fake functions. Let’s take
+the <code>email</code> function from the <code>Faker.TvShow.SiliconValley</code> module to see how it’s
+implemented (Note that in the recent version of fakedata, the below
+code is generated through template haskell):</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">email ::</span> <span class="dt">Fake</span> <span class="dt">Text</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>email <span class="ot">=</span> <span class="dt">Fake</span> (\settings <span class="ot">-&gt;</span> randomVec settings siliconValleyEmailProvider)</span></code></pre></div>
+<p>The <code>randomVec</code> function will give a random value out of the <code>Vector</code>
+based on the <code>settings</code> which has an appropriately seeded random
+number generator. This function shouldn’t be that expensive, so let’s
+move on to the <code>siliconValleyEmailProvider</code> function. It is implemented like
+this:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">siliconValleyEmailProvider ::</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>     (<span class="dt">MonadThrow</span> m, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span> <span class="dt">FakerSettings</span> <span class="ot">-&gt;</span> m (<span class="dt">Vector</span> <span class="dt">Text</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>siliconValleyEmailProvider settings <span class="ot">=</span> fetchData settings <span class="dt">SiliconValley</span> parseSiliconValleyEmail</span></code></pre></div>
+<p>Okay, this function seems to be calling a function named
+<code>fetchData</code>. Let’s see how that is implemented:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fetchData ::</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>     (<span class="dt">MonadThrow</span> m, <span class="dt">MonadIO</span> m)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="ot">=&gt;</span> <span class="dt">FakerSettings</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="ot">-&gt;</span> <span class="dt">SourceData</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="ot">-&gt;</span> (<span class="dt">FakerSettings</span> <span class="ot">-&gt;</span> <span class="dt">Value</span> <span class="ot">-&gt;</span> <span class="dt">Parser</span> a)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">-&gt;</span> m a</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>fetchData settings sdata parser <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fname <span class="ot">=</span> guessSourceFile sdata (getLocale settings)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  afile <span class="ot">&lt;-</span> getSourceFile fname</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  yaml <span class="ot">&lt;-</span> decodeFileThrow afile</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  parseMonad (parser settings) yaml</span></code></pre></div>
+<p>So, the above function fetches the fake data source based on the
+locale settings and gives out the parsed value. Now when we do
+<code>generate (listOf 1000 email)</code>, it will fetch the same fake data source
+1000 times. This is likely the cause of our slowdown. So, let’s try to
+cache it. We modify our <code>FakerSettings</code> type, to add an <code>IORef</code> where
+we cache the fake source using an <code>HashMap</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fsCacheFile ::</span> (<span class="dt">IORef</span> (<span class="dt">HM.HashMap</span> <span class="dt">CacheFileKey</span> <span class="dt">ByteString</span>))</span></code></pre></div>
 <p>The <code>CacheFileKey</code> is defined like this:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">CacheFileKey</span> <span class="ot">=</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  <span class="dt">CacheFileKey</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    {<span class="ot"> cfkSource ::</span> <span class="op">!</span><span class="dt">SourceData</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>    ,<span class="ot"> cfkLocale ::</span> <span class="op">!</span><span class="dt">Text</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>    }</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Ord</span>, <span class="dt">Generic</span>, <span class="dt">Hashable</span>)</span></code></pre></div>
-<p>In the above code, the cache is implemented using a hashmap with the key representing the fake data file and the value representing the <code>ByteString</code>. Now, I further modified the <code>fetchData</code> to make sure it first checks if the fake source is present in cache and use that if it’s available. Using this we make sure that the fake data source isn’t read more than once. After implementing the above logic, I ran the same benchmark and this was the result:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">CacheFileKey</span> <span class="ot">=</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">CacheFileKey</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    {<span class="ot"> cfkSource ::</span> <span class="op">!</span><span class="dt">SourceData</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    ,<span class="ot"> cfkLocale ::</span> <span class="op">!</span><span class="dt">Text</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">deriving</span> (<span class="dt">Show</span>, <span class="dt">Eq</span>, <span class="dt">Ord</span>, <span class="dt">Generic</span>, <span class="dt">Hashable</span>)</span></code></pre></div>
+<p>In the above code, the cache is implemented using a hashmap with the
+key representing the fake data file and the value representing the
+<code>ByteString</code>. Now, I further modified the <code>fetchData</code> to make sure it
+first checks if the fake source is present in cache and use that if
+it’s available. Using this we make sure that the fake data source
+isn’t read more than once. After implementing the above logic, I ran
+the same benchmark and this was the result:</p>
 <pre class="shellsession"><code>benchmarked Email benchmark/single email
 time                 173.9 μs   (172.4 μs .. 175.9 μs)
                      0.999 R²   (0.999 R² .. 1.000 R²)
@@ -209,10 +253,23 @@ time                 878.0 ms   (861.7 ms .. 913.2 ms)
                      0.998 R²   (0.996 R² .. 1.000 R²)
 mean                 877.1 ms   (870.4 ms .. 887.8 ms)
 std dev              15.08 ms   (9.567 ms .. 23.57 ms)</code></pre>
-<p>Comparing it with the previous results, we can observe that when generating 1000 emails and 10 persons that has been marginal performance improvement of around 3%. But there has been slight performance decrease when generating a single email and person. That can be attributed to the increased overhead of maintaining and checking the cache. Overall, this didn’t turn out to be a big performance improvement. So, it seems reading the file again and again wasn’t a big bottleneck after all!</p>
-<p>Note that in the above step, we have internally cached <code>ByteString</code> to avoid re-reading files. But we still parse <code>ByteString</code> to <a href="https://www.stackage.org/haddock/nightly-2019-08-31/yaml-0.11.1.2/Data-Yaml.html#t:Value">yaml’s AST</a> each time. But we can avoid this by directly caching the parsed yaml value instead of <code>ByteString</code>. So our <code>fsCacheFile</code> field becomes like this:</p>
+<p>Comparing it with the previous results, we can observe that when
+generating 1000 emails and 10 persons that has been marginal
+performance improvement of around 3%. But there has been slight
+performance decrease when generating a single email and person. That can
+be attributed to the increased overhead of maintaining and checking
+the cache. Overall, this didn’t turn out to be a big performance
+improvement. So, it seems reading the file again and again wasn’t a
+big bottleneck after all!</p>
+<p>Note that in the above step, we have internally cached <code>ByteString</code> to
+avoid re-reading files. But we still parse <code>ByteString</code> to <a href="https://www.stackage.org/haddock/nightly-2019-08-31/yaml-0.11.1.2/Data-Yaml.html#t:Value">yaml’s
+AST</a>
+each time. But we can avoid this by directly caching the parsed yaml
+value instead of <code>ByteString</code>. So our <code>fsCacheFile</code> field becomes like
+this:</p>
 <pre><code>fsCacheFile :: (IORef (HM.HashMap CacheFileKey Value))</code></pre>
-<p>Let’s do the required changes in <code>fetchData</code> to make it typecheck and run the benchmarks again:</p>
+<p>Let’s do the required changes in <code>fetchData</code> to make it typecheck and
+run the benchmarks again:</p>
 <pre class="shellsession"><code>benchmarked Email benchmark/single email
 time                 166.0 μs   (165.7 μs .. 166.3 μs)
                      1.000 R²   (1.000 R² .. 1.000 R²)
@@ -236,10 +293,19 @@ time                 24.07 ms   (23.76 ms .. 24.45 ms)
                      0.999 R²   (0.998 R² .. 1.000 R²)
 mean                 24.61 ms   (24.46 ms .. 24.78 ms)
 std dev              371.9 μs   (270.4 μs .. 507.5 μs)</code></pre>
-<p>Now this has improved things drastically. For generating thousand emails, the time taken has improved by 97% and the code now takes around 2.6% of the original time it was taking. So, it seems the real bottleneck was parsing the values again and again! Our optimization above makes sure that we don’t read and parse the file more than once.</p>
-<p>Now, we can optimize this further by additional caching of individual fields with the yaml so that we don’t have to traverse the entire AST again if we have already accessed it once. Let’s add one more caching field in <code>FakerSettigns</code>:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ot">fsCacheField ::</span> (<span class="dt">IORef</span> (<span class="dt">HM.HashMap</span> <span class="dt">CacheFieldKey</span> (<span class="dt">Vector</span> <span class="dt">Text</span>)))</span></code></pre></div>
-<p>Now we need to modify the <code>randomVec</code> function to check for the field and use that if it’s present. Implementing the above logic gave a slight performance boost:</p>
+<p>Now this has improved things drastically. For generating thousand
+emails, the time taken has improved by 97% and the code now takes around
+2.6% of the original time it was taking. So, it seems the real
+bottleneck was parsing the values again and again! Our optimization
+above makes sure that we don’t read and parse the file more than once.</p>
+<p>Now, we can optimize this further by additional caching of individual
+fields with the yaml so that we don’t have to traverse the entire AST
+again if we have already accessed it once. Let’s add one more caching
+field in <code>FakerSettigns</code>:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fsCacheField ::</span> (<span class="dt">IORef</span> (<span class="dt">HM.HashMap</span> <span class="dt">CacheFieldKey</span> (<span class="dt">Vector</span> <span class="dt">Text</span>)))</span></code></pre></div>
+<p>Now we need to modify the <code>randomVec</code> function to check for the field
+and use that if it’s present. Implementing the above logic gave a
+slight performance boost:</p>
 <pre class="shellsession"><code>benchmarked Email benchmark/single email
 time                 170.3 μs   (169.4 μs .. 171.4 μs)
                      1.000 R²   (0.999 R² .. 1.000 R²)
@@ -263,7 +329,15 @@ time                 22.28 ms   (21.78 ms .. 22.86 ms)
                      0.996 R²   (0.988 R² .. 0.999 R²)
 mean                 23.23 ms   (22.98 ms .. 23.62 ms)
 std dev              734.1 μs   (464.7 μs .. 1.190 ms)</code></pre>
-<p>All these fixes have made into fakedata-0.3.0. One another potential improvement which we can make is using the random number generator from the <a href="https://github.com/phadej/splitmix">splitmix</a> package instead of using <code>StdGen</code> present in the <code>random</code> package. According to the benchmark reported by the package, it seems to be around 96% faster than the random package. But when I tried to port it, I was hit <a href="https://github.com/phadej/splitmix/issues/23">with this bug</a> which stopped me from further experimenting it. And that was our entire workflow for improving the performance of the library.</p>
+<p>All these fixes have made into fakedata-0.3.0. One another potential
+improvement which we can make is using the random number generator
+from the <a href="https://github.com/phadej/splitmix">splitmix</a> package
+instead of using <code>StdGen</code> present in the <code>random</code> package. According
+to the benchmark reported by the package, it seems to be around 96%
+faster than the random package. But when I tried to port it, I was hit
+<a href="https://github.com/phadej/splitmix/issues/23">with this bug</a> which
+stopped me from further experimenting it. And that was our entire
+workflow for improving the performance of the library.</p>
 
 <div id="disqus_thread">
 </div>
@@ -292,14 +366,6 @@ std dev              734.1 μs   (464.7 μs .. 1.190 ms)</code></pre>
             <a href="https://jaspervdj.be/hakyll">Hakyll</a>
         </div>
 	<script>
-	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-	    ga('create', 'UA-27311575-2', 'auto');
-	    ga('send', 'pageview');
-
 	    // Hack for adding active class to the li tag.
 	    var litags = document.getElementById("navbar").getElementsByTagName("li");
 	    litags[0].className = "";
