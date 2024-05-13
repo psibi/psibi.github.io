@@ -32,7 +32,7 @@ rustic for the last six months now.
 couple of days ago to ask [if my fork of Rustic could become the
 maintained](https://github.com/psibi/rustic/issues/23) fork. He is also
 willing to help lighten the load. So even though I was initially hesistant,
-I would like to go ahead and make it more official now.
+I would now like to go ahead and make it more official.
 
 ## Current Status of rustic mode
 
