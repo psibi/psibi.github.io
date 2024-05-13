@@ -11,10 +11,10 @@ for all my Rust development work.
 ## Current situation
 
 Rustic was developed by [@brotzeit](https://github.com/brotzeit), and I
-have been helping out the project by fixing [bugs, adding
-features to it](https://github.com/brotzeit/rustic/commits?author=psibi).
+have been helping out the project by fixing [bugs and adding
+features](https://github.com/brotzeit/rustic/commits?author=psibi) to it.
 
-I was also granted the ability to review others' pull requests (PRs)
+I was granted access to review others' pull requests (PRs)
 and merge them. I occasionally review PRs for the project. Currently,
 I have a [bunch of
 PRs](https://github.com/brotzeit/rustic/pulls/psibi) that I authored
@@ -30,9 +30,9 @@ rustic for the last six months now.
 
 [Troy Hinckley](https://github.com/CeleritasCelery) reached out to me
 couple of days ago to ask [if my fork of Rustic could become the
-maintained](https://github.com/psibi/rustic/issues/23) fork. I was
-hesitant to make it official, but since Troy is willing to help
-lighten the load, I've agreed to make it more official.
+maintained](https://github.com/psibi/rustic/issues/23) fork. He is also
+willing to help lighten the load. So even though I was initially hesistant,
+I would like to go ahead and make it more official now.
 
 ## Current Status of rustic mode
 
@@ -44,8 +44,6 @@ most important ones:
 - Fixed various test failures for newer Rust and Emacs
   releases. Pinned the Rust version in CI for easier development and
   root cause analysis.
-- Made `rustic-cargo-test` and `rustic-cargo-clippy` remember their
-  universal arguments.
 - Populated minibuffer entries for `rustic-cargo-clippy`,
   `rustic-cargo-build`, and `rustic-cargo-test` when invoked with a
   universal argument.
