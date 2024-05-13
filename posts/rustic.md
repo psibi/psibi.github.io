@@ -1,7 +1,7 @@
 ---
 title: New Home for Rustic
 author: Sibi
-date: 2024-05-12
+date: 2024-05-13
 ---
 
 [Rustic](https://github.com/emacs-rustic/rustic) is an Emacs major mode built on top of

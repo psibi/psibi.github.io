@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sibi - New Home for Rustic</title>
+	 <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-JTDENDXYYY');
+        </script>
+        <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+        <link rel="manifest" href="../images/site.webmanifest">
+    </head>
+    <body>
+	 <!-- Fixed navbar -->
+         <!-- sibi: navbar-default is my custom class -->
+    <nav class="navbar navbar-expand-md navbar-default fixed-top bg-white">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="navbar-toggler-icon">
+          </button>
+          <a class="navbar-brand" href="../">Sibi</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse justify-content-end">
+          <ul class="navbar-nav mr-auto mb-2 mb-md-0">
+            <li class="nav-item">
+              <a class="nav-link active" href="../">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../about.html">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../contact.html">Contact</a>
+            </li>
+	    <li class="nav-item">
+              <a class="nav-link" href="../archive.html">Archive</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>New Home for Rustic</h1>
+    <span class="date">May 13, 2024</span>
+</div>
+
+<p><a href="https://github.com/emacs-rustic/rustic">Rustic</a> is an Emacs major mode built on top of
+<a href="https://github.com/rust-lang/rust-mode">rust-mode</a>. I use it daily
+for all my Rust development work.</p>
+<h2 id="current-situation">Current situation</h2>
+<p>Rustic was developed by <a href="https://github.com/brotzeit"><span class="citation" data-cites="brotzeit">@brotzeit</span></a>, and I
+have been helping out the project by fixing <a href="https://github.com/brotzeit/rustic/commits?author=psibi">bugs and adding
+features</a> to it.</p>
+<p>I was granted access to review others’ pull requests (PRs)
+and merge them. I occasionally review PRs for the project. Currently,
+I have a <a href="https://github.com/brotzeit/rustic/pulls/psibi">bunch of
+PRs</a> that I authored
+and are pending review.</p>
+<p>Unfortunately, I haven’t been able to reach <span class="citation" data-cites="brotzeit">@brotzeit</span> for some time
+now. I hope he’s doing well. In September of last year, I sent him an
+email regarding commit access to the Rustic repository, but haven’t
+heard back.</p>
+<p>Given the current situation, I have been maintaining my own fork of
+rustic for the last six months now.</p>
+<p><a href="https://github.com/CeleritasCelery">Troy Hinckley</a> reached out to me
+couple of days ago to ask <a href="https://github.com/psibi/rustic/issues/23">if my fork of Rustic could become the
+maintained</a> fork. He is also
+willing to help lighten the load. So even though I was initially hesistant,
+I would now like to go ahead and make it more official.</p>
+<h2 id="current-status-of-rustic-mode">Current Status of rustic mode</h2>
+<p>My fork of Rustic mode has accumulated several changes. Here are the
+most important ones:</p>
+<ul>
+<li>Added support for enabling tree sitter integration with <code>rust-mode</code>.</li>
+<li>Revamped the testing infrastructure to use Cask only.</li>
+<li>Fixed various test failures for newer Rust and Emacs
+releases. Pinned the Rust version in CI for easier development and
+root cause analysis.</li>
+<li>Populated minibuffer entries for <code>rustic-cargo-clippy</code>,
+<code>rustic-cargo-build</code>, and <code>rustic-cargo-test</code> when invoked with a
+universal argument.</li>
+<li>Fixed integration with <code>lsp-mode</code> for buffer formatting.</li>
+<li>Minor cleanups: Removed Racer dependency, replaced Makefile, etc.</li>
+</ul>
+<h2 id="future">Future</h2>
+<p>I plan to continue maintaining Rustic mode. My main focus will be on
+ensuring smooth integration with Rust language analyzer and
+tree-sitter utilities.</p>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "https://psibi.in/posts/rustic.html";
+    this.page.identifier = "posts/rustic.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+</div>
+
+        </div>
+        <div id="footer">
+            Site generated by
+            <a href="https://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+	<script>
+	    // Hack for adding active class to the li tag.
+	    var litags = document.getElementById("navbar").getElementsByTagName("li");
+	    litags[0].className = "";
+	    litags[1].className = "";
+	    litags[2].className = "";
+	    litags[3].className = "";
+	    var currentPage = window.location.href.split('/')[3];
+	    if (currentPage === "")
+	       litags[0].className = "active";
+	    if (currentPage === "about.html")
+	       litags[1].className = "active";
+	    if (currentPage === "contact.html")
+	       litags[2].className = "active";
+	    if (currentPage === "archive.html")
+	       litags[3].className = "active";
+	</script>
+    </body>
+</html>
