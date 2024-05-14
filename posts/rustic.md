@@ -55,3 +55,9 @@ most important ones:
 I plan to continue maintaining Rustic mode. My main focus will be on
 ensuring smooth integration with Rust language analyzer and
 tree-sitter utilities.
+
+Relevant links:
+
+- Original source code: [https://github.com/brotzeit/rustic](https://github.com/brotzeit/rustic/pulls/psibi)
+- Temporary fork (soon to be archived): [https://github.com/psibi/rustic](https://github.com/psibi/rustic/issues/23)
+- New home for Rustic: [https://github.com/emacs-rustic/rustic](https://github.com/emacs-rustic/rustic)
