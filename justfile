@@ -13,7 +13,3 @@ watch:
 # Clean site
 clean:
 	psibi.in clean
-
-# Watch and install new exectuable
-build:
-	stack build --fast --file-watch
