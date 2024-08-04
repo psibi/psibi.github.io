@@ -1,10 +1,9 @@
 ---
 title: "Rustic: Enhanced Org Babel integration"
 author: Sibi
-date: 2024-08-04
 ---
 
-[Rustic](https://github.com/emacs-rustic/rustic) is a major mode Emacs that simplifies Rust development. It
+[Rustic](https://github.com/emacs-rustic/rustic) is a major mode for Emacs that simplifies Rust development. It
 builds upon the foundation of [rust-mode](https://github.com/rust-lang/rust-mode) and offers additional
 features.
 
@@ -14,11 +13,11 @@ the code and view the results without leaving your editor,
 streamlining your workflow.
 
 This makes it quite useful for literate programming, interactive
-development; and for scripting, which I use extensively at my work.
+development, and for scripting, which I use extensively at my work.
 
 ## Basic workflow
 
-- Open a new org file
+- Open a new org file.
 - Create a source block and include your snippet:
 
 ``` rust
@@ -29,7 +28,7 @@ development; and for scripting, which I use extensively at my work.
 #+end_src
 ```
 
-- Execute the code by pressing `Ctrl-C Ctrl-c`.
+- Execute the code by pressing `Ctrl-c Ctrl-c`.
 
 The results from the code execution will be displayed within a
 dedicated result block below the source code:
@@ -39,7 +38,7 @@ dedicated result block below the source code:
 : Hello world
 ```
 
-You can edit the code and re-execute it using Ctrl-C Ctrl-C. The
+You can edit the code and re-execute it using Ctrl-c Ctrl-c. The
 results block will update automatically, reflecting the changes.
 
 
@@ -103,7 +102,7 @@ I preferred and subsequently implemented the following behavior:
 
 - Consolidate all output, including error messages, within the results
   block.
-- Eliminate disruptive popup buffers.
+- Eliminate the disruptive popup buffers.
 
 To maintain backward compatibility, a customizable variable named
 *rustic-babel-display-error-popup* has been introduced in Rustic. By
@@ -150,5 +149,5 @@ pull requests:
 - [PR 25: Ability to include compilation failure, panic as part of org result block](https://github.com/emacs-rustic/rustic/pull/25)
 - [PR 27: Add compilation special case](https://github.com/emacs-rustic/rustic/pull/27)
 
-This approach provides a cleaner and less intrusive experience while
-providing information about errors.
+This approach provides a cleaner and less intrusive experience for me
+while providing information about errors.
