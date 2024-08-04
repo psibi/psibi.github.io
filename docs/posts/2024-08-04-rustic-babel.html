@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sibi - Rustic: Enhanced Org Babel integration</title>
+	 <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Source+Serif+Pro:400,700|Space+Mono" rel="stylesheet">
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/pygments.css" />
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-JTDENDXYYY');
+        </script>
+        <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+        <link rel="manifest" href="../images/site.webmanifest">
+    </head>
+    <body>
+	 <!-- Fixed navbar -->
+         <!-- sibi: navbar-default is my custom class -->
+    <nav class="navbar navbar-expand-md navbar-default fixed-top bg-white">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="navbar-toggler-icon">
+          </button>
+          <a class="navbar-brand" href="../">Sibi</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse justify-content-end">
+          <ul class="navbar-nav mr-auto mb-2 mb-md-0">
+            <li class="nav-item">
+              <a class="nav-link active" href="../">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../about.html">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../contact.html">Contact</a>
+            </li>
+	    <li class="nav-item">
+              <a class="nav-link" href="../archive.html">Archive</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+        <div id="content" class="container">
+            <div class="article">
+<div class="post-index">
+    <h1>Rustic: Enhanced Org Babel integration</h1>
+    <span class="date">August  4, 2024</span>
+</div>
+
+<p><a href="https://github.com/emacs-rustic/rustic">Rustic</a> is a major mode for Emacs that simplifies Rust development. It
+builds upon the foundation of <a href="https://github.com/rust-lang/rust-mode">rust-mode</a> and offers additional
+features.</p>
+<p>Rustic’s integration with <a href="https://orgmode.org/worg/org-contrib/babel/">Org Babel</a> allows you to embed Rust code
+snippets directly within your Org buffers. This enables you to execute
+the code and view the results without leaving your editor,
+streamlining your workflow.</p>
+<p>This makes it quite useful for literate programming, interactive
+development, and for scripting, which I use extensively at my work.</p>
+<h2 id="basic-workflow">Basic workflow</h2>
+<ul>
+<li>Open a new org file.</li>
+<li>Create a source block and include your snippet:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>begin_src rustic <span class="op">:</span>results verbatim <span class="op">:</span>exports both</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>      <span class="pp">println!</span>(<span class="st">&quot;Hello world&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>end_src</span></code></pre></div>
+<ul>
+<li>Execute the code by pressing <code>Ctrl-c Ctrl-c</code>.</li>
+</ul>
+<p>The results from the code execution will be displayed within a
+dedicated result block below the source code:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode org"><code class="sourceCode orgmode"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#+RESULTS:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>: Hello world</span></code></pre></div>
+<p>You can edit the code and re-execute it using Ctrl-c Ctrl-c. The
+results block will update automatically, reflecting the changes.</p>
+<h1 id="handling-panics-and-errors">Handling Panics and Errors</h1>
+<p>The aforementioned workflow is efficient until you encounter panics or
+compilation errors in your code. Let’s explore how Rustic handles
+these scenarios.</p>
+<h2 id="scenario-one-panics">Scenario one: Panics</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>begin_src rustic <span class="op">:</span>results verbatim <span class="op">:</span>exports both</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>      <span class="pp">panic!</span>(<span class="st">&quot;Hello world&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>end_src</span></code></pre></div>
+<p>Executing this code with a panic will produce the following results:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode org"><code class="sourceCode orgmode"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#+RESULTS:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>: thread 'main' panicked at src/main.rs:3:5:</span></code></pre></div>
+<p>Additionally, a new popup buffer will appear displaying the full error
+message:</p>
+<pre class="shellsession"><code>thread 'main' panicked at src/main.rs:3:5:
+Hello world
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace</code></pre>
+<p>Snapshot of my editor showing this scenario:</p>
+<p><img class="img-fluid" src="../images/posts/rustic-babel_1.png"></p>
+<h2 id="scenario-two-compilation-errors">Scenario two: Compilation errors</h2>
+<p>If you introduce a compilation error, the results block will have very
+limited information:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>begin_src rustic <span class="op">:</span>results verbatim <span class="op">:</span>exports both</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>      panic(<span class="st">&quot;Hello world&quot;</span>)<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>end_src</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>RESULTS<span class="op">:</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">:</span> error<span class="op">:</span> Could not compile `cargoyacVpM`<span class="op">.</span></span></code></pre></div>
+<p>The popup buffer, however, would contain more details about the error.</p>
+<h1 id="desired-behaviour">Desired behaviour</h1>
+<p>I preferred and subsequently implemented the following behavior:</p>
+<ul>
+<li>Consolidate all output, including error messages, within the results
+block.</li>
+<li>Eliminate the disruptive popup buffers.</li>
+</ul>
+<p>To maintain backward compatibility, a customizable variable named
+<em>rustic-babel-display-error-popup</em> has been introduced in Rustic. By
+default, it’s set to <code>t</code> (true), which preserves the current
+behavior. To enable the new behavior with consolidated output in the
+results block and no popups, simply set this variable to <code>nil</code>
+(false).</p>
+<p>Here’s what the results block would look like after enabling the new
+behavior and re-executing the code with a compilation error:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>begin_src rustic <span class="op">:</span>results verbatim <span class="op">:</span>exports both</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>      panic(<span class="st">&quot;Hello world&quot;</span>)<span class="op">;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>end_src</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>RESULTS<span class="op">:</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>begin_example</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>error[E0423]<span class="op">:</span> expected function<span class="op">,</span> found <span class="kw">macro</span> `panic`</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a> <span class="op">--&gt;</span> src<span class="op">/</span>main<span class="op">.</span>rs<span class="op">:</span><span class="dv">3</span><span class="op">:</span><span class="dv">5</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> <span class="op">|</span>     panic(<span class="st">&quot;Hello world&quot;</span>)<span class="op">;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span>     <span class="op">^^^^^</span> not a function</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>help<span class="op">:</span> <span class="kw">use</span> `<span class="op">!</span>` to invoke the <span class="kw">macro</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> <span class="op">|</span>     <span class="pp">panic!</span>(<span class="st">&quot;Hello world&quot;</span>)<span class="op">;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span>          <span class="op">+</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>help<span class="op">:</span> consider importing this function instead</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> <span class="op">+</span> <span class="kw">use</span> <span class="pp">core::panicking::</span>panic<span class="op">;</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>For more information about this error<span class="op">,</span> <span class="kw">try</span> `rustc <span class="op">--</span>explain E0423`<span class="op">.</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>error<span class="op">:</span> could not compile `cargoyacVpM` (bin <span class="st">&quot;cargoyacVpM&quot;</span>) due to <span class="dv">1</span> previous error</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>#<span class="op">+</span>end_example</span></code></pre></div>
+<p>This behavior was implemented in Emacs-rustic through the following
+pull requests:</p>
+<ul>
+<li><a href="https://github.com/emacs-rustic/rustic/pull/25">PR 25: Ability to include compilation failure, panic as part of org result block</a></li>
+<li><a href="https://github.com/emacs-rustic/rustic/pull/27">PR 27: Add compilation special case</a></li>
+</ul>
+<p>This approach provides a cleaner and less intrusive experience for me
+while providing information about errors.</p>
+
+<div id="disqus_thread">
+</div>
+<script>
+    var disqus_config = function () {
+    this.page.url = "https://psibi.in/posts/2024-08-04-rustic-babel.html";
+    this.page.identifier = "posts/2024-08-04-rustic-babel.md";
+    };
+
+    (function() {  // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    
+    s.src = '//psibi.disqus.com/embed.js';
+    
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+<div id="disqus_thread"></div>
+</div>
+
+        </div>
+        <div id="footer">
+            Site generated by
+            <a href="https://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+	<script>
+	    // Hack for adding active class to the li tag.
+	    var litags = document.getElementById("navbar").getElementsByTagName("li");
+	    litags[0].className = "";
+	    litags[1].className = "";
+	    litags[2].className = "";
+	    litags[3].className = "";
+	    var currentPage = window.location.href.split('/')[3];
+	    if (currentPage === "")
+	       litags[0].className = "active";
+	    if (currentPage === "about.html")
+	       litags[1].className = "active";
+	    if (currentPage === "contact.html")
+	       litags[2].className = "active";
+	    if (currentPage === "archive.html")
+	       litags[3].className = "active";
+	</script>
+    </body>
+</html>
