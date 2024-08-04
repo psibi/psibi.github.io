@@ -1,5 +1,5 @@
 ---
-title: Rustic: Enhanced Org Babel integration
+title: "Rustic: Enhanced Org Babel integration"
 author: Sibi
 date: 2024-08-04
 ---
@@ -8,20 +8,20 @@ date: 2024-08-04
 builds upon the foundation of [rust-mode](https://github.com/rust-lang/rust-mode) and offers additional
 features.
 
-Rustic's integration with Org Babel allows you to embed Rust code
+Rustic's integration with [Org Babel](https://orgmode.org/worg/org-contrib/babel/) allows you to embed Rust code
 snippets directly within your Org buffers. This enables you to execute
 the code and view the results without leaving your editor,
 streamlining your workflow.
 
 This makes it quite useful for literate programming, interactive
-development and for scripting which I use extensively at my work.
+development; and for scripting, which I use extensively at my work.
 
 ## Basic workflow
 
 - Open a new org file
 - Create a source block and include your snippet:
 
-``` org
+``` rust
 #+begin_src rustic :results verbatim :exports both
   fn main() {
       println!("Hello world");
@@ -42,6 +42,7 @@ dedicated result block below the source code:
 You can edit the code and re-execute it using Ctrl-C Ctrl-C. The
 results block will update automatically, reflecting the changes.
 
+
 # Handling Panics and Errors
 
 The aforementioned workflow is efficient until you encounter panics or
@@ -50,7 +51,7 @@ these scenarios.
 
 ## Scenario one: Panics
 
-``` org
+``` rust
 #+begin_src rustic :results verbatim :exports both
   fn main() {
       panic!("Hello world");
@@ -76,21 +77,14 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 
 Snapshot of my editor showing this scenario:
 
-![](../images/posts/fixed_icon.png)
-
-And in my opinion, this has the following shortcomings:
-
-- Incomplete results block: The results block only shows a partial
-  error message.
-- Disruptive popups: The popup buffer can be distracting and interrupt
-  your workflow.
+<img class="img-fluid" src="../images/posts/rustic-babel_1.png">
 
 ## Scenario two: Compilation errors
 
 If you introduce a compilation error, the results block will have very
 limited information:
 
-``` org
+``` rust
 #+begin_src rustic :results verbatim :exports both
   fn main() {
       panic("Hello world");
@@ -105,22 +99,23 @@ The popup buffer, however, would contain more details about the error.
 
 # Desired behaviour
 
-To address these shortcomings, here's what I propose:
+I preferred and subsequently implemented the following behavior:
 
 - Consolidate all output, including error messages, within the results
   block.
 - Eliminate disruptive popup buffers.
 
-To maintain backward compatibility, a new customizable variable named
+To maintain backward compatibility, a customizable variable named
 *rustic-babel-display-error-popup* has been introduced in Rustic. By
 default, it's set to `t` (true), which preserves the current
 behavior. To enable the new behavior with consolidated output in the
-results block and no popups, simply set this variable to `nil` (false).
+results block and no popups, simply set this variable to `nil`
+(false).
 
 Here's what the results block would look like after enabling the new
 behavior and re-executing the code with a compilation error:
 
-``` org
+``` rust
 #+begin_src rustic :results verbatim :exports both
   fn main() {
       panic("Hello world");
@@ -149,13 +144,11 @@ error: could not compile `cargoyacVpM` (bin "cargoyacVpM") due to 1 previous err
 #+end_example
 ```
 
-This approach provides a cleaner and less intrusive experience while
-keeping you informed about errors.
-
-# Implementation Details
-
-The desired behavior was implemented in Emacs-rustic through the
-following pull requests:
+This behavior was implemented in Emacs-rustic through the following
+pull requests:
 
 - [PR 25: Ability to include compilation failure, panic as part of org result block](https://github.com/emacs-rustic/rustic/pull/25)
 - [PR 27: Add compilation special case](https://github.com/emacs-rustic/rustic/pull/27)
+
+This approach provides a cleaner and less intrusive experience while
+providing information about errors.
