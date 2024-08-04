@@ -8,8 +8,9 @@ body {
 }
 h1, h2, h3{
     font-family: 'Source Serif Pro', serif;
-    margin:50px 0 5px;
+    margin:20px 0 2px;
 }
+
 p{
     margin:0 0 15px;
 }
@@ -74,9 +75,16 @@ div.info {
     font-style: italic
 }
 
+div.sourceCode {
+    background-color: #fdf6e3
+}
+
+pre.shellsession {
+    background-color: #fdf6e3
+}
 
 .container {
-    width: 600px;
+    width: 100%;
     margin: 0px auto 0px auto;
 }
 
@@ -217,7 +225,7 @@ a.navbar-brand {
 .article h1 {
     font-size: 35px;
     font-weight: bold;
-    margin-top: 0px;
+    margin: 30px 0 3px;
 }
 
 .article h2 {
