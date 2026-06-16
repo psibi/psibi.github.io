@@ -1,32 +1,34 @@
 {% extends "default.html" %}
 
 {% block content %}
-<div class="article">
-<div class="post-index">
-    <h1>{{ page.title }}</h1>
-    <span class="date">{{ page.date | date(format="%B %e, %Y") }}</span>
-</div>
+<article>
+    <header class="article-header">
+        <h1>{{ page.title }}</h1>
+        <span class="article-date">{{ page.date | date(format="%B %e, %Y") }}</span>
+    </header>
 
-{{ page.content | safe }}
+    <div class="article-body">
+        {{ page.content | safe }}
+    </div>
 
-<div id="disqus_thread">
-</div>
-<script>
-    var disqus_config = function () {
-    this.page.url = "https://psibi.in{{ page.path }}";
-    this.page.identifier = "{{ page.path }}";
-    };
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in{{ page.path }}";
+            this.page.identifier = "{{ page.path }}";
+            };
 
-    (function() {
-    var d = document, s = d.createElement('script');
+            (function() {
+            var d = document, s = d.createElement('script');
 
-    s.src = '//psibi.disqus.com/embed.js';
+            s.src = '//psibi.disqus.com/embed.js';
 
-    s.setAttribute('data-timestamp', +new Date());
-    (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
-<div id="disqus_thread"></div>
-</div>
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
 {% endblock %}

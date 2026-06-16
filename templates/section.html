@@ -1,13 +1,17 @@
 {% extends "default.html" %}
 
 {% block content %}
-<span class="heading-label">Here you can find all my previous posts:</span>
-<ul class="post-index">
+<div class="home-hero">
+    <h1>Archive</h1>
+    <p class="tagline">Everything I've written, newest first.</p>
+</div>
+
+<ul class="post-list">
     {% set posts = get_section(path="posts/_index.md") %}
     {% for page in posts.pages %}
         <li>
             <h2><a href="{{ page.path }}">{{ page.title }}</a></h2>
-            <span class="date">{{ page.date | date(format="%B %e, %Y") }}</span>
+            <span class="post-date">{{ page.date | date(format="%B %e, %Y") }}</span>
         </li>
     {% endfor %}
 </ul>
