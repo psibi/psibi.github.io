@@ -24,9 +24,11 @@ development, and for scripting, which I use extensively at my work.
 - Create a source block and include your snippet:
 
 ``` rust
+#+begin_src rustic :results verbatim :exports both
 fn main() {
     println!("Hello world");
 }
+#+end_src
 ```
 
 - Execute the code by pressing `Ctrl-c Ctrl-c`.
@@ -51,9 +53,11 @@ these scenarios.
 ## Scenario one: Panics
 
 ``` rust
+#+begin_src rustic :results verbatim :exports both
 fn main() {
     panic!("Hello world");
 }
+#+end_src
 ```
 
 Executing this code with a panic will produce the following results:
@@ -81,9 +85,11 @@ If you introduce a compilation error, the results block will have very
 limited information:
 
 ``` rust
+#+begin_src rustic :results verbatim :exports both
 fn main() {
     panic("Hello world");
 }
+#+end_src
 ```
 
 ```
@@ -111,9 +117,11 @@ Here's what the results block would look like after enabling the new
 behavior and re-executing the code with a compilation error:
 
 ``` rust
+#+begin_src rustic :results verbatim :exports both
 fn main() {
     panic("Hello world");
 }
+#+end_src
 ```
 
 ```

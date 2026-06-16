@@ -14,6 +14,7 @@ external_links_target_blank = false
 smart_punctuation = false
 
 [markdown.highlighting]
+theme = "github-light"
 
 [extra]
 author = "Sibi"
