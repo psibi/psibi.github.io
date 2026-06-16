@@ -366,15 +366,19 @@ pre.giallo span, pre.giallo code {
 }
 
 /* ===== About/Contact pages ===== */
-.page-body {
-    font-family: 'Newsreader', serif;
-    font-size: 1.2rem;
-    line-height: 1.75;
+.heading-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin: 2rem 0 0.5rem;
+    font-family: 'Inter', sans-serif;
 }
 
-.page-body h1 {
-    font-size: 2.4rem;
-    margin-bottom: 1.25rem;
+.heading-label:first-child {
+    margin-top: 0;
 }
 
 /* ===== Responsive ===== */

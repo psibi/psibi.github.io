@@ -29,8 +29,6 @@ Engineer for FPComplete.
 
 <span class="heading-label">Internet Handle</span>
 
-<div class="container portfolio">
-<div class="row">
 * [Github](http://github.com/psibi)
 * [StackOverflow](http://stackoverflow.com/users/1651941/sibi)
 * [Hacker News](https://news.ycombinator.com/user?id=psibi)
@@ -43,5 +41,3 @@ Engineer for FPComplete.
 * [Twitter](http://twitter.com/psibi)
 * [Identi.ca](http://identi.ca/psibi)
 * [Keybase](https://keybase.io/sibi)
-</div class="row">
-</div>
