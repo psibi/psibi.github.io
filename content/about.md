@@ -19,8 +19,8 @@ usually very lazy.
 I previously worked in TCS R&D Labs at IIT Madras Research Park as a
 Researcher where I worked on GIS systems which were used to simulate
 traffic conditions of large cities. Then, I worked on with a startup
-named Inkmonk (I was their first engineering hire!) where my
-responsibilities included frontend, backend and doing devops. After
+named Inkmonk where I joined as their first engineering hire and handled
+frontend, backend, and devops. After
 that, I led a team at Pneuma Innovations where we built a Haskell
 based system for inventory management systems to support QSR. Then I
 moved on to work as a consultant for McKinsey & Company on some of
