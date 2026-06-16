@@ -5,16 +5,15 @@ Website source for [[https://psibi.in][https://psibi.in]]. This is built via Hak
 ** Usage
 
 #+begin_src sh :exports both :eval never-export :results verbatim
-make
+just
 #+end_src
 
 #+RESULTS:
-: Please use `make <target>' where <target> is one of\n\n
-: gen                            Generate the site
-: watch                          Watch and run the site
-: clean                          Clean site
-: build                          Watch and install new exectuable
-: help                           Show help screen.
+: Available recipes:
+:     default # List all recipies
+:     gen     # Generate the site
+:     watch   # Watch and run the site
+:     clean   # Clean site
 
 ** Getting CSS for syntax highlighting
 
