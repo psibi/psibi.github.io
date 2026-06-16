@@ -76,7 +76,7 @@ div.info {
 }
 
 pre.giallo {
-    background-color: #e9ecef;
+    background-color: #e9ecef !important;
     border-radius: 4px;
     padding: 12px;
     overflow-x: auto;

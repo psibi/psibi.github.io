@@ -75,12 +75,11 @@ div.info {
     font-style: italic
 }
 
-div.sourceCode {
-    background-color: #fdf6e3
-}
-
-pre.shellsession {
-    background-color: #fdf6e3
+pre.giallo {
+    background-color: #e9ecef !important;
+    border-radius: 4px;
+    padding: 12px;
+    overflow-x: auto;
 }
 
 .container {
