@@ -3,7 +3,12 @@ title = "Sibi"
 description = "Sibi's blog"
 compile_sass = false
 generate_feeds = false
-build_search_index = false
+build_search_index = true
+
+[search]
+include_title = true
+include_description = false
+include_content = true
 taxonomies = []
 output_dir = "docs"
 minify_html = false
