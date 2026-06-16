@@ -1,0 +1,14 @@
+{% extends "default.html" %}
+
+{% block content %}
+<span class="heading-label">Here you can find all my previous posts:</span>
+<ul class="post-index">
+    {% set posts = get_section(path="posts/_index.md") %}
+    {% for page in posts.pages %}
+        <li>
+            <h2><a href="{{ page.path }}">{{ page.title }}</a></h2>
+            <span class="date">{{ page.date | date(format="%B %e, %Y") }}</span>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
