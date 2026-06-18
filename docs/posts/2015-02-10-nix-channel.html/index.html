@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Nix: Managing multiple channels — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Nix: Managing multiple channels</h1>
+        <span class="article-date">February 10, 2015</span>
+    </header>
+
+    <div class="article-body">
+        <p>This post will document how to add multiple channels for the Nix
+package manager and the way to install (or do any other operations)
+specific software from a particular channel.</p>
+<p>First, go to this <a rel="external" href="https://nixos.org/channels/">url</a> to find out the
+specific channel which you want to add. Since by default nix adds the
+unstable channel, I will add up the stable channel for my profile.
+Note that the stable channel will be the latest nixos package version.
+After finding it's url, add it like this:</p>
+<p><code>$ nix-channel --add https://nixos.org/channels/nixos-14.12</code></p>
+<p>And then update it:</p>
+<p><code>$ nix-channel --update nixos-14.12</code></p>
+<p>Now this will update and download the related nix package expressions
+related to it. To see the actual downloaded path, you can do something
+like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>    sibi::monoid { ~ }-&gt; cd ~/.nix-defexpr/        </span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr }-&gt; ls</span></span>
+<span class="giallo-l"><span>    channels</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr }-&gt; cd channels</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr/channels }-&gt; ls</span></span>
+<span class="giallo-l"><span>    binary-caches  manifest.nix  nixos-14.12  nixpkgs</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr/channels }-&gt; cd nixos-14.12</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr/channels/nixos-14.12 }-&gt;</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr/channels/nixos-14.12 }-&gt; ls</span></span>
+<span class="giallo-l"><span>    default.nix  nixos  nixpkgs  programs.sqlite</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr/channels/nixos-14.12 }-&gt; cd nixpkgs/</span></span>
+<span class="giallo-l"><span>    sibi::monoid { ~/.nix-defexpr/channels/nixos-14.12/nixpkgs }-&gt;</span></span></code></pre>
+<p>Note that the <code>nixpkgs</code> directory above under the <code>channels</code> directory
+contains expressions for the unstable channel. Now to install or
+search package from that stable channel, you can do something like this:</p>
+<p><code>$ nix-env -f nixpkgs_channel_directory -iA package_name</code></p>
+<p>which can be something like this:</p>
+<p><code>$ nix-env -f ~/.nix-defexpr/channels/nixos-14.12/nixpkgs/ -i firefox</code></p>
+<p>for installing from the stable channel.</p>
+<p>Thanks to Lethalman from #nixos for pointing me to the right direction.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2015-02-10-nix-channel.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2015-02-10-nix-channel.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Improving performance of fakedata — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Improving performance of fakedata</h1>
+        <span class="article-date">September 23, 2019</span>
+    </header>
+
+    <div class="article-body">
+        <p><a rel="external" href="https://github.com/psibi/fakedata">fakedata</a> is a library for
+producing fake data (duh!). The API for generating fake data is
+simple. Let's say you have a data type named <code>Person</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">data Person =</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  Person</span></span>
+<span class="giallo-l"><span>    { personName</span><span style="color: #D73A49;"> :: Text</span></span>
+<span class="giallo-l"><span>    , personAddress</span><span style="color: #D73A49;"> :: Text</span></span>
+<span class="giallo-l"><span>    , personCountry</span><span style="color: #D73A49;"> :: Text</span></span>
+<span class="giallo-l"><span>    , personEmail</span><span style="color: #D73A49;"> :: Text</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  deriving</span><span> (</span><span style="color: #D73A49;">Show</span><span>,</span><span style="color: #D73A49;"> Eq</span><span>,</span><span style="color: #D73A49;"> NFData</span><span>,</span><span style="color: #D73A49;"> Generic</span><span>)</span></span></code></pre>
+<p>For generating fake values for the above type, you can use this
+library to create a function like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE RecordWildCards</span><span> #-}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Data.Text</span><span> (</span><span style="color: #D73A49;">Text</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Faker</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Faker.Address</span><span> (</span><span style="color: #6F42C1;">country</span><span>,</span><span style="color: #6F42C1;"> fullAddress</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Faker.Name</span><span> (</span><span style="color: #6F42C1;">name</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Faker.TvShow.SiliconValley</span><span> (</span><span style="color: #6F42C1;">email</span><span>)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">fakePerson</span><span style="color: #D73A49;"> :: Fake Person</span></span>
+<span class="giallo-l"><span>fakePerson </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span>  personName </span><span style="color: #D73A49;">&lt;-</span><span> name</span></span>
+<span class="giallo-l"><span>  personAddress </span><span style="color: #D73A49;">&lt;-</span><span> fullAddress</span></span>
+<span class="giallo-l"><span>  personCountry </span><span style="color: #D73A49;">&lt;-</span><span> country</span></span>
+<span class="giallo-l"><span>  personEmail </span><span style="color: #D73A49;">&lt;-</span><span> email</span></span>
+<span class="giallo-l"><span>  pure </span><span style="color: #D73A49;">$</span><span style="color: #005CC5;"> Person</span><span> {..}</span></span></code></pre>
+<p>And then you can use the <code>generate</code> function to produce fake values:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">λ&gt; generate fakePerson</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Person</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  { personName = &quot;Antony Langosh&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  , personAddress = &quot;Suite 599 599 Brakus Flat, South Mason, MT 59962-6876&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  , personCountry = &quot;Faroe Islands&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  , personEmail = &quot;laurie@raviga.test&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  }</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">λ&gt; generate $ listOf 2 fakePerson</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">[ Person</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    { personName = &quot;Antony Langosh&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    , personAddress = &quot;Suite 599 599 Brakus Flat, South Mason, MT 59962-6876&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    , personCountry = &quot;Faroe Islands&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    , personEmail = &quot;laurie@raviga.test&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    }</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">, Person</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    { personName = &quot;Mason Brakus&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    , personAddress = &quot;0347 Majorie Summit, South Majorieburgh, SD 03479&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    , personCountry = &quot;Canada&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    , personEmail = &quot;monica@raviga.test&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    }</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">]</span></span></code></pre>
+<p>There are various other
+<a rel="external" href="https://www.stackage.org/haddock/nightly-2019-09-21/fakedata-0.3.0/Faker-Combinators.html">combinators</a>
+which can be used. One of my coworker played around with it and
+observed that it was too slow. This post will demonstrate the steps
+involved in finding out why it is slow and operating on that data to
+see if we can improve the performance. The first step to determine why
+something is slow is by adding benchmarks to it. I decided to use the
+<a rel="external" href="https://tech.fpcomplete.com/haskell/library/gauge">gauge library</a> to
+perform the analysis.</p>
+<p>I added two different benchmarks using the above function <code>fakePerson</code>
+and the <code>email</code> function exposed from the module
+<code>Faker.TvShow.SiliconValley</code>. The difference between both of them is
+that the "Person benchmark" is comprised of four different fake fields
+whereas the "Email benchmark" is a single fake field:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">main</span><span style="color: #D73A49;"> :: IO</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span>main </span><span style="color: #D73A49;">=</span><span> defaultMain benchs</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  where</span></span>
+<span class="giallo-l"><span>    benchs </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span>      [ bgroup</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;Email benchmark&quot;</span></span>
+<span class="giallo-l"><span>          [ bench </span><span style="color: #032F62;">&quot;single email&quot;</span><span style="color: #D73A49;"> $</span><span> nfIO (generate singleEmail)</span></span>
+<span class="giallo-l"><span>          , bench </span><span style="color: #032F62;">&quot;thousand emails&quot;</span><span style="color: #D73A49;"> $</span><span> nfIO (generate thousandEmail)</span></span>
+<span class="giallo-l"><span>          ]</span></span>
+<span class="giallo-l"><span>      , bgroup</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;Person benchmark&quot;</span></span>
+<span class="giallo-l"><span>          [ bench </span><span style="color: #032F62;">&quot;single person&quot;</span><span style="color: #D73A49;"> $</span><span> nfIO (generate fakePerson)</span></span>
+<span class="giallo-l"><span>          , bench </span><span style="color: #032F62;">&quot;1000 persons&quot;</span><span style="color: #D73A49;"> $</span><span> nfIO (generate </span><span style="color: #D73A49;">$</span><span> listOf </span><span style="color: #005CC5;">1000</span><span> fakePerson)</span></span>
+<span class="giallo-l"><span>          ]</span></span>
+<span class="giallo-l"><span>      ]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">      where</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        singleEmail</span><span style="color: #D73A49;"> :: Fake Text</span></span>
+<span class="giallo-l"><span>        singleEmail </span><span style="color: #D73A49;">=</span><span> email</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        thousandEmail</span><span style="color: #D73A49;"> :: Fake</span><span> [</span><span style="color: #D73A49;">Text</span><span>]</span></span>
+<span class="giallo-l"><span>        thousandEmail </span><span style="color: #D73A49;">=</span><span> listOf </span><span style="color: #005CC5;">1000</span><span> email</span></span></code></pre>
+<p>Now, when I ran <code>stack bench</code> to measure it, the benchmark continued
+to run after 5 minutes which clearly indicated that the performance
+was bad as observed by my coworker. I reduced the generation of 1000
+persons to 10 persons so that the benchmark gets completed in a
+reasonable time. This was the result once it got finished:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">benchmarked</span><span style="color: #032F62;"> Email benchmark/single email</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">time</span><span>                 160.7 μs   (</span><span style="color: #6F42C1;">160.1</span><span style="color: #032F62;"> μs ..</span><span style="color: #005CC5;"> 161.4</span><span style="color: #032F62;"> μs</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                     1.000</span><span style="color: #032F62;"> R²</span><span>   (0.999</span><span style="color: #032F62;"> R² ..</span><span style="color: #005CC5;"> 1.000</span><span style="color: #032F62;"> R²</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">mean</span><span style="color: #005CC5;">                 159.9</span><span style="color: #032F62;"> μs</span><span>   (159.4</span><span style="color: #032F62;"> μs ..</span><span style="color: #005CC5;"> 160.6</span><span style="color: #032F62;"> μs</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">std</span><span style="color: #032F62;"> dev</span><span style="color: #005CC5;">              1.951</span><span style="color: #032F62;"> μs</span><span>   (1.444</span><span style="color: #032F62;"> μs ..</span><span style="color: #005CC5;"> 2.706</span><span style="color: #032F62;"> μs</span><span>)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">benchmarking</span><span style="color: #032F62;"> Email benchmark/thousand emails ... took</span><span style="color: #005CC5;"> 9.288</span><span style="color: #032F62;"> s, total</span><span style="color: #005CC5;"> 56</span><span style="color: #032F62;"> iterations</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">benchmarked</span><span style="color: #032F62;"> Email benchmark/thousand emails</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">time</span><span>                 171.1 ms   (</span><span style="color: #6F42C1;">166.1</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 174.5</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                     0.999</span><span style="color: #032F62;"> R²</span><span>   (0.998</span><span style="color: #032F62;"> R² ..</span><span style="color: #005CC5;"> 1.000</span><span style="color: #032F62;"> R²</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">mean</span><span style="color: #005CC5;">                 168.3</span><span style="color: #032F62;"> ms</span><span>   (166.9</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 169.7</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">std</span><span style="color: #032F62;"> dev</span><span style="color: #005CC5;">              2.200</span><span style="color: #032F62;"> ms</span><span>   (1.445</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 3.662</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">benchmarked</span><span style="color: #032F62;"> Person benchmark/single person</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">time</span><span>                 75.17 ms   (</span><span style="color: #6F42C1;">74.04</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 76.01</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                     1.000</span><span style="color: #032F62;"> R²</span><span>   (1.000</span><span style="color: #032F62;"> R² ..</span><span style="color: #005CC5;"> 1.000</span><span style="color: #032F62;"> R²</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">mean</span><span style="color: #005CC5;">                 77.05</span><span style="color: #032F62;"> ms</span><span>   (76.34</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 78.35</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">std</span><span style="color: #032F62;"> dev</span><span style="color: #005CC5;">              1.610</span><span style="color: #032F62;"> ms</span><span>   (794.0</span><span style="color: #032F62;"> μs ..</span><span style="color: #005CC5;"> 2.732</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">benchmarking</span><span style="color: #032F62;"> Person benchmark/10 persons ... took</span><span style="color: #005CC5;"> 49.42</span><span style="color: #032F62;"> s, total</span><span style="color: #005CC5;"> 56</span><span style="color: #032F62;"> iterations</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">benchmarked</span><span style="color: #032F62;"> Person benchmark/10 persons</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">time</span><span>                 905.0 ms   (</span><span style="color: #6F42C1;">884.2</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 921.1</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                     0.999</span><span style="color: #032F62;"> R²</span><span>   (0.998</span><span style="color: #032F62;"> R² ..</span><span style="color: #005CC5;"> 1.000</span><span style="color: #032F62;"> R²</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">mean</span><span style="color: #005CC5;">                 897.7</span><span style="color: #032F62;"> ms</span><span>   (892.4</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 904.5</span><span style="color: #032F62;"> ms</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">std</span><span style="color: #032F62;"> dev</span><span style="color: #005CC5;">              10.22</span><span style="color: #032F62;"> ms</span><span>   (7.192</span><span style="color: #032F62;"> ms ..</span><span style="color: #005CC5;"> 13.69</span><span style="color: #032F62;"> ms</span><span>)</span></span></code></pre>
+<p>For generating 10 persons, it took around a second which is clearly
+bad. Before trying to debug it further, let me give you a brief
+overview of how the package fakedata works internally. Internally, it
+uses <a rel="external" href="https://github.com/faker-ruby/faker">Ruby's faker</a> for it's fake
+source. We have various <a rel="external" href="https://www.stackage.org/haddock/nightly-2019-09-21/fakedata-0.3.0/Faker-TH.html">template haskell
+functions</a>
+which are used extensively to generate the fake functions. Let's take
+the <code>email</code> function from the <code>Faker.TvShow.SiliconValley</code> module to see how it's
+implemented (Note that in the recent version of fakedata, the below
+code is generated through template haskell):</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">email</span><span style="color: #D73A49;"> :: Fake Text</span></span>
+<span class="giallo-l"><span>email </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> Fake</span><span> (</span><span style="color: #D73A49;">\</span><span>settings </span><span style="color: #D73A49;">-&gt;</span><span> randomVec settings siliconValleyEmailProvider)</span></span></code></pre>
+<p>The <code>randomVec</code> function will give a random value out of the <code>Vector</code>
+based on the <code>settings</code> which has an appropriately seeded random
+number generator. This function shouldn't be that expensive, so let's
+move on to the <code>siliconValleyEmailProvider</code> function. It is implemented like
+this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">siliconValleyEmailProvider</span><span style="color: #D73A49;"> ::</span></span>
+<span class="giallo-l"><span>     (</span><span style="color: #D73A49;">MonadThrow</span><span> m,</span><span style="color: #D73A49;"> MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; FakerSettings -&gt;</span><span> m (</span><span style="color: #D73A49;">Vector Text</span><span>)</span></span>
+<span class="giallo-l"><span>siliconValleyEmailProvider settings </span><span style="color: #D73A49;">=</span><span> fetchData settings </span><span style="color: #005CC5;">SiliconValley</span><span> parseSiliconValleyEmail</span></span></code></pre>
+<p>Okay, this function seems to be calling a function named
+<code>fetchData</code>. Let's see how that is implemented:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">fetchData</span><span style="color: #D73A49;"> ::</span></span>
+<span class="giallo-l"><span>     (</span><span style="color: #D73A49;">MonadThrow</span><span> m,</span><span style="color: #D73A49;"> MonadIO</span><span> m)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  =&gt; FakerSettings</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  -&gt; SourceData</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  -&gt;</span><span> (</span><span style="color: #D73A49;">FakerSettings -&gt; Value -&gt; Parser</span><span> a)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  -&gt;</span><span> m a</span></span>
+<span class="giallo-l"><span>fetchData settings sdata parser </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  let</span><span> fname </span><span style="color: #D73A49;">=</span><span> guessSourceFile sdata (getLocale settings)</span></span>
+<span class="giallo-l"><span>  afile </span><span style="color: #D73A49;">&lt;-</span><span> getSourceFile fname</span></span>
+<span class="giallo-l"><span>  yaml </span><span style="color: #D73A49;">&lt;-</span><span> decodeFileThrow afile</span></span>
+<span class="giallo-l"><span>  parseMonad (parser settings) yaml</span></span></code></pre>
+<p>So, the above function fetches the fake data source based on the
+locale settings and gives out the parsed value. Now when we do
+<code>generate (listOf 1000 email)</code>, it will fetch the same fake data source
+1000 times. This is likely the cause of our slowdown. So, let's try to
+cache it. We modify our <code>FakerSettings</code> type, to add an <code>IORef</code> where
+we cache the fake source using an <code>HashMap</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">fsCacheFile</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">IORef</span><span> (</span><span style="color: #6F42C1;">HM.</span><span style="color: #D73A49;">HashMap CacheFileKey ByteString</span><span>))</span></span></code></pre>
+<p>The <code>CacheFileKey</code> is defined like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">data CacheFileKey =</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  CacheFileKey</span></span>
+<span class="giallo-l"><span>    { cfkSource</span><span style="color: #D73A49;"> :: !SourceData</span></span>
+<span class="giallo-l"><span>    , cfkLocale</span><span style="color: #D73A49;"> :: !Text</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  deriving</span><span> (</span><span style="color: #D73A49;">Show</span><span>,</span><span style="color: #D73A49;"> Eq</span><span>,</span><span style="color: #D73A49;"> Ord</span><span>,</span><span style="color: #D73A49;"> Generic</span><span>,</span><span style="color: #D73A49;"> Hashable</span><span>)</span></span></code></pre>
+<p>In the above code, the cache is implemented using a hashmap with the
+key representing the fake data file and the value representing the
+<code>ByteString</code>. Now, I further modified the <code>fetchData</code> to make sure it
+first checks if the fake source is present in cache and use that if
+it's available. Using this we make sure that the fake data source
+isn't read more than once. After implementing the above logic, I ran
+the same benchmark and this was the result:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">benchmarked Email benchmark/single email</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 173.9 μs   (172.4 μs .. 175.9 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.999 R²   (0.999 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 170.7 μs   (170.1 μs .. 171.6 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              2.573 μs   (2.061 μs .. 3.303 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarking Email benchmark/thousand emails ... took 6.991 s, total 56 iterations</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Email benchmark/thousand emails</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 127.4 ms   (126.8 ms .. 127.9 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (1.000 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 127.0 ms   (126.7 ms .. 127.2 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              472.1 μs   (331.2 μs .. 697.7 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Person benchmark/single person</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 77.99 ms   (76.92 ms .. 79.74 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.999 R²   (0.999 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 74.97 ms   (73.67 ms .. 76.18 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              2.299 ms   (1.859 ms .. 2.717 ms)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarking Person benchmark/10 persons ... took 48.28 s, total 56 iterations</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Person benchmark/10 persons</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 878.0 ms   (861.7 ms .. 913.2 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.998 R²   (0.996 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 877.1 ms   (870.4 ms .. 887.8 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              15.08 ms   (9.567 ms .. 23.57 ms)</span></span></code></pre>
+<p>Comparing it with the previous results, we can observe that when
+generating 1000 emails and 10 persons that has been marginal
+performance improvement of around 3%. But there has been slight
+performance decrease when generating a single email and person. That can
+be attributed to the increased overhead of maintaining and checking
+the cache. Overall, this didn't turn out to be a big performance
+improvement. So, it seems reading the file again and again wasn't a
+big bottleneck after all!</p>
+<p>Note that in the above step, we have internally cached <code>ByteString</code> to
+avoid re-reading files. But we still parse <code>ByteString</code> to <a rel="external" href="https://www.stackage.org/haddock/nightly-2019-08-31/yaml-0.11.1.2/Data-Yaml.html#t:Value">yaml's
+AST</a>
+each time. But we can avoid this by directly caching the parsed yaml
+value instead of <code>ByteString</code>. So our <code>fsCacheFile</code> field becomes like
+this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>fsCacheFile :: (IORef (HM.HashMap CacheFileKey Value))</span></span></code></pre>
+<p>Let's do the required changes in <code>fetchData</code> to make it typecheck and
+run the benchmarks again:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">benchmarked Email benchmark/single email</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 166.0 μs   (165.7 μs .. 166.3 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (1.000 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 164.4 μs   (164.1 μs .. 164.7 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              1.134 μs   (950.7 ns .. 1.449 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Email benchmark/thousand emails</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 1.345 ms   (1.342 ms .. 1.347 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (1.000 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 1.337 ms   (1.335 ms .. 1.339 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              6.066 μs   (5.098 μs .. 7.473 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Person benchmark/single person</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 13.13 ms   (12.73 ms .. 13.56 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.997 R²   (0.995 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 12.75 ms   (12.69 ms .. 12.89 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              235.8 μs   (70.84 μs .. 386.1 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Person benchmark/10 persons</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 24.07 ms   (23.76 ms .. 24.45 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.999 R²   (0.998 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 24.61 ms   (24.46 ms .. 24.78 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              371.9 μs   (270.4 μs .. 507.5 μs)</span></span></code></pre>
+<p>Now this has improved things drastically. For generating thousand
+emails, the time taken has improved by 97% and the code now takes around
+2.6% of the original time it was taking. So, it seems the real
+bottleneck was parsing the values again and again! Our optimization
+above makes sure that we don't read and parse the file more than once.</p>
+<p>Now, we can optimize this further by additional caching of individual
+fields with the yaml so that we don't have to traverse the entire AST
+again if we have already accessed it once. Let's add one more caching
+field in <code>FakerSettigns</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">fsCacheField</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">IORef</span><span> (</span><span style="color: #6F42C1;">HM.</span><span style="color: #D73A49;">HashMap CacheFieldKey</span><span> (</span><span style="color: #D73A49;">Vector Text</span><span>)))</span></span></code></pre>
+<p>Now we need to modify the <code>randomVec</code> function to check for the field
+and use that if it's present. Implementing the above logic gave a
+slight performance boost:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">benchmarked Email benchmark/single email</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 170.3 μs   (169.4 μs .. 171.4 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (0.999 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 169.3 μs   (168.6 μs .. 170.1 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              2.401 μs   (1.870 μs .. 3.800 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Email benchmark/thousand emails</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 456.3 μs   (449.6 μs .. 468.0 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.998 R²   (0.995 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 457.2 μs   (455.3 μs .. 460.6 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              8.188 μs   (5.352 μs .. 14.22 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Person benchmark/single person</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 13.59 ms   (13.05 ms .. 13.98 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.997 R²   (0.995 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 13.30 ms   (13.20 ms .. 13.44 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              293.2 μs   (207.5 μs .. 379.5 μs)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">benchmarked Person benchmark/10 persons</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 22.28 ms   (21.78 ms .. 22.86 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.996 R²   (0.988 R² .. 0.999 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 23.23 ms   (22.98 ms .. 23.62 ms)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              734.1 μs   (464.7 μs .. 1.190 ms)</span></span></code></pre>
+<p>All these fixes have made into fakedata-0.3.0. One another potential
+improvement which we can make is using the random number generator
+from the <a rel="external" href="https://github.com/phadej/splitmix">splitmix</a> package
+instead of using <code>StdGen</code> present in the <code>random</code> package. According
+to the benchmark reported by the package, it seems to be around 96%
+faster than the random package. But when I tried to port it, I was hit
+<a rel="external" href="https://github.com/phadej/splitmix/issues/23">with this bug</a> which
+stopped me from further experimenting it. And that was our entire
+workflow for improving the performance of the library.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2019-09-23-fakedata-perf.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2019-09-23-fakedata-perf.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

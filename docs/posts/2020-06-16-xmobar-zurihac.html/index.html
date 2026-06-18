@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Xmobar updates from ZuriHac — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Xmobar updates from ZuriHac</h1>
+        <span class="article-date">June 16, 2020</span>
+    </header>
+
+    <div class="article-body">
+        <h2 id="xmobar">Xmobar</h2>
+<p>Xmobar is a minimalistic status bar for X Window Systems. It's more
+commonly used alongside with <a rel="external" title="Xmonad" href="https://xmonad.org/">Xmonad</a> window manager.</p>
+<p>According to Xmobar's
+<a rel="external" title="documentation" href="https://xmobar.org/#system-monitor-plugins">documentation</a>, it has around 38 monitors or plugins with it. I use
+around 8 monitors in <a rel="external" title="my configuration" href="https://github.com/psibi/dotfiles/blob/master/xmobar/src/Lib.hs">my
+configuration</a>. It's very feature rich in that sense and it also
+offers a very easy way to define your own custom monitor. Although I
+must admit that it's documentation isn't detailed and I figured out
+most parts of it by looking at the code.</p>
+<h2 id="optimizing-cpu-monitor">Optimizing CPU Monitor</h2>
+<p>The CPU monitor calculates your cpu load between two time intervals. I
+have been wanting to optimize it for quite some time. I know that it's
+not efficient by observing my htop's output with only <code>CPU</code> and
+<code>StdinReader</code> monitor present in my Xmobar configuration.</p>
+<p>I decided to tackle this problem at this year's <a rel="external" title="ZuriHac" href="https://zfoh.ch/zurihac2020/">ZuriHac
+Hackathon</a>. Since Xmobar had
+no benchmarking code, my first task was to add support for
+benchmarking to it. I did that as part of this
+<a rel="external" title="PR" href="https://github.com/jaor/xmobar/pull/458">PR</a>.</p>
+<p>In the above PR, I measure the <code>runCPU</code> function and this was the
+initial benchmarking numbers:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">benchmarked Cpu Benchmarks/CPU normal args</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 101.6 μs   (100.8 μs .. 102.3 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.999 R²   (0.997 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 103.0 μs   (102.4 μs .. 104.5 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              2.883 μs   (1.465 μs .. 5.154 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">variance introduced by outliers: 11% (moderately inflated)</span></span></code></pre>
+<p>My next task was to add some tests for the CPU monitor since it didn't
+have any (I'm sure my plan of optimizing it would likely introduce new
+bugs :-)). I added five basic tests for the CPU monitor with each of
+them having a slightly different template to render it's output
+differently. In hindsight, it was a good decision as it caught various
+issues with my implementation. Running the CPU tests is quite easy:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">~/g/xmobar (remove-mconfig) $ stack test --test-arguments &quot;-m CPU&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">xmobar&gt; test (suite: XmobarTest, args: -m CPU)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Xmobar.Plugins.Monitors.Cpu</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  CPU Spec</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    works with total template</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    works with bar template</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    works with no icon pattern template</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    works with icon pattern template</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    works with other parameters in template</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Finished in 0.0024 seconds</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">5 examples, 0 failures</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">xmobar&gt; Test suite XmobarTest passed</span></span></code></pre>
+<p>The CPU monitor reads <code>/proc/stat</code> to find information about CPU. The
+<a rel="external" title="Linux kernel" href="https://www.kernel.org/doc/Documentation/filesystems/proc.txt">Linux
+kernel</a> has a good documentation on it. We were using Lazy
+Bytestring to read it. As an experimentation, I changed it to use
+Strict Bytestring and measured the performance:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">benchmarked Cpu Benchmarks/CPU normal args</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 107.6 μs   (107.0 μs .. 108.9 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     0.999 R²   (0.997 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 107.5 μs   (107.1 μs .. 108.2 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              1.764 μs   (1.081 μs .. 2.669 μs)</span></span></code></pre>
+<p>Well, that's bad! I switched it back to Lazy ByteString (Although,
+it's best to avoid lazy IO. I won't go into the details here as it's
+discussed in much detail elsewhere in the internet.).  Then, I started
+looking into the code to see if there is any other potential scope for
+optimization. I came across the following code snippet:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">cpuParser</span><span style="color: #D73A49;"> ::</span><span style="color: #6F42C1;"> B.</span><span style="color: #D73A49;">ByteString -&gt;</span><span> [</span><span style="color: #D73A49;">Int</span><span>]</span></span>
+<span class="giallo-l"><span>cpuParser </span><span style="color: #D73A49;">=</span><span> map (read </span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;"> B.</span><span>unpack)</span><span style="color: #D73A49;"> .</span><span> tail </span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;"> B.</span><span>words </span><span style="color: #D73A49;">.</span><span> head </span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;"> B.</span><span>lines</span></span></code></pre>
+<p>Using <code>read . B.unpack</code> is definitely not good for
+performance (<a rel="external" title="More details here" href="https://stackoverflow.com/questions/19626392/performance-of-reading-string-to-int-in-haskell-bytestring-vs-char">More details here</a>). Fortunately, ByteString comes with
+<a rel="external" title="readInt" href="https://www.stackage.org/haddock/lts-16.0/bytestring-0.10.10.0/Data-ByteString-Lazy-Char8.html#v:readInt">readInt</a> function which can be used. So, I converted it to this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">readInt</span><span style="color: #D73A49;"> ::</span><span style="color: #6F42C1;"> B.</span><span style="color: #D73A49;">ByteString -&gt; Int</span></span>
+<span class="giallo-l"><span>readInt bs </span><span style="color: #D73A49;">= case</span><span style="color: #6F42C1;"> B.</span><span>readInt bs </span><span style="color: #D73A49;">of</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">               Nothing</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #005CC5;"> 0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">               Just</span><span> (i, _)</span><span style="color: #D73A49;"> -&gt;</span><span> i</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">cpuParser</span><span style="color: #D73A49;"> ::</span><span style="color: #6F42C1;"> B.</span><span style="color: #D73A49;">ByteString -&gt;</span><span> [</span><span style="color: #D73A49;">Int</span><span>]</span></span>
+<span class="giallo-l"><span>cpuParser </span><span style="color: #D73A49;">=</span><span> map readInt </span><span style="color: #D73A49;">.</span><span> tail </span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;"> B.</span><span>words </span><span style="color: #D73A49;">.</span><span> head </span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;"> B.</span><span>lines</span></span></code></pre>
+<p>With that, I ran the benchmarks again and this was the result:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">benchmarked Cpu Benchmarks/CPU normal args</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">time                 89.24 μs   (88.78 μs .. 89.94 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (1.000 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 89.79 μs   (89.57 μs .. 90.13 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              899.6 ns   (661.5 ns .. 1.333 μs)</span></span></code></pre>
+<p>That's nice. We are now 12% faster than before with such a small
+change!</p>
+<h2 id="re-architecting-cpu-monitor-and-avoiding-mconfig">Re-architecting CPU monitor and avoiding MConfig</h2>
+<p>Right now, in Xmobar we are actually having one giant data type named
+<code>MConfig</code> to keep track of the configuration. It's defined as a bunch
+of different <code>IORef</code>s:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">data MConfig =</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    MC</span><span> { normalColor</span><span style="color: #D73A49;"> :: IORef</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span></span>
+<span class="giallo-l"><span>       , low</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , lowColor</span><span style="color: #D73A49;"> :: IORef</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span></span>
+<span class="giallo-l"><span>       , high</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , highColor</span><span style="color: #D73A49;"> :: IORef</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span></span>
+<span class="giallo-l"><span>       , template</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       , export</span><span style="color: #D73A49;"> :: IORef</span><span> [</span><span style="color: #D73A49;">String</span><span>]</span></span>
+<span class="giallo-l"><span>       , ppad</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , decDigits</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , minWidth</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , maxWidth</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , maxWidthEllipsis</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       , padChars</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       , padRight</span><span style="color: #D73A49;"> :: IORef Bool</span></span>
+<span class="giallo-l"><span>       , barBack</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       , barFore</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       , barWidth</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , useSuffix</span><span style="color: #D73A49;"> :: IORef Bool</span></span>
+<span class="giallo-l"><span>       , naString</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       , maxTotalWidth</span><span style="color: #D73A49;"> :: IORef Int</span></span>
+<span class="giallo-l"><span>       , maxTotalWidthEllipsis</span><span style="color: #D73A49;"> :: IORef String</span></span>
+<span class="giallo-l"><span>       }</span></span></code></pre>
+<p>That's a whole bunch of <code>IORef</code>. Also for the CPU monitor there seem to
+be quite a lot of inefficiency going on:</p>
+<ul>
+<li>We format all the CPU data even when we only render some of them
+finally.</li>
+<li>The parsing stage does a lot of re-computation again and again for
+the same set of initial data.</li>
+<li>Template parsing is done for components which won't be rendered
+finally.</li>
+</ul>
+<p>I have previously opened two related (but not same) issues on Xmobar's
+issue tracker:</p>
+<ul>
+<li><a rel="external" title="Issue 453 - Optimizing monitors" href="https://github.com/jaor/xmobar/issues/453">Issue 453 - Optimizing monitors</a></li>
+<li><a rel="external" title="Issue 452 - Optmizing MConfig" href="https://github.com/jaor/xmobar/issues/452">Issue 452 - Optmizing MConfig</a></li>
+</ul>
+<p>After a couple of re-writes (rewrites in Haskell are really easy!), I came
+up with a design which I'm quite satisfied with. This design
+introduces pure version of the <code>MConfig</code> data type we see above:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">data PureConfig =</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  PureConfig</span></span>
+<span class="giallo-l"><span>    { pNormalColor</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span></span>
+<span class="giallo-l"><span>    , pLow</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pLowColor</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span></span>
+<span class="giallo-l"><span>    , pHigh</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pHighColor</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span></span>
+<span class="giallo-l"><span>    , pTemplate</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    , pExport</span><span style="color: #D73A49;"> ::</span><span> [</span><span style="color: #D73A49;">String</span><span>]</span></span>
+<span class="giallo-l"><span>    , pPpad</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pDecDigits</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pMinWidth</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pMaxWidth</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pMaxWidthEllipsis</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    , pPadChars</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    , pPadRight</span><span style="color: #D73A49;"> :: Bool</span></span>
+<span class="giallo-l"><span>    , pBarBack</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    , pBarFore</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    , pBarWidth</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pUseSuffix</span><span style="color: #D73A49;"> :: Bool</span></span>
+<span class="giallo-l"><span>    , pNaString</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    , pMaxTotalWidth</span><span style="color: #D73A49;"> :: Int</span></span>
+<span class="giallo-l"><span>    , pMaxTotalWidthEllipsis</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  deriving</span><span> (</span><span style="color: #D73A49;">Eq</span><span>,</span><span style="color: #D73A49;"> Ord</span><span>)</span></span></code></pre>
+<p>The above type is the same as <code>MConfig</code>, but with the <code>IORef</code>s
+removed. Then I introduced non-monad transformer version of various
+functions in the parsing module:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">runExportParser</span><span style="color: #D73A49;"> ::</span><span> [</span><span style="color: #D73A49;">String</span><span>]</span><span style="color: #D73A49;"> -&gt; IO</span><span> [(</span><span style="color: #D73A49;">String</span><span>, [(</span><span style="color: #D73A49;">String</span><span>,</span><span style="color: #D73A49;"> String</span><span>,</span><span style="color: #D73A49;">String</span><span>)])]</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">runTemplateParser</span><span style="color: #D73A49;"> :: PureConfig -&gt; IO</span><span> [(</span><span style="color: #D73A49;">String</span><span>,</span><span style="color: #D73A49;"> String</span><span>,</span><span style="color: #D73A49;"> String</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pureParseTemplate</span><span style="color: #D73A49;"> :: PureConfig -&gt; TemplateInput -&gt; IO String</span></span></code></pre>
+<p>The idea here is that we will run the <code>runExportParser</code> and
+<code>runTemplateParser</code> function to compute the data once and then use the
+same data for the next invocation without doing any extra work.</p>
+<p>I also had to write various other non-monad transformer version of the
+formatters in the Output module:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">pShowVerticalBar</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; PureConfig -&gt; Float -&gt; Float -&gt;</span><span> m</span><span style="color: #D73A49;"> String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pShowPercentsWithColors</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; PureConfig -&gt;</span><span> [</span><span style="color: #D73A49;">Float</span><span>]</span><span style="color: #D73A49;"> -&gt;</span><span> m [</span><span style="color: #D73A49;">String</span><span>]</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pShowPercentWithColors</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; PureConfig -&gt; Float -&gt;</span><span> m</span><span style="color: #D73A49;"> String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pShowPercentBar</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; PureConfig -&gt; Float -&gt; Float -&gt;</span><span> m</span><span style="color: #D73A49;"> String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pShowWithColors</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">Num</span><span> a,</span><span style="color: #D73A49;"> Ord</span><span> a,</span><span style="color: #D73A49;"> MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; PureConfig -&gt;</span><span> (a</span><span style="color: #D73A49;"> -&gt; String</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span> a</span><span style="color: #D73A49;"> -&gt;</span><span> m</span><span style="color: #D73A49;"> String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pColorizeString</span><span style="color: #D73A49;"> ::</span><span> (</span><span style="color: #D73A49;">Num</span><span> a,</span><span style="color: #D73A49;"> Ord</span><span> a,</span><span style="color: #D73A49;"> MonadIO</span><span> m)</span><span style="color: #D73A49;"> =&gt; PureConfig -&gt;</span><span> a</span><span style="color: #D73A49;"> -&gt; String -&gt;</span><span> m</span><span style="color: #D73A49;"> String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pSetColor</span><span style="color: #D73A49;"> :: PureConfig -&gt; String -&gt; PSelector</span><span> (</span><span style="color: #D73A49;">Maybe String</span><span>)</span><span style="color: #D73A49;"> -&gt; String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pShowWithPadding</span><span style="color: #D73A49;"> :: PureConfig -&gt; String -&gt; String</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">pFloatToPercent</span><span style="color: #D73A49;"> :: PureConfig -&gt; Float -&gt; String</span></span></code></pre>
+<p>The above implementation was pretty straight forward. All I had to do
+was to remove the Reader monad environment from it and instead pass
+the environment explicitly. Once I had everything typechecked and the
+tests pass, I ran the benchmarks again:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">time                 75.80 μs   (75.15 μs .. 76.36 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (0.999 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 75.97 μs   (75.74 μs .. 76.41 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              1.057 μs   (666.6 ns .. 1.927 μs)</span></span></code></pre>
+<p>That's a 15% performance gain from the last run and total 25% perf
+gain from the initial code. :-) You can see the complete code changes
+for the above results <a rel="external" title="PR 460" href="https://github.com/jaor/xmobar/pull/460">in this
+PR</a>.</p>
+<h2 id="future-improvements">Future improvements</h2>
+<p>Looking into the code further, I think there is one other potential
+area for optimization. I have read that <code>Double</code> is better optimized
+than <code>Float</code>. Making this change probably might help us in speeding it
+up. Unfortunately I didn't try that out (probably in next year's
+ZuriHac ? :-))</p>
+<p>From benchmarking various parts of the code, I found that the most CPU
+intensive part is the following:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>cpuData :: IO [Int]</span></span>
+<span class="giallo-l"><span>cpuData = cpuParser &lt;$&gt; B.readFile &quot;/proc/stat&quot;</span></span></code></pre>
+<p>I'm not sure if that can be improved further. Probably doing <a rel="external" title="mmap based IO" href="https://en.wikipedia.org/wiki/Mmap">mmap
+based IO</a> can
+improve performance. But I'm not sure because <code>/proc</code> is already a
+<a rel="external" title="virtual filesystem" href="https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html">virtual
+filesystem</a>. One of my colleagues has told me, that he will
+try it out. It would be interesting to see those benchmark
+results. :-)</p>
+<p>I tried a version where I would use the same file handle and do a
+<a rel="external" title="hSeek" href="https://www.stackage.org/haddock/lts-16.0/base/System-IO.html#v:hSeek">hSeek</a> before reading it. But that resulted in a bad performance:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">time                 136.5 μs   (136.2 μs .. 136.7 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                     1.000 R²   (1.000 R² .. 1.000 R²)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">mean                 136.4 μs   (136.4 μs .. 136.6 μs)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">std dev              356.2 ns   (180.7 ns .. 644.9 ns)</span></span></code></pre>
+<p>Also, I'm not sure if sharing the same file handle will result in
+fresh values as the file is updated by the kernel. I'm curious to know
+how a program like <a rel="external" title="Htop" href="https://en.wikipedia.org/wiki/Htop">Htop</a>
+does it and see if we can apply any techniques from there.</p>
+<p>And that summarizes my work on this year's ZuriHac!</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2020-06-16-xmobar-zurihac.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2020-06-16-xmobar-zurihac.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

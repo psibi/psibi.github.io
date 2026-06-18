@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>New Home for Rustic — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>New Home for Rustic</h1>
+        <span class="article-date">January  1, 2020</span>
+    </header>
+
+    <div class="article-body">
+        <p><a rel="external" href="https://github.com/emacs-rustic/rustic">Rustic</a> is an Emacs major mode built on top of
+<a rel="external" href="https://github.com/rust-lang/rust-mode">rust-mode</a>. I use it daily
+for all my Rust development work.</p>
+<h2 id="current-situation">Current situation</h2>
+<p>Rustic was developed by <a rel="external" href="https://github.com/brotzeit">@brotzeit</a>, and I
+have been helping out the project by fixing <a rel="external" href="https://github.com/brotzeit/rustic/commits?author=psibi">bugs and adding
+features</a> to it.</p>
+<p>I was granted access to review others' pull requests (PRs)
+and merge them. I occasionally review PRs for the project. Currently,
+I have a <a rel="external" href="https://github.com/brotzeit/rustic/pulls/psibi">bunch of
+PRs</a> that I authored
+and are pending review.</p>
+<p>Unfortunately, I haven't been able to reach @brotzeit for some time
+now. I hope he's doing well. In September of last year, I sent him an
+email regarding commit access to the Rustic repository, but haven't
+heard back.</p>
+<p>Given the current situation, I have been maintaining my own fork of
+rustic for the last six months now.</p>
+<p><a rel="external" href="https://github.com/CeleritasCelery">Troy Hinckley</a> reached out to me
+couple of days ago to ask <a rel="external" href="https://github.com/psibi/rustic/issues/23">if my fork of Rustic could become the
+maintained</a> fork. He is also
+willing to help lighten the load. So even though I was initially hesistant,
+I would now like to go ahead and make it more official.</p>
+<h2 id="current-status-of-rustic-mode">Current Status of rustic mode</h2>
+<p>My fork of Rustic mode has accumulated several changes. Here are the
+most important ones:</p>
+<ul>
+<li>Added support for enabling tree sitter integration with <code>rust-mode</code>.</li>
+<li>Revamped the testing infrastructure to use Cask only.</li>
+<li>Fixed various test failures for newer Rust and Emacs
+releases. Pinned the Rust version in CI for easier development and
+root cause analysis.</li>
+<li>Populated minibuffer entries for <code>rustic-cargo-clippy</code>,
+<code>rustic-cargo-build</code>, and <code>rustic-cargo-test</code> when invoked with a
+universal argument.</li>
+<li>Fixed integration with <code>lsp-mode</code> for buffer formatting.</li>
+<li>Minor cleanups: Removed Racer dependency, replaced Makefile, etc.</li>
+</ul>
+<h2 id="future">Future</h2>
+<p>I plan to continue maintaining Rustic mode. My main focus will be on
+ensuring smooth integration with Rust language analyzer and
+tree-sitter utilities.</p>
+<p>Relevant links:</p>
+<ul>
+<li>Original source code: <a rel="external" href="https://github.com/brotzeit/rustic">https://github.com/brotzeit/rustic</a></li>
+<li>Temporary fork (soon to be archived): <a rel="external" href="https://github.com/psibi/rustic/issues/23">https://github.com/psibi/rustic</a></li>
+<li>New home for Rustic: <a rel="external" href="https://github.com/emacs-rustic/rustic">https://github.com/emacs-rustic/rustic</a></li>
+</ul>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;rustic.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;rustic.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

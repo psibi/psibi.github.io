@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Foray into plugin writing — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Foray into plugin writing</h1>
+        <span class="article-date">September  6, 2016</span>
+    </header>
+
+    <div class="article-body">
+        <p>So, this week I took stab at authoring plugins for a minor inconvenience I
+had during browsing. The end result is
+<a rel="external" href="https://github.com/psibi/stackgo">stackgo</a>.</p>
+<p>Stackgo is a plugin to automatically redirect Haddock library pages to
+Stackage pages when went via search engines like Google/Bing etc. For
+cases, where the package hasn't been yet added to Stackage - it will
+just take it to the original Hackage haddock pages.</p>
+<p>I have also modified the behavior slightly in some cases when a page
+is traversed via Hackage or Stackage
+directly. <a rel="external" href="https://github.com/psibi/stackgo/issues">Yell it here</a>, if
+you find it unintuitive and we can try to find a solution.</p>
+<h2 id="installation-links">Installation links</h2>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/stackgo"><img src="/images/posts/firefox.png" alt="Firefox Addon link" /></a><a href="https://chrome.google.com/webstore/detail/ojjalokgookadeklnffglgbnlbaiackn"><img src="/images/posts/chrome-logo.png" alt="Google Chrome webstore link" /></a></p>
+<h2 id="experience">Experience</h2>
+<p>Publishing to Google Chrome involved a
+<a rel="external" href="https://developer.chrome.com/webstore/publish#pay-the-developer-signup-fee">$5 developer signup fee</a>
+whereas for firefox, it was free. The plugin was written using
+<a rel="external" href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/What_are_WebExtensions">WebExtensions</a>
+which is a cross browser system for developing add-ons. While I'm
+happy with having to maintain a single codebase for different
+platforms, it was still a pain. I specifically had to
+<a rel="external" href="https://github.com/psibi/stackgo/commit/c70a31dfcaefc94a9ffeb9c359dd3bd559edef05">add "tabs" permissions</a>
+and wrote code in a different way because
+<a rel="external" href="https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/webRequest/onBeforeSendHeaders#Chrome">originUrl</a>
+was not supported in Chrome. Maybe, things will become better in
+future. This plugin is expected to work in Opera, although I
+haven't tested or published in their ecosystem. Feel free to test/publish there (and report back to me!).</p>
+<p>Also, thanks to Christopher Allen for testing and spreading words about it.</p>
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Browser plugins to automatically redirect Hackage doc pages to Stackage:<a href="https://t.co/A9iQUJ9Xz7">https://t.co/A9iQUJ9Xz7</a></p>&mdash; red in tooth &amp; λ (@bitemyapp) <a href="https://twitter.com/bitemyapp/status/771450997642104832">September 1, 2016</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2016-09-06-browser-plugin.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2016-09-06-browser-plugin.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

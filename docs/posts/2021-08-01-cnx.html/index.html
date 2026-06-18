@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Cnx: Release 0.3.0 — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Cnx: Release 0.3.0</h1>
+        <span class="article-date">August  1, 2021</span>
+    </header>
+
+    <div class="article-body">
+        <h2 id="introduction">Introduction</h2>
+<p>Cnx is a simple, yet powerful X11 status bar which can be used with
+window managers. It gets the data from generic properties defined in
+<a rel="external" href="https://en.wikipedia.org/wiki/Extended_Window_Manager_Hints">Extended Window Manager
+Hints</a>.</p>
+<p>It's last release happened 2 years ago and I started working on it
+around 6 months ago.</p>
+<h2 id="why-cnx">Why Cnx</h2>
+<p>We have various X11 status bar like <a rel="external" href="https://github.com/jaor/xmobar">xmobar</a>, <a rel="external" href="https://github.com/polybar/polybar">polybar</a> etc. But
+the reason I got interested in Cnx was:</p>
+<ul>
+<li>I wanted something simple, efficient and resource friendly.</li>
+<li>I wanted the source program to be either written in Haskell or Rust
+as these are the languages I'm most comfortable with.</li>
+</ul>
+<p>Note that I had been using Xmobar for more than five years, but I
+was not very happy with it's performance. I did attempt to improve
+it and you can find more details about this in my other <a rel="external" href="https://psibi.in/posts/2020-06-16-xmobar-zurihac.html">blog
+post</a>.</p>
+<p>But despite the above work, I was not able to see significant
+improvement even if I used a single optimized widget in my Xmobar
+setup. This led me to believe that there is some overhead within
+Xmobar itself. The reason for this is the not so efficient event
+loop in Xmobar (despite the excellent work done by
+<a rel="external" href="https://github.com/liskin">liskin</a> on optimizing it). To give you a
+rough idea, this is my CPU consumption time when using Xmobar for
+around 9 hours:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">USER</span><span style="color: #032F62;">       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">sibi</span><span style="color: #005CC5;">      3795  0.6  0.1 1076208404 34036</span><span style="color: #032F62;"> ?    Sl   10:38   4:10 sibi-xmobar</span></span></code></pre>
+<p>The <strong>TIME</strong> column above indicates the cumulative CPU time used by
+the process. In this case, Xmobar took a total time of 4 minutes and
+10 seconds.</p>
+<p>And similar statistics when using Cnx with a similar set of widgets:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">USER</span><span style="color: #032F62;">       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">sibi</span><span style="color: #005CC5;">      5549  0.0  0.0 1191672 23740</span><span style="color: #032F62;"> tty1    Sl   09:17   0:11 cnx</span></span></code></pre>
+<p>So that's a huge time difference but xmobar's performance is good
+enough and it may not be worth worrying too much about it. I would
+also like to mention the caveat that Cnx is quite young and it has
+lesser number of widgets available compared to Xmobar. It could
+possibly have more bugs too. :-)</p>
+<p>There is also <a rel="external" href="https://github.com/greshake/i3status-rust/issues/514">i3status-rust</a> written in Rust which seemed
+interesting to me. It has a pretty display and seemed more popular
+with a bigger community behind it. But unfortunately, it <a rel="external" href="https://github.com/greshake/i3status-rust/issues/514">doesn't seem
+to work outside of sway or i3</a> because it works only on window
+managers that supports i3bar protocol.</p>
+<h2 id="my-requirements">My requirements</h2>
+<p>These are my requirements from a status bar:</p>
+<ul>
+<li>Needs to be kind on resources and shouldn't hog the CPU.</li>
+<li>It should have all the widgets I use in Xmobar:
+<ul>
+<li>CPU consumption</li>
+<li>Disk usage statistics</li>
+<li>Wireless connection strength</li>
+<li>Battery information</li>
+<li>Volume level</li>
+<li>Clock</li>
+</ul>
+</li>
+</ul>
+<p>This is how my Xmobar status bar looks (splitting into two
+images for better display):</p>
+<p><img src="/images/posts/xmobar_1.png" alt="" /></p>
+<p><img src="/images/posts/xmobar_2.png" alt="" /></p>
+<h2 id="getting-started-with-cnx">Getting started with Cnx</h2>
+<p>When I started working on Cnx, its main branch seemed to be slightly
+different than the one published in <a rel="external" href="https://docs.rs/cnx/0.2.0/cnx/">Rust crates registry</a>. For
+starters, it didn't compile on Linux. The author of the program,
+Michael Killough had moved on to use OpenBSD and Cnx's master version
+only compiled for that platform. I opened an <a rel="external" href="https://github.com/mjkillough/cnx/issues/33">issue</a> about it and
+got a reply from the author in a couple of days. Part of the author's
+response:</p>
+<em>
+Unfortunately I'm not going to be able to help beyond merging PRs,
+and I may be quite slow to do that. Please don't let that put you
+off though! I wrote Cnx because I wanted to write something that I
+could use (and I do, everyday!), so I'd encourage you to do the
+same. :-)
+</em>
+<p>Given that the author was happy to accept my patches, I decided to go
+ahead with the implementation of the features that I required.</p>
+<h2 id="cnx-0-3-0">Cnx 0.3.0</h2>
+<p>Release 0.3.0 includes the following things:</p>
+<ul>
+<li>New crate named <a rel="external" href="https://crates.io/crates/cnx-contrib">cnx-contrib</a> (Similar to <code>xmonad-contrib</code>) with
+support for following new widgets:
+<ul>
+<li>CPU consumption</li>
+<li>Disk statistics</li>
+<li>Wireless strength information</li>
+<li>Weather station information</li>
+</ul>
+</li>
+<li>Ability to control rendering for most of the widgets. When we
+instantiate a new widget, we can pass an optional closure which can
+be used to render based on the current state of a widget. Example
+code to demonstrate it for the CPU widget where if the CPU
+consumption is less than 5%, it will be shown in green. But if it's
+more than 50%, it will be shown in red.</li>
+</ul>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">let</span><span> cpu_render</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> Box</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(</span><span style="color: #D73A49;">|</span><span>load</span><span style="color: #D73A49;">|</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let mut</span><span> color</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> Color</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">yellow</span><span>()</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_hex</span><span>();</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    if</span><span> load</span><span style="color: #D73A49;"> &lt;</span><span style="color: #005CC5;"> 5</span><span> {</span></span>
+<span class="giallo-l"><span>        color</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> Color</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">green</span><span>()</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_hex</span><span>();</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    if</span><span> load</span><span style="color: #D73A49;"> &gt;</span><span style="color: #005CC5;"> 50</span><span> {</span></span>
+<span class="giallo-l"><span>        color</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> Color</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">red</span><span>()</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_hex</span><span>();</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   pango_markup_single_render</span><span>(color, load);</span></span>
+<span class="giallo-l"><span>});</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">let</span><span> cpu</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> cpu</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Cpu</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(attr</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">clone</span><span>(),</span><span style="color: #6F42C1;"> Some</span><span>(cpu_render))</span><span style="color: #D73A49;">?</span><span>;</span></span></code></pre>
+<p>So you now have the ability to control it's behavior programatically
+in Rust!</p>
+<ul>
+<li>Support <a rel="external" href="https://developer.gimp.org/api/2.0/pango/PangoMarkupFormat.html">pango markup</a> for better display.</li>
+<li>Replaced Travis CI with Github actions.</li>
+<li>Tokio related changes:
+<ul>
+<li>The initial code was written for tokio 0.2.0 and by the time I
+started working on it <a rel="external" href="https://tokio.rs/blog/2020-12-tokio-1-0">tokio 1.0</a> was available, so did tokio
+upgrade to "1.2.0".</li>
+<li>Removed the <a rel="external" href="https://github.com/tokio-rs/mio">mio</a> dependency as it wasn't needed anymore.</li>
+<li>Moved from the usage of <a rel="external" href="https://docs.rs/tokio/0.2.9/tokio/io/struct.PollEvented.html">PollEvented</a> to <a rel="external" href="https://docs.rs/tokio/1.7.1/tokio/io/unix/struct.AsyncFd.html">AsyncFd</a> and
+implement the Stream trait for XcbEventStream accordingly.</li>
+<li>Started using <a rel="external" href="https://crates.io/crates/tokio-stream">tokio-stream</a> package for working with
+asynchronous streams.</li>
+</ul>
+</li>
+</ul>
+<p>With the above changes, this is how my setup with Cnx looks like
+(splitting into three images for better clarity):</p>
+<p><img src="/images/posts/cnx_1.png" alt="" /></p>
+<p><img src="/images/posts/cnx_2.png" alt="" /></p>
+<p><img src="/images/posts/cnx_3.png" alt="" /></p>
+<p>You can see that it's pretty close to my Xmobar setup. I found Cnx's
+rendering works slightly better because of <a rel="external" href="https://pango.gnome.org/">Pango</a>.</p>
+<h2 id="using-cnx-along-with-xmonad">Using Cnx along with Xmonad</h2>
+<p>I currently use Cnx along with Xmonad and it was quite easy to
+integrate it. All you have to do is to use the
+<a rel="external" href="https://hackage.haskell.org/package/xmonad-contrib-0.16/docs/XMonad-Hooks-EwmhDesktops.html#v:ewmh">ewmh</a>
+function to add EWMH functionality to your configuration. A minimal
+working configuration will look like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> XMonad</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> XMonad.Hooks.EwmhDesktops</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>main </span><span style="color: #D73A49;">=</span><span> xmonad </span><span style="color: #D73A49;">$</span><span> ewmh def{ handleEventHook</span><span style="color: #D73A49;"> =</span></span>
+<span class="giallo-l"><span>           handleEventHook def </span><span style="color: #D73A49;">&lt;+&gt;</span><span> fullscreenEventHook }</span></span></code></pre>
+<p>If you are interested to see my entire configuration, you can find it
+<a rel="external" href="https://github.com/psibi/dotfiles/blob/514baf36e6eebfbc161bcdd2630cc67da744836d/xmonad/xmonad.hs#L1">here</a>. I start <code>cnx</code> via the hook I have defined in my
+configuration:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">sibiStartupHook</span><span style="color: #D73A49;"> :: X</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span>sibiStartupHook </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span>  as </span><span style="color: #D73A49;">&lt;-</span><span> io getArgs</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  Bright.</span><span>setBrightness </span><span style="color: #005CC5;">1260</span></span>
+<span class="giallo-l"><span>  setWMName </span><span style="color: #032F62;">&quot;LG3D&quot;</span></span>
+<span class="giallo-l"><span>  when (null as)</span><span style="color: #D73A49;"> $ do</span></span>
+<span class="giallo-l"><span>    void </span><span style="color: #D73A49;">$</span><span> startProcess (</span><span style="color: #D73A49;">proc</span><span> myTerminal </span><span style="color: #005CC5;">[]</span><span>)</span></span>
+<span class="giallo-l"><span>    void </span><span style="color: #D73A49;">$</span><span> (startProcess (</span><span style="color: #D73A49;">proc</span><span style="color: #032F62;"> &quot;emacs&quot;</span><span> [</span><span style="color: #032F62;">&quot;--daemon&quot;</span><span>]))</span></span>
+<span class="giallo-l"><span>    void </span><span style="color: #D73A49;">$</span><span> startProcess </span><span style="color: #032F62;">&quot;google-chrome-stable&quot;</span></span>
+<span class="giallo-l"><span>    void </span><span style="color: #D73A49;">$</span><span> startProcess </span><span style="color: #032F62;">&quot;cnx&quot;</span></span></code></pre><h2 id="writing-new-widgets">Writing new widgets</h2>
+<p>I really like how easy it is to implement a new widget for Cnx. All
+you have to do is this:</p>
+<ul>
+<li>Create a new struct for your widget</li>
+<li>Implement a function to create the above struct</li>
+<li>Implement <a rel="external" href="https://github.com/mjkillough/cnx/blob/1df493312d8d16c3d399e5c248f420cdd378724d/cnx/src/widgets/mod.rs#L35">Widget</a> trait for your struct.</li>
+</ul>
+<p>And that's all! You can have a look at the various widgets inside
+<code>cnx-contrib</code>. The weather widget and clock widget are good starting
+points if you want to add new widgets.</p>
+<h2 id="future">Future</h2>
+<p>While I'm quite happy with the current state of Cnx, I believe Cnx is
+far from complete. Some of the things which would be nice to have are:</p>
+<ul>
+<li>Themes like polybar.</li>
+<li>More widgets! Xmobar supports a ton of different widgets, so having
+feature parity with them would be good.</li>
+<li><a rel="external" href="https://nixos.wiki/wiki/Module">NixOS module</a> integration.</li>
+</ul>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2021-08-01-cnx.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2021-08-01-cnx.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

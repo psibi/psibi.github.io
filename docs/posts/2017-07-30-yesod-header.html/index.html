@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Replacing headers in Yesod — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Replacing headers in Yesod</h1>
+        <span class="article-date">July 30, 2017</span>
+    </header>
+
+    <div class="article-body">
+        <p>Recently a issue
+was
+<a rel="external" href="https://github.com/yesodweb/yesod/issues/1415">raised in the bug tracker</a> regarding
+the way to overwrite a HTTP response header in Yesod. Maximilian
+Tagher
+<a rel="external" href="https://github.com/yesodweb/yesod/issues/1415#issuecomment-313882369">brought a valid point</a> that
+multiple header values are indeed acceptable according to the HTTP RFC
+specification. Further down the conversation, it was suggested to use
+WAI middleware for controlling the response. But again, this was a
+workaround and not a clean solution IMO.</p>
+<h2 id="is-this-a-sane-thing-to-do">Is this a sane thing to do ?</h2>
+<p>My first question was whether replacing header value was a sane thing
+to do in the framework level ? I went on to see if other framework are
+providing
+this. Both
+<a rel="external" href="https://docs.djangoproject.com/en/1.11/ref/request-response/#setting-header-fields">Django framework</a> and
+<a rel="external" href="https://stackoverflow.com/a/17219300/1651941">Express.js</a> allowed
+modifying them. Given that the ecosystem in Python and Node.js allowed
+that, it meant that we are missing that in our Yesod.</p>
+<h2 id="yeah-go-for-it">Yeah, go for it!</h2>
+<p>So armed with the knowledge that it wouldn't be a wrong thing to do, I
+decided to add the relevant functionaity to Yesod. My initial patch
+didn't take into the account that the header names are case
+insensitive according to the specification. After some iteration and
+refinement, this was the final working code:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">replaceOrAddHeader</span><span style="color: #D73A49;"> :: MonadHandler</span><span> m</span><span style="color: #D73A49;"> =&gt; Text -&gt; Text -&gt;</span><span> m</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span>replaceOrAddHeader a b </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span>  modify </span><span style="color: #D73A49;">$ \</span><span>g </span><span style="color: #D73A49;">-&gt;</span><span> g {ghsHeaders</span><span style="color: #D73A49;"> =</span><span> replaceHeader (ghsHeaders g)}</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  where</span></span>
+<span class="giallo-l"><span>    repHeader </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> Header</span><span> (encodeUtf8 a) (encodeUtf8 b)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    sameHeaderName</span><span style="color: #D73A49;"> :: Header -&gt; Header -&gt; Bool</span></span>
+<span class="giallo-l"><span>    sameHeaderName (</span><span style="color: #005CC5;">Header</span><span> n1 _) (</span><span style="color: #005CC5;">Header</span><span> n2 _)</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> T.</span><span>toLower (decodeUtf8 n1)</span><span style="color: #D73A49;"> ==</span><span style="color: #6F42C1;"> T.</span><span>toLower (decodeUtf8 n2)</span></span>
+<span class="giallo-l"><span>    sameHeaderName _ _ </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> False</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    replaceIndividualHeader</span><span style="color: #D73A49;"> ::</span><span> [</span><span style="color: #D73A49;">Header</span><span>]</span><span style="color: #D73A49;"> -&gt;</span><span> [</span><span style="color: #D73A49;">Header</span><span>]</span></span>
+<span class="giallo-l"><span>    replaceIndividualHeader </span><span style="color: #005CC5;">[]</span><span style="color: #D73A49;"> =</span><span> [repHeader]</span></span>
+<span class="giallo-l"><span>    replaceIndividualHeader xs </span><span style="color: #D73A49;">=</span><span> aux xs </span><span style="color: #005CC5;">[]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">      where</span></span>
+<span class="giallo-l"><span>        aux </span><span style="color: #005CC5;">[]</span><span> acc </span><span style="color: #D73A49;">=</span><span> acc </span><span style="color: #D73A49;">++</span><span> [repHeader]</span></span>
+<span class="giallo-l"><span>        aux (x</span><span style="color: #D73A49;">:</span><span>xs&#39;) acc </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">          if</span><span> sameHeaderName repHeader x</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">            then</span><span> acc </span><span style="color: #D73A49;">++</span></span>
+<span class="giallo-l"><span>                 [repHeader]</span><span style="color: #D73A49;"> ++</span></span>
+<span class="giallo-l"><span>                 (filter (</span><span style="color: #D73A49;">\</span><span>header </span><span style="color: #D73A49;">-&gt;</span><span> not (sameHeaderName header repHeader)) xs&#39;)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">            else</span><span> aux xs&#39; (acc </span><span style="color: #D73A49;">++</span><span> [x])</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    replaceHeader</span><span style="color: #D73A49;"> :: Endo</span><span> [</span><span style="color: #D73A49;">Header</span><span>]</span><span style="color: #D73A49;"> -&gt; Endo</span><span> [</span><span style="color: #D73A49;">Header</span><span>]</span></span>
+<span class="giallo-l"><span>    replaceHeader endo </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">      let</span><span> allHeaders </span><span style="color: #D73A49;">::</span><span> [</span><span style="color: #D73A49;">Header</span><span>]</span><span style="color: #D73A49;"> =</span><span> appEndo endo </span><span style="color: #005CC5;">[]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">      in</span><span style="color: #005CC5;"> Endo</span><span> (</span><span style="color: #D73A49;">\</span><span>rest </span><span style="color: #D73A49;">-&gt;</span><span> replaceIndividualHeader allHeaders </span><span style="color: #D73A49;">++</span><span> rest)</span></span></code></pre>
+<p>I merged the <a rel="external" href="https://github.com/yesodweb/yesod/pull/1417">PR</a> two
+days ago. This function will be available under the module
+<code>Yesod.Core.Handler</code> from <code>yesod-core-1.4.36</code>. Thanks to Paul Rose and
+Michael Snoyman for the detailed review. One design issue I observed
+while creating the patch was the the <code>Header</code> filed was represented by
+a <code>ByteString</code>. I have opened
+a <a rel="external" href="https://github.com/yesodweb/yesod/issues/1418">new issue</a> to move
+it to a <code>CI</code> type constructor for case insensitive equality
+checking. I will try to make that change in the next major release of
+Yesod as it breaks backward compatibility. That will help in cleaning
+up the above code slightly.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2017-07-30-yesod-header.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2017-07-30-yesod-header.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

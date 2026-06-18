@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Diwali hacks — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Diwali hacks</h1>
+        <span class="article-date">November 12, 2015</span>
+    </header>
+
+    <div class="article-body">
+        <p>After quite a long time, I got some spare hours to hack on open source
+projects during this Diwali holidays. I added a helper function in
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/509">persistent</a> which in
+my opinion is super cool:</p>
+<p>The <code>liftSqlPersistMPool</code> is simply defined like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">liftSqlPersistMPool</span><span style="color: #D73A49;"> :: MonadIO</span><span> m</span><span style="color: #D73A49;"> =&gt; SqlPersistM</span><span> a</span><span style="color: #D73A49;"> -&gt; Pool SqlBackend -&gt;</span><span> m a</span></span>
+<span class="giallo-l"><span>liftSqlPersistMPool x pool </span><span style="color: #D73A49;">=</span><span> liftIO (runSqlPersistMPool x pool)</span></span></code></pre>
+<p>And this will help in converting code like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">main</span><span style="color: #D73A49;"> :: IO</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span>main </span><span style="color: #D73A49;">=</span><span> runStderrLoggingT </span><span style="color: #D73A49;">$</span><span> withPostgresqlPool conn </span><span style="color: #005CC5;">10</span><span style="color: #D73A49;"> $ \</span><span>pool </span><span style="color: #D73A49;">-&gt;</span><span> liftIO </span><span style="color: #D73A49;">$ do</span></span>
+<span class="giallo-l"><span>         flip runSqlPersistMPool pool </span><span style="color: #D73A49;">$ do</span></span>
+<span class="giallo-l"><span>           runMigration migrateAll</span></span></code></pre>
+<p>to:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">main</span><span style="color: #D73A49;"> :: IO</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">in =</span><span> runStderrLoggingT </span><span style="color: #D73A49;">$</span><span> withPostgresqlPool conn </span><span style="color: #005CC5;">10</span><span style="color: #D73A49;"> $</span><span> liftSqlPersistMPool </span><span style="color: #D73A49;">$ do</span></span>
+<span class="giallo-l"><span>         runMigration migrateAll</span></span></code></pre>
+<p>Ain't that neat? :-)</p>
+<p>The other patches for persistent included
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/505">some cleanup</a>,
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/504">some documentation</a>
+and a
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/501">ownership related patch</a>.
+Although, I plan to work on the ownership related code later. (See
+<a rel="external" href="https://github.com/yesodweb/persistent/issues/390">Issue 390</a> for
+more details.)</p>
+<p>Also, I briefly hacked on the emacs haskell-mode package. Sent some
+minor patch related to
+<a rel="external" href="https://github.com/haskell/haskell-mode/pull/984">hayoo</a> and
+<a rel="external" href="https://github.com/haskell/haskell-mode/pull/987">cleanup</a>.</p>
+<p>With respect to mathematics, I was not able to progress much besides
+reading some pages in Chapter 5. But I'm almost at the <a rel="external" href="https://github.com/psibi/how-to-prove/tree/master/chapter%205">end of the
+chapter 5</a>.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2015-11-12-diwali-hacks.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2015-11-12-diwali-hacks.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

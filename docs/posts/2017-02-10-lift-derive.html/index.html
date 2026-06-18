@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Deriving Lift — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Deriving Lift</h1>
+        <span class="article-date">February 10, 2017</span>
+    </header>
+
+    <div class="article-body">
+        <p>There was a
+<a rel="external" href="https://mail.haskell.org/pipermail/ghc-devs/2015-September/009838.html">proposal</a>
+two years ago from Ryan Scott for automatic derivation of
+<a rel="external" href="https://www.stackage.org/haddock/lts-7.19/template-haskell-2.11.0.0/Language-Haskell-TH-Syntax.html#t:Lift">Lift typeclass</a>. This
+has been implemented in GHC and is available from 8.0.1.</p>
+<p>Writing QuasiQuoter has become much easier and fun now. Let's try to create <a rel="external" href="https://www.stackage.org/haddock/lts-6.17/time-1.5.0.1/Data-Time-Clock.html#t:UTCTime">UTCTime</a> from QuasiQuoter by parsing a string in <code>YYYY</code> format. That gives the following code:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE StandaloneDeriving</span><span> #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE DeriveLift</span><span> #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE TemplateHaskell</span><span> #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE ScopedTypeVariables</span><span> #-}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Language.Haskell.TH</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Language.Haskell.TH.Quote</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Language.Haskell.TH.Syntax</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Data.Time.Format</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Data.Time</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">deriving instance Lift Day</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">instance Lift DiffTime where</span></span>
+<span class="giallo-l"><span>  lift x </span><span style="color: #D73A49;">=</span><span> return </span><span style="color: #D73A49;">$</span><span style="color: #005CC5;"> LitE</span><span> (</span><span style="color: #005CC5;">IntegerL</span><span style="color: #D73A49;"> $</span><span> diffTimeToPicoseconds x)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">deriving instance Lift UTCTime</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">time</span><span style="color: #D73A49;"> :: QuasiQuoter</span></span>
+<span class="giallo-l"><span>time </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  QuasiQuoter</span></span>
+<span class="giallo-l"><span>  { quoteExp</span><span style="color: #D73A49;"> =</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    \</span><span>str </span><span style="color: #D73A49;">-&gt;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">       let</span><span> (item </span><span style="color: #D73A49;">:: Maybe UTCTime</span><span>)</span><span style="color: #D73A49;"> =</span><span> parseTimeM </span></span>
+<span class="giallo-l"><span style="color: #005CC5;">                                     True</span><span> </span></span>
+<span class="giallo-l"><span>                                     defaultTimeLocale </span></span>
+<span class="giallo-l"><span style="color: #032F62;">                                     &quot;%Y&quot;</span><span> </span></span>
+<span class="giallo-l"><span>                                     str</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">       in [|</span><span>item</span><span style="color: #D73A49;">|]</span></span>
+<span class="giallo-l"><span>  }</span></span></code></pre>
+<p>Now load the above module in ghci:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">λ&gt; :l Time.hs</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">[1 of 1] Compiling Main             ( Time.hs, interpreted )</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">λ&gt; :set -XQuasiQuotes</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">λ&gt; [time|2007|]</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Just 2007-01-01 00:00:00 UTC</span></span></code></pre>
+<p>That was more easier than I thought it to be!</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2017-02-10-lift-derive.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2017-02-10-lift-derive.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>
