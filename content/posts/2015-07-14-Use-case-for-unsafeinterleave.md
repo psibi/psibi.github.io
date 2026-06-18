@@ -3,6 +3,9 @@ title = "Understanding unsafeInterleaveIO"
 author = "Sibi"
 date = 2015-07-14
 path = "posts/2015-07-14-Use-case-for-unsafeinterleave.html"
+
+[taxonomies]
+tags = ["haskell"]
 +++
 
 

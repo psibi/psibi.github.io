@@ -3,6 +3,9 @@ title = "Hacking Persistent"
 author = "Sibi"
 date = 2015-08-02
 path = "posts/2015-08-02-hacking-persistent.html"
+
+[taxonomies]
+tags = ["haskell", "persistent", "databases"]
 +++
 
 

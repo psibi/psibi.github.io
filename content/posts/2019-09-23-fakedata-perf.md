@@ -3,6 +3,9 @@ title = "Improving performance of fakedata"
 author = "Sibi"
 date = 2019-09-23
 path = "posts/2019-09-23-fakedata-perf.html"
+
+[taxonomies]
+tags = ["haskell", "performance"]
 +++
 
 

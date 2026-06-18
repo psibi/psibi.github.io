@@ -3,6 +3,9 @@ title = "New Home for Rustic"
 author = "Sibi"
 date = 2020-01-01
 path = "posts/rustic.html"
+
+[taxonomies]
+tags = ["emacs", "rust"]
 +++
 
 

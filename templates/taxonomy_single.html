@@ -1,0 +1,17 @@
+{% extends "default.html" %}
+
+{% block content %}
+<div class="home-hero">
+    <h1>Posts tagged "{{ term.name }}"</h1>
+    <p class="tagline">{{ term.pages | length }} post{% if term.pages | length != 1 %}s{% endif %}</p>
+</div>
+
+<ul class="post-list">
+    {% for page in term.pages %}
+        <li>
+            <h2><a href="{{ page.path }}">{{ page.title }}</a></h2>
+            <span class="post-date">{{ page.date | date(format="%B %e, %Y") }}</span>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

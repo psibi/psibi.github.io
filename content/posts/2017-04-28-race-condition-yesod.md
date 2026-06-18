@@ -3,6 +3,9 @@ title = "Fixing a race condition in yesod development server"
 author = "Sibi"
 date = 2017-04-28
 path = "posts/2017-04-28-race-condition-yesod.html"
+
+[taxonomies]
+tags = ["haskell", "yesod", "debugging"]
 +++
 
 

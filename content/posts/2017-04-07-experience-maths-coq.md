@@ -2,6 +2,9 @@
 title = "Experiencing Maths via Coq"
 date = 2017-04-07
 path = "posts/2017-04-07-experience-maths-coq.html"
+
+[taxonomies]
+tags = ["coq", "maths"]
 +++
 
 

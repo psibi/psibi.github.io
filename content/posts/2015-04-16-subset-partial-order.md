@@ -3,6 +3,9 @@ title = "Subset partial order"
 author = "Sibi"
 date = 2015-04-16
 path = "posts/2015-04-16-subset-partial-order.html"
+
+[taxonomies]
+tags = ["maths"]
 +++
 
 

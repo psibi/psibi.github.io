@@ -5,6 +5,13 @@
     <header class="article-header">
         <h1>{{ page.title }}</h1>
         <span class="article-date">{{ page.date | date(format="%B %e, %Y") }}</span>
+        {% if page.taxonomies.tags %}
+        <div class="article-tags">
+            {% for tag in page.taxonomies.tags %}
+            <a href="{{ get_taxonomy_url(kind="tags", name=tag) }}" class="tag">{{ tag }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
     </header>
 
     <div class="article-body">

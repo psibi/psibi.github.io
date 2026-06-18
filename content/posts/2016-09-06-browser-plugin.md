@@ -2,6 +2,9 @@
 title = "Foray into plugin writing"
 date = 2016-09-06
 path = "posts/2016-09-06-browser-plugin.html"
+
+[taxonomies]
+tags = ["browser", "haskell"]
 +++
 
 

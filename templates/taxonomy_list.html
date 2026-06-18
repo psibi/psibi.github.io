@@ -1,0 +1,17 @@
+{% extends "default.html" %}
+
+{% block content %}
+<div class="home-hero">
+    <h1>Tags</h1>
+    <p class="tagline">Browse posts by topic.</p>
+</div>
+
+<ul class="post-list">
+    {% for term in terms %}
+        <li>
+            <h2><a href="{{ term.permalink }}">{{ term.name }}</a></h2>
+            <span class="post-date">{{ term.pages | length }} post{% if term.pages | length != 1 %}s{% endif %}</span>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

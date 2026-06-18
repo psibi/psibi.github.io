@@ -3,6 +3,9 @@ title = "Xmobar updates from ZuriHac"
 author = "Sibi Prabakaran"
 date = 2020-06-16
 path = "posts/2020-06-16-xmobar-zurihac.html"
+
+[taxonomies]
+tags = ["xmobar", "haskell", "xmonad"]
 +++
 
 

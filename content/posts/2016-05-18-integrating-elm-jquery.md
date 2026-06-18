@@ -3,6 +3,9 @@ title = "Integrating Elm with a jQuery plugin"
 author = "Sibi"
 date = 2016-05-18
 path = "posts/2016-05-18-integrating-elm-jquery.html"
+
+[taxonomies]
+tags = ["elm", "javascript"]
 +++
 
 

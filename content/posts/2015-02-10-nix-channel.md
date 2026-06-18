@@ -3,6 +3,9 @@ title = "Nix: Managing multiple channels"
 author = "Sibi"
 date = 2015-02-10
 path = "posts/2015-02-10-nix-channel.html"
+
+[taxonomies]
+tags = ["nix", "nixos"]
 +++
 
 

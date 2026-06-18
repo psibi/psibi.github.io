@@ -3,6 +3,9 @@ title = "Viewing Stack snapshots"
 author = "Sibi"
 date = 2017-12-19
 path = "posts/2017-12-19-stack-snapshots.html"
+
+[taxonomies]
+tags = ["haskell", "stack"]
 +++
 
 

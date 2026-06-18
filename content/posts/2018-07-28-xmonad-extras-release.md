@@ -3,6 +3,9 @@ title = "xmonad-extras 0.13.4 released"
 author = "Sibi"
 date = 2018-07-28
 path = "posts/2018-07-28-xmonad-extras-release.html"
+
+[taxonomies]
+tags = ["xmonad", "haskell"]
 +++
 
 

@@ -6,6 +6,10 @@ generate_feeds = false
 build_search_index = true
 output_dir = "docs"
 
+taxonomies = [
+  {name = "tags"},
+]
+
 [search]
 include_title = true
 include_description = false

@@ -3,6 +3,9 @@ title = "Going dired!"
 author = "Sibi"
 date = 2014-11-24
 path = "posts/2014-11-24-dired-mode.html"
+
+[taxonomies]
+tags = ["emacs"]
 +++
 
 

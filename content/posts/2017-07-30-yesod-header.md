@@ -3,6 +3,9 @@ title = "Replacing headers in Yesod"
 author = "Sibi"
 date = 2017-07-30
 path = "posts/2017-07-30-yesod-header.html"
+
+[taxonomies]
+tags = ["haskell", "yesod", "web"]
 +++
 
 

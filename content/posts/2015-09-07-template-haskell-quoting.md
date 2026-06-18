@@ -3,6 +3,9 @@ title = "Quoting functions in Template Haskell"
 author = "Sibi"
 date = 2015-09-07
 path = "posts/2015-09-07-template-haskell-quoting.html"
+
+[taxonomies]
+tags = ["haskell", "template-haskell"]
 +++
 
 

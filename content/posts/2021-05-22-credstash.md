@@ -3,6 +3,9 @@ title = "Rucredstash release & Rust experience from a Haskeller"
 author = "Sibi"
 date = 2021-05-22
 path = "posts/2021-05-22-credstash.html"
+
+[taxonomies]
+tags = ["rust", "aws", "security"]
 +++
 
 

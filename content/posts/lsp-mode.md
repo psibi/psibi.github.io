@@ -3,6 +3,9 @@ title = "Improvements to Terraform support for lsp-mode"
 author = "Sibi"
 date = 2019-01-01
 path = "posts/lsp-mode.html"
+
+[taxonomies]
+tags = ["emacs", "terraform"]
 +++
 
 

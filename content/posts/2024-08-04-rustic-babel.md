@@ -3,6 +3,9 @@ title = "Rustic: Enhanced Org Babel integration"
 author = "Sibi"
 date = 2024-08-04
 path = "posts/2024-08-04-rustic-babel.html"
+
+[taxonomies]
+tags = ["emacs", "rust", "org-mode"]
 +++
 
 

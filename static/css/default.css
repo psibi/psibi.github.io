@@ -353,6 +353,30 @@ pre.giallo span, pre.giallo code {
     color: var(--text-faint);
 }
 
+.article-tags {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tag:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
 .article-body {
     font-family: 'Newsreader', serif;
     font-size: 1.2rem;

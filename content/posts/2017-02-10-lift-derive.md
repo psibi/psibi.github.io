@@ -2,6 +2,9 @@
 title = "Deriving Lift"
 date = 2017-02-10
 path = "posts/2017-02-10-lift-derive.html"
+
+[taxonomies]
+tags = ["haskell", "template-haskell", "ghc"]
 +++
 
 
