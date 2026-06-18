@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Hacking Persistent — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Hacking Persistent</h1>
+        <span class="article-date">August  2, 2015</span>
+    </header>
+
+    <div class="article-body">
+        <p>I'm a big fan of <a rel="external" href="https://github.com/yesodweb/persistent/">persistent</a>
+as it offers compile time integrity checks for your database.
+Whenever I need to model a new schema, I usually use this tool to come
+up with the design. As I model and typecheck the code, I usually use
+the <code>printMigration</code> function to see the translated SQL queries. The
+code looks something like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE EmptyDataDecls</span><span>             #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE FlexibleContexts</span><span>           #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE GADTs</span><span>                      #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE GeneralizedNewtypeDeriving</span><span> #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE MultiParamTypeClasses</span><span>      #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE OverloadedStrings</span><span>          #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE QuasiQuotes</span><span>                #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE TemplateHaskell</span><span>            #-}</span></span>
+<span class="giallo-l"><span>{-#</span><span style="color: #D73A49;"> LANGUAGE TypeFamilies</span><span>               #-}</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Control.Monad.IO.Class</span><span>  (</span><span style="color: #6F42C1;">liftIO</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Control.Monad.Logger</span><span>    (</span><span style="color: #6F42C1;">runStderrLoggingT</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Database.Persist</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Database.Persist.Postgresql</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Database.Persist.TH</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>share [mkPersist sqlSettings, mkMigrate </span><span style="color: #032F62;">&quot;migrateAll&quot;</span><span>]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">          [</span><span style="color: #6F42C1;">persistLowerCase</span><span style="color: #D73A49;">|</span></span>
+<span class="giallo-l"><span>Person</span></span>
+<span class="giallo-l"><span>    name String</span></span>
+<span class="giallo-l"><span>    age Int Maybe</span></span>
+<span class="giallo-l"><span>    address Int</span></span>
+<span class="giallo-l"><span>    deriving Show</span></span>
+<span class="giallo-l"><span>BlogPost</span></span>
+<span class="giallo-l"><span>    title String</span></span>
+<span class="giallo-l"><span>    authorId PersonId</span></span>
+<span class="giallo-l"><span>    deriving Show</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">|]</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>connStr </span><span style="color: #D73A49;">=</span><span style="color: #032F62;"> &quot;host=localhost dbname=test user=test password=test port=5432&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">main</span><span style="color: #D73A49;"> :: IO</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span>main </span><span style="color: #D73A49;">=</span><span> runStderrLoggingT </span><span style="color: #D73A49;">$</span><span> withPostgresqlPool connStr </span><span style="color: #005CC5;">10</span><span style="color: #D73A49;"> $</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">       \</span><span>pool </span><span style="color: #D73A49;">-&gt;</span><span> liftIO </span><span style="color: #D73A49;">$ do</span></span>
+<span class="giallo-l"><span>                  flip runSqlPersistMPool pool </span><span style="color: #D73A49;">$ do</span></span>
+<span class="giallo-l"><span>                           printMigration migrateAll</span></span></code></pre>
+<p>But there is a slight problem with this code. For the program to
+run successfully, It needs an actual database to be present in the
+system. With that being in mind, I filed an
+<a rel="external" href="https://github.com/yesodweb/persistent/issues/274">issue</a> hoping
+it would be fixed. After around 10 months and with a little push from
+<a rel="external" href="https://github.com/yesodweb/persistent/issues/274#issuecomment-122727546">Michael Snoyman</a>,
+I finally started working on the patch. As I studied the code, I sent
+a <a rel="external" href="https://github.com/yesodweb/persistent/pull/430">series</a>
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/426">of</a>
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/425">cleanup</a>
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/424">patches</a>. Finally I
+figured out the problem with the actual issue and wrote a patch
+for
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/436">PostgreSQL driver</a>
+for it. Right now it is merged and lives in the master. So for the
+above code to run properly without the actual database being present,
+make use of the <code>mockMigration</code> function:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">main</span><span style="color: #D73A49;"> :: IO</span><span style="color: #005CC5;"> ()</span></span>
+<span class="giallo-l"><span>main </span><span style="color: #D73A49;">=</span><span> mockMigration migrateAll</span></span></code></pre>
+<p>And that will print the migration for your designed database. And
+today I have sent a pull request for the
+<a rel="external" href="https://github.com/yesodweb/persistent/pull/439">MySQL backend</a>. Once
+it gets merged, you can also use this functionality for designing
+schemas using MySQL too. And yes, this is the first time I'm doing the
+development of Haskell packages using <a rel="external" href="https://nixos.org/nix/">Nix</a>.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2015-08-02-hacking-persistent.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2015-08-02-hacking-persistent.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

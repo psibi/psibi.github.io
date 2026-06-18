@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Going dired! — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Going dired!</h1>
+        <span class="article-date">November 24, 2014</span>
+    </header>
+
+    <div class="article-body">
+        <p>I have planned to get into the habit of using dired mode regularly. So
+started reading the
+<a rel="external" href="http://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html#Dired">manual</a>
+of Emacs and these are the essential keybindings which are important
+(according to me):</p>
+<ul>
+<li>d : Flag file for deletion</li>
+<li>u : Remove deletion flag</li>
+<li>x : Delete files flagged for deletion</li>
+<li>f : Visit file</li>
+<li>e : Like f</li>
+<li>o : Like f but opens another window</li>
+<li>v : Opens file in read mode</li>
+<li>^ : Read parent directory</li>
+<li>m : Mark file</li>
+<li>* m : Mark current or region of files</li>
+<li>U : Remove all marks</li>
+<li>* t : Toggle all marked and unmarked files</li>
+<li>* % regex : Mark files with regexp</li>
+<li>C-/ : Undo changes</li>
+</ul>
+<p>File operations:</p>
+<ul>
+<li>C : Copy file</li>
+<li>D : Delete file</li>
+<li>H : Hard link</li>
+<li>S : Soft link</li>
+<li>M : Change Mode</li>
+<li>O : Change Owner</li>
+<li>T : Touch</li>
+<li>Z : Toggle compress</li>
+<li>+ : Create Directory</li>
+</ul>
+<p>Shell Commands:</p>
+<ul>
+<li>! : Run shell command</li>
+<li>&amp; : Run shell command in async fashion.</li>
+</ul>
+<p>Ok, so these are all the key bindings I found useful after reading
+half of the manual for dired. I will update this post in case I find
+something more useful.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2014-11-24-dired-mode.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2014-11-24-dired-mode.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

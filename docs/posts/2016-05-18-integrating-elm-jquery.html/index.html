@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Integrating Elm with a jQuery plugin — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Integrating Elm with a jQuery plugin</h1>
+        <span class="article-date">May 18, 2016</span>
+    </header>
+
+    <div class="article-body">
+        <p>For the past few days, I have been playing around with <a rel="external" href="http://elm-lang.org/">Elm language</a> to see if I can use it in one of my upcoming projects. While I was happy with the strongly typed language and the <a rel="external" href="http://guide.elm-lang.org/architecture/index.html">architecture</a>, I was concerned if I can use the existing ecosystem of Javascript libraries in it without much boilerplate. This post will indeed show how easy that is. Note: if you have already read <a rel="external" href="http://guide.elm-lang.org/interop/javascript.html">this</a>, then this article offers nothing new (Though I would argue that this gives an example with a real library). But if you haven't read it, then this may give you an rough idea of how much code is required for it.</p>
+<h2 id="objective">Objective</h2>
+<p>Let's take some jQuery plugin and then try to integrate it with Elm. I chose <a rel="external" href="https://notifyjs.com/">notifyjs</a> plugin which allows us to create notification. So our objective is to create a simple UI with a input text and a button. When the button is clicked, the text in the input form will be shown to us via the <code>notifyjs</code> plugin.</p>
+<h2 id="the-elm-part">The Elm part</h2>
+<p>The Elm code without any jQuery integration:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="elm"><span class="giallo-l"><span style="color: #D73A49;">module</span><span style="color: #005CC5;"> Notify</span><span style="color: #D73A49;"> exposing</span><span> (..)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #005CC5;"> Html</span><span style="color: #D73A49;"> exposing</span><span> (</span><span style="color: #D73A49;">Html</span><span>,</span><span style="color: #6F42C1;"> div</span><span>,</span><span style="color: #6F42C1;"> input</span><span>,</span><span style="color: #6F42C1;"> text</span><span>,</span><span style="color: #6F42C1;"> button</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #005CC5;"> Html</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">App</span><span style="color: #D73A49;"> as</span><span style="color: #005CC5;"> Html</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #005CC5;"> Html</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">Attributes</span><span style="color: #D73A49;"> exposing</span><span> (..)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #005CC5;"> Html</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">Events</span><span style="color: #D73A49;"> exposing</span><span> (</span><span style="color: #6F42C1;">onInput</span><span>,</span><span style="color: #6F42C1;"> onClick</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #005CC5;"> String</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">main</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> Html</span><span style="color: #D73A49;">.</span><span>program {</span><span style="color: #6F42C1;"> init</span><span style="color: #D73A49;"> =</span><span> model</span></span>
+<span class="giallo-l"><span>                    ,</span><span style="color: #6F42C1;"> view</span><span style="color: #D73A49;"> =</span><span> view</span></span>
+<span class="giallo-l"><span>                    ,</span><span style="color: #6F42C1;"> update</span><span style="color: #D73A49;"> =</span><span> update</span></span>
+<span class="giallo-l"><span>                    ,</span><span style="color: #6F42C1;"> subscriptions</span><span style="color: #D73A49;"> = \</span><span>x</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #005CC5;"> Sub</span><span style="color: #D73A49;">.</span><span>none</span></span>
+<span class="giallo-l"><span>                    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">type alias Model =</span><span> {</span><span style="color: #6F42C1;"> content</span><span style="color: #D73A49;"> : String</span><span> }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">model</span><span style="color: #D73A49;"> =</span><span>  (</span><span style="color: #005CC5;">Model</span><span style="color: #032F62;"> &quot;&quot;</span><span>,</span><span style="color: #005CC5;"> Cmd</span><span style="color: #D73A49;">.</span><span>none)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">type Msg  =</span><span style="color: #005CC5;"> Change</span><span style="color: #D73A49;"> String</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">          |</span><span style="color: #005CC5;"> Alert</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">update</span><span style="color: #D73A49;"> : Msg -&gt; Model -&gt;</span><span> (</span><span style="color: #D73A49;">Model</span><span>,</span><span style="color: #D73A49;"> Cmd Msg</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">update</span><span> msg model</span><span style="color: #D73A49;"> =</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  case </span><span>msg</span><span style="color: #D73A49;"> of</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    Change</span><span> newContent</span><span style="color: #D73A49;"> -&gt;</span></span>
+<span class="giallo-l"><span>      ({ model</span><span style="color: #D73A49;"> |</span><span style="color: #6F42C1;"> content</span><span style="color: #D73A49;"> =</span><span> newContent },</span><span style="color: #005CC5;"> Cmd</span><span style="color: #D73A49;">.</span><span>none)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    Alert</span><span style="color: #D73A49;"> -&gt;</span><span> (model,</span><span style="color: #005CC5;"> Cmd</span><span style="color: #D73A49;">.</span><span>none)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">view</span><span style="color: #D73A49;"> : Model -&gt; Html Msg</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">view</span><span> model</span><span style="color: #D73A49;"> =</span></span>
+<span class="giallo-l"><span>  div []</span></span>
+<span class="giallo-l"><span>    [ input [ placeholder</span><span style="color: #032F62;"> &quot;Enter alert message&quot;</span><span>, onInput</span><span style="color: #005CC5;"> Change</span><span> ] []</span></span>
+<span class="giallo-l"><span>    , button [ onClick</span><span style="color: #005CC5;"> Alert</span><span> ] [ text</span><span style="color: #032F62;"> &quot;Show Alert!&quot;</span><span> ]</span></span>
+<span class="giallo-l"><span>    ]</span></span></code></pre>
+<p>Now, compile it to create the js file:</p>
+<p><code>elm-make Notify.elm --output notify.js</code></p>
+<p>And the corresponding <code>html</code> file:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="html"><span class="giallo-l"><span>&lt;!</span><span style="color: #22863A;">DOCTYPE</span><span style="color: #6F42C1;"> html</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">html</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">head</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">title</span><span>&gt;Sample Elm app&lt;/</span><span style="color: #22863A;">title</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;/</span><span style="color: #22863A;">head</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">body</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;/</span><span style="color: #22863A;">body</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">script</span><span style="color: #6F42C1;"> src</span><span>=</span><span style="color: #032F62;">&quot;./notify.js&quot;</span><span>&gt;&lt;/</span><span style="color: #22863A;">script</span><span>&gt; </span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">script</span><span>&gt;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    var</span><span> app</span><span style="color: #D73A49;"> =</span><span> Elm.Notify.</span><span style="color: #6F42C1;">fullscreen</span><span>();</span></span>
+<span class="giallo-l"><span>&lt;/</span><span style="color: #22863A;">script</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;/</span><span style="color: #22863A;">html</span><span>&gt; </span></span></code></pre><h2 id="the-integration-part">The Integration part</h2>
+<p>Now let's do the integration with the jQuery plugin. There are four steps for it:</p>
+<ul>
+<li>
+<p>Change the first line of the Elm code to indicate that it is a port module:</p>
+<p><code>port module Notify exposing (..)</code></p>
+</li>
+<li>
+<p>Add type signature for the port function:</p>
+<p><code>port alert : String -&gt; Cmd msg</code></p>
+</li>
+<li>
+<p>Handle <code>Alert</code> case properly in the <code>update</code> function:</p>
+<p><code>    Alert -&gt; (model, alert model.content)</code></p>
+</li>
+<li>
+<p>Connect the Plugin with the Elm part in the HTML code:</p>
+</li>
+</ul>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="html"><span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">script</span><span style="color: #6F42C1;"> type</span><span>=</span><span style="color: #032F62;">&quot;text/javascript&quot;</span><span style="color: #6F42C1;"> src</span><span>=</span><span style="color: #032F62;">&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js&quot;</span><span>&gt;&lt;/</span><span style="color: #22863A;">script</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">script</span><span style="color: #6F42C1;"> type</span><span>=</span><span style="color: #032F62;">&quot;text/javascript&quot;</span><span style="color: #6F42C1;"> src</span><span>=</span><span style="color: #032F62;">&quot;./notifyLib.js&quot;</span><span>&gt;&lt;/</span><span style="color: #22863A;">script</span><span>&gt;</span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">script</span><span style="color: #6F42C1;"> src</span><span>=</span><span style="color: #032F62;">&quot;./notify.js&quot;</span><span>&gt;&lt;/</span><span style="color: #22863A;">script</span><span>&gt; </span></span>
+<span class="giallo-l"><span>&lt;</span><span style="color: #22863A;">script</span><span>&gt;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    var</span><span> app</span><span style="color: #D73A49;"> =</span><span> Elm.Notify.</span><span style="color: #6F42C1;">fullscreen</span><span>();</span></span>
+<span class="giallo-l"><span>    app.ports.alert.</span><span style="color: #6F42C1;">subscribe</span><span>(</span><span style="color: #D73A49;">function</span><span>(</span><span style="color: #E36209;">word</span><span>) {</span></span>
+<span class="giallo-l"><span>      $.</span><span style="color: #6F42C1;">notify</span><span>(word);</span></span>
+<span class="giallo-l"><span>    });</span></span>
+<span class="giallo-l"><span>&lt;/</span><span style="color: #22863A;">script</span><span>&gt;</span></span></code></pre>
+<p>And voila, you get a alert:</p>
+<p><img src="/images/posts/elm-alert.png" alt="Alert notification using notifyjs" /></p>
+<p>For a more complex example, you can refer to the <a rel="external" href="http://guide.elm-lang.org/interop/javascript.html">elm guide</a> which also shows the use of <code>subscription</code>.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2016-05-18-integrating-elm-jquery.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2016-05-18-integrating-elm-jquery.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

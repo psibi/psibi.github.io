@@ -1,7 +1,4 @@
-/_cache/
-*hi
-*o
-hakyll
-.stack-work
 .#*
 /draft/
+/public
+.envrc

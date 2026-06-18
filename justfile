@@ -1,15 +1,19 @@
-# List all recipies
 default:
-    just --list --unsorted
+    @just --list
 
-# Generate the site
-gen:
-	psibi.in build
+build:
+    zola build
 
-# Watch and run the site
-watch:
-	stack run -- psibi.in watch
+serve:
+    zola serve
 
-# Clean site
 clean:
-	psibi.in clean
+    rm -rf docs/
+
+new-post slug:
+    @mkdir -p content/posts
+    @fp="content/posts/$(date +%Y-%m-%d)-{{slug}}.md" && \
+    printf '+++\ntitle = "{{slug}}"\ndate = "%s"\n+++\n' "$(date +%Y-%m-%d)" > "$fp"
+
+open:
+	xdg-open http://localhost:1111

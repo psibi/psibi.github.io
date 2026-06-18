@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Viewing Stack snapshots — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Viewing Stack snapshots</h1>
+        <span class="article-date">December 19, 2017</span>
+    </header>
+
+    <div class="article-body">
+        <p>Just some days ago,
+I
+<a rel="external" href="https://github.com/commercialhaskell/stack/pull/3252">got my pull request for <code>ls</code> subcommand</a> feature
+accepted into Stack. Due to my laziness and unclear design issues
+(mostly the former), it took around five months for me to make it
+upstream. So, this is the interface of the new feature:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">~ $ stack ls --help</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Usage: stack ls COMMAND [--help]</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  List command. (Supports snapshots)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Available options:</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  --help                   Show this help text</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Available commands:</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  snapshots                View local snapshot (default option)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Run &#39;stack --help&#39; for global options that apply to all subcommands.</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">~ $ stack ls snapshots --help</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Usage: stack ls snapshots [COMMAND] [-l|--lts] [-n|--nightly]</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  View local snapshot (default option)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Available options:</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -l,--lts                 Only show lts snapshots</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -n,--nightly             Only show nightly snapshots</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -h,--help                Show this help text</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">Available commands:</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  remote                   View remote snapshot</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  local                    View local snapshot</span></span></code></pre>
+<p>Using this feature, I can easily query my system or the Stackage
+servers to see what resolvers are available. This will be availble in
+the next release of Stack but if you want to give it a go now, you can
+do <code>stack upgrade --git</code>.</p>
+<h2 id="origin">Origin</h2>
+<p>So, why did I create this ? I have always wanted this feature when
+writing scripts
+using
+<a rel="external" href="https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter">Stack interpreter</a>. Pin-pointing
+to an existing local resolver ensured that I need not download and
+build the packages again (and thereby saving quite a bit of time). And
+trying to find out the local resolvers manually under <code>~/.stack</code> was
+messy. That's when I went into the source and implemented the
+feature. Now, all I have to do is this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">~ $ stack ls snapshots -n</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2016-11-06</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2016-12-31</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2017-01-12</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2017-03-20</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2017-07-25</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2017-07-31</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2017-08-15</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">nightly-2017-09-07</span></span></code></pre>
+<p>I also wanted a way to see the latest released lts resolvers in
+Stackage. And that's why I added the <code>remote</code> command support for
+it. I specifically had
+to
+<a rel="external" href="https://github.com/fpco/stackage-server/pull/230">patch Stackage servers</a> to
+get this functionality working.</p>
+<h2 id="future-work">Future work</h2>
+<p>The future work is to get
+the
+<a rel="external" href="https://github.com/commercialhaskell/stack/pull/3672">user guide documentation</a> updated
+describing the functionality. I also have volunteered to bring the
+<code>list-dependencies</code> sub command under this new
+interface. <a rel="external" href="https://github.com/commercialhaskell/stack/issues/3669">Issue 3669</a> has
+been made to track this.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2017-12-19-stack-snapshots.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2017-12-19-stack-snapshots.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

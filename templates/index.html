@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block content %}
+<div class="home-hero">
+    <h1>Hey, I'm Sibi.</h1>
+    <p class="tagline">I write about programming, systems, and things I'm learning along the way.</p>
+</div>
+
+<span class="section-label">Recent Posts</span>
+
+<ul class="post-list">
+    {% set posts = get_section(path="posts/_index.md") %}
+    {% for page in posts.pages | slice(end=6) %}
+        <li>
+            <h2><a href="{{ page.path }}">{{ page.title }}</a></h2>
+            <span class="post-date">{{ page.date | date(format="%B %e, %Y") }}</span>
+        </li>
+    {% endfor %}
+</ul>
+
+<a href="/posts/" class="archive-link">View all posts &rarr;</a>
+{% endblock %}

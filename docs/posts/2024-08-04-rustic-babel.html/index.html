@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Rustic: Enhanced Org Babel integration — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Rustic: Enhanced Org Babel integration</h1>
+        <span class="article-date">August  4, 2024</span>
+    </header>
+
+    <div class="article-body">
+        <p><a rel="external" href="https://github.com/emacs-rustic/rustic">Rustic</a> is a major mode for Emacs that simplifies Rust development. It
+builds upon the foundation of <a rel="external" href="https://github.com/rust-lang/rust-mode">rust-mode</a> and offers additional
+features.</p>
+<p>Rustic's integration with <a rel="external" href="https://orgmode.org/worg/org-contrib/babel/">Org Babel</a> allows you to embed Rust code
+snippets directly within your Org buffers. This enables you to execute
+the code and view the results without leaving your editor,
+streamlining your workflow.</p>
+<p>This makes it quite useful for literate programming, interactive
+development, and for scripting, which I use extensively at my work.</p>
+<h2 id="basic-workflow">Basic workflow</h2>
+<ul>
+<li>Open a new org file.</li>
+<li>Create a source block and include your snippet:</li>
+</ul>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>begin_src rustic</span><span style="color: #D73A49;"> :</span><span>results verbatim</span><span style="color: #D73A49;"> :</span><span>exports both</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> main</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    println!</span><span>(</span><span style="color: #032F62;">&quot;Hello world&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>end_src</span></span></code></pre>
+<ul>
+<li>Execute the code by pressing <code>Ctrl-c Ctrl-c</code>.</li>
+</ul>
+<p>The results from the code execution will be displayed within a
+dedicated result block below the source code:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>Hello world</span></span></code></pre>
+<p>You can edit the code and re-execute it using Ctrl-c Ctrl-c. The
+results block will update automatically, reflecting the changes.</p>
+<h1 id="handling-panics-and-errors">Handling Panics and Errors</h1>
+<p>The aforementioned workflow is efficient until you encounter panics or
+compilation errors in your code. Let's explore how Rustic handles
+these scenarios.</p>
+<h2 id="scenario-one-panics">Scenario one: Panics</h2>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>begin_src rustic</span><span style="color: #D73A49;"> :</span><span>results verbatim</span><span style="color: #D73A49;"> :</span><span>exports both</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> main</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    panic!</span><span>(</span><span style="color: #032F62;">&quot;Hello world&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>end_src</span></span></code></pre>
+<p>Executing this code with a panic will produce the following results:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>thread &#39;main&#39; panicked at src/main.rs:3:5:</span></span></code></pre>
+<p>Additionally, a new popup buffer will appear displaying the full error
+message:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span style="color: #005CC5;">thread &#39;main&#39; panicked at src/main.rs:3:5:</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Hello world</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace</span></span></code></pre>
+<p>Snapshot of my editor showing this scenario:</p>
+<img class="img-fluid" src="/images/posts/rustic-babel_1.png">
+<h2 id="scenario-two-compilation-errors">Scenario two: Compilation errors</h2>
+<p>If you introduce a compilation error, the results block will have very
+limited information:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>begin_src rustic</span><span style="color: #D73A49;"> :</span><span>results verbatim</span><span style="color: #D73A49;"> :</span><span>exports both</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> main</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    panic</span><span>(</span><span style="color: #032F62;">&quot;Hello world&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>end_src</span></span></code></pre><pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>error: Could not compile `cargoyacVpM`.</span></span></code></pre>
+<p>The popup buffer, however, would contain more details about the error.</p>
+<h1 id="desired-behaviour">Desired behaviour</h1>
+<p>I preferred and subsequently implemented the following behavior:</p>
+<ul>
+<li>Consolidate all output, including error messages, within the results
+block.</li>
+<li>Eliminate the disruptive popup buffers.</li>
+</ul>
+<p>To maintain backward compatibility, a customizable variable named
+<em>rustic-babel-display-error-popup</em> has been introduced in Rustic. By
+default, it's set to <code>t</code> (true), which preserves the current
+behavior. To enable the new behavior with consolidated output in the
+results block and no popups, simply set this variable to <code>nil</code>
+(false).</p>
+<p>Here's what the results block would look like after enabling the new
+behavior and re-executing the code with a compilation error:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>begin_src rustic</span><span style="color: #D73A49;"> :</span><span>results verbatim</span><span style="color: #D73A49;"> :</span><span>exports both</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> main</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    panic</span><span>(</span><span style="color: #032F62;">&quot;Hello world&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"><span>#</span><span style="color: #D73A49;">+</span><span>end_src</span></span></code></pre><pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>error[E0423]: expected function, found macro `panic`</span></span>
+<span class="giallo-l"><span> --&gt; src/main.rs:3:5</span></span>
+<span class="giallo-l"><span>  |</span></span>
+<span class="giallo-l"><span>3 |     panic(&quot;Hello world&quot;);</span></span>
+<span class="giallo-l"><span>  |     ^^^^^ not a function</span></span>
+<span class="giallo-l"><span>  |</span></span>
+<span class="giallo-l"><span>help: use `!` to invoke the macro</span></span>
+<span class="giallo-l"><span>  |</span></span>
+<span class="giallo-l"><span>3 |     panic!(&quot;Hello world&quot;);</span></span>
+<span class="giallo-l"><span>  |          +</span></span>
+<span class="giallo-l"><span>help: consider importing this function instead</span></span>
+<span class="giallo-l"><span>  |</span></span>
+<span class="giallo-l"><span>2 + use core::panicking::panic;</span></span>
+<span class="giallo-l"><span>  |</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>For more information about this error, try `rustc --explain E0423`.</span></span>
+<span class="giallo-l"><span>error: could not compile `cargoyacVpM` (bin &quot;cargoyacVpM&quot;) due to 1 previous error</span></span></code></pre>
+<p>This behavior was implemented in Emacs-rustic through the following
+pull requests:</p>
+<ul>
+<li><a rel="external" href="https://github.com/emacs-rustic/rustic/pull/25">PR 25: Ability to include compilation failure, panic as part of org result block</a></li>
+<li><a rel="external" href="https://github.com/emacs-rustic/rustic/pull/27">PR 27: Add compilation special case</a></li>
+</ul>
+<p>This approach provides a cleaner and less intrusive experience for me
+while providing information about errors.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2024-08-04-rustic-babel.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2024-08-04-rustic-babel.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

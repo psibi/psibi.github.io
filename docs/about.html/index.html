@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>About — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>About</h1>
+    </header>
+    <div class="article-body">
+        <p><span class="heading-label">Origin, Hobbies and Interests</span></p>
+<p>Origined from the port city of Tuticorin and spent most parts of my
+childhood in the Awadh region Lucknow, currently residing in Bangalore
+with my wife <a rel="external" href="http://psibi.in/divya">Divya</a>. I'm a sofware engineer
+with a strong interest in Functional Programming (especially
+Haskell). I'm a avid Ruskin Bond fan, like A.R.Rahman's music and
+usually very lazy.</p>
+<p><span class="heading-label">Work History</span></p>
+<p>I previously worked in TCS R&amp;D Labs at IIT Madras Research Park as a
+Researcher where I worked on GIS systems which were used to simulate
+traffic conditions of large cities. Then, I worked on with a startup
+named Inkmonk where I joined as their first engineering hire and handled
+frontend, backend, and devops. After
+that, I led a team at Pneuma Innovations where we built a Haskell
+based system for inventory management systems to support QSR. Then I
+moved on to work as a consultant for McKinsey &amp; Company on some of
+their health-related prototypes. Currently, I work as a Senior
+Engineer for FPComplete.</p>
+<p><span class="heading-label">Internet Handle</span></p>
+<ul>
+<li><a rel="external" href="http://github.com/psibi">Github</a></li>
+<li><a rel="external" href="http://stackoverflow.com/users/1651941/sibi">StackOverflow</a></li>
+<li><a rel="external" href="https://news.ycombinator.com/user?id=psibi">Hacker News</a></li>
+<li><a rel="external" href="http://hackage.haskell.org/user/psibi">Hackage</a></li>
+<li><a rel="external" href="http://www.haskellers.com/user/psibi">Haskeller</a></li>
+<li><a rel="external" href="https://speakerdeck.com/psibi">SpeakerDeck</a></li>
+<li><a rel="external" href="http://www.linkedin.com/in/psibi">LinkedIn</a></li>
+<li><a rel="external" href="https://crates.io/users/psibi">Rust Crates</a></li>
+<li><a rel="external" href="https://www.facebook.com/psibi">Facebook</a></li>
+<li><a rel="external" href="http://twitter.com/psibi">Twitter</a></li>
+<li><a rel="external" href="http://identi.ca/psibi">Identi.ca</a></li>
+<li><a rel="external" href="https://keybase.io/sibi">Keybase</a></li>
+</ul>
+
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

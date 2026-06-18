@@ -1,0 +1,23 @@
+base_url = "https://psibi.in"
+title = "Sibi"
+description = "Sibi's blog"
+compile_sass = false
+generate_feeds = false
+build_search_index = true
+output_dir = "docs"
+
+[search]
+include_title = true
+include_description = false
+include_content = true
+
+[markdown]
+render_emoji = true
+external_links_target_blank = false
+smart_punctuation = false
+
+[markdown.highlighting]
+theme = "github-light"
+
+[extra]
+author = "Sibi"

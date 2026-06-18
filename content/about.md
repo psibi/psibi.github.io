@@ -1,0 +1,43 @@
++++
+title = "About"
+date = 1970-01-01
+path = "about.html"
++++
+
+
+<span class="heading-label">Origin, Hobbies and Interests</span>
+
+Origined from the port city of Tuticorin and spent most parts of my
+childhood in the Awadh region Lucknow, currently residing in Bangalore
+with my wife [Divya](http://psibi.in/divya). I'm a sofware engineer
+with a strong interest in Functional Programming (especially
+Haskell). I'm a avid Ruskin Bond fan, like A.R.Rahman's music and
+usually very lazy.
+
+<span class="heading-label">Work History</span>
+
+I previously worked in TCS R&D Labs at IIT Madras Research Park as a
+Researcher where I worked on GIS systems which were used to simulate
+traffic conditions of large cities. Then, I worked on with a startup
+named Inkmonk where I joined as their first engineering hire and handled
+frontend, backend, and devops. After
+that, I led a team at Pneuma Innovations where we built a Haskell
+based system for inventory management systems to support QSR. Then I
+moved on to work as a consultant for McKinsey & Company on some of
+their health-related prototypes. Currently, I work as a Senior
+Engineer for FPComplete.
+
+<span class="heading-label">Internet Handle</span>
+
+* [Github](http://github.com/psibi)
+* [StackOverflow](http://stackoverflow.com/users/1651941/sibi)
+* [Hacker News](https://news.ycombinator.com/user?id=psibi)
+* [Hackage](http://hackage.haskell.org/user/psibi)
+* [Haskeller](http://www.haskellers.com/user/psibi)
+* [SpeakerDeck](https://speakerdeck.com/psibi)
+* [LinkedIn](http://www.linkedin.com/in/psibi)
+* [Rust Crates](https://crates.io/users/psibi)
+* [Facebook](https://www.facebook.com/psibi)
+* [Twitter](http://twitter.com/psibi)
+* [Identi.ca](http://identi.ca/psibi)
+* [Keybase](https://keybase.io/sibi)
