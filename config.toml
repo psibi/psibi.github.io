@@ -14,7 +14,7 @@ output_dir = "docs"
 minify_html = false
 
 [markdown]
-render_emoji = false
+render_emoji = true
 external_links_target_blank = false
 smart_punctuation = false
 
