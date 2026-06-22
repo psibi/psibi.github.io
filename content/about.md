@@ -33,7 +33,6 @@ Engineer for FPComplete.
 * [StackOverflow](http://stackoverflow.com/users/1651941/sibi)
 * [Hacker News](https://news.ycombinator.com/user?id=psibi)
 * [Hackage](http://hackage.haskell.org/user/psibi)
-* [Haskeller](http://www.haskellers.com/user/psibi)
 * [SpeakerDeck](https://speakerdeck.com/psibi)
 * [LinkedIn](http://www.linkedin.com/in/psibi)
 * [Rust Crates](https://crates.io/users/psibi)

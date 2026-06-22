@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>The Case of the Frozen Desktop and the Moving Mouse — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>The Case of the Frozen Desktop and the Moving Mouse</h1>
+        <span class="article-date">June 17, 2026</span>
+        
+        <div class="article-tags">
+            
+            <a href="https://psibi.in/tags/linux/" class="tag">linux</a>
+            
+            <a href="https://psibi.in/tags/nixos/" class="tag">nixos</a>
+            
+            <a href="https://psibi.in/tags/hardware/" class="tag">hardware</a>
+            
+        </div>
+        
+    </header>
+
+    <div class="article-body">
+        <h2 id="debugging-random-freezes-in-linux">Debugging random freezes in Linux</h2>
+<p>In early 2024, I assembled a desktop. The machine ran smoothly for the
+first year or so, but after a NixOS upgrade I started getting random
+freezes. Everything would freeze. I couldn't switch browser tabs, but
+I could still move my mouse cursor. Clicking did nothing, and the OS
+didn't respond to keyboard input either. This would last around 20 to
+30 seconds, after which everything returned to normal.</p>
+<p>It happened occasionally, maybe once a day or every two days.
+Annoying, but not annoying enough to demand immediate attention.</p>
+<p>I searched various forums and found similar threads, mostly about GPU
+issues. I tried different settings, but nothing worked. This was the
+kind of bug I didn't know how to debug further.</p>
+<p>Given the popularity of LLMs, I thought this would be a good
+opportunity to put one to use. The steps I describe in the rest of
+this post were guided by an interactive chat with an LLM, no agents,
+since I wanted to understand what was going on at each stage.</p>
+<h2 id="dmesg-logs">Dmesg logs</h2>
+<p><code>dmesg</code> (diagnostic message) is a command that prints the kernel ring
+buffer, essentially a log of what the Linux kernel has been doing.</p>
+<p>The next time the freeze happened, I checked <code>dmesg</code> and found
+something interesting:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>[ 7956.370041] ata1.00: status: { DRDY }</span></span>
+<span class="giallo-l"><span>[ 7956.370044] ata1.00: failed command: WRITE FPDMA QUEUED</span></span>
+<span class="giallo-l"><span>[ 7956.370046] ata1.00: cmd 61/00:80:90:84:36/01:00:47:00:00/40 tag 16 ncq dma 131072 out</span></span>
+<span class="giallo-l"><span>                        res 40/00:ff:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)</span></span>
+<span class="giallo-l"><span>[ 7956.370052] ata1.00: status: { DRDY }</span></span>
+<span class="giallo-l"><span>[ 7956.370055] ata1.00: failed command: WRITE FPDMA QUEUED</span></span>
+<span class="giallo-l"><span>[ 7956.370057] ata1.00: cmd 61/08:88:98:80:80/00:00:5c:01:00/40 tag 17 ncq dma 4096 out</span></span>
+<span class="giallo-l"><span>                        res 40/00:00:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)</span></span>
+<span class="giallo-l"><span>[ 7956.370063] ata1.00: status: { DRDY }</span></span>
+<span class="giallo-l"><span>[ 7956.370066] ata1.00: failed command: WRITE FPDMA QUEUED</span></span>
+<span class="giallo-l"><span>[ 7956.370068] ata1.00: cmd 61/08:90:30:ba:80/00:00:5c:01:00/40 tag 18 ncq dma 4096 out</span></span>
+<span class="giallo-l"><span>                        res 40/00:00:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)</span></span>
+<span class="giallo-l"><span>[ 7956.370074] ata1.00: status: { DRDY }</span></span>
+<span class="giallo-l"><span>[ 7956.370077] ata1.00: failed command: WRITE FPDMA QUEUED</span></span>
+<span class="giallo-l"><span>[ 7956.370079] ata1.00: cmd 61/08:98:90:ad:81/00:00:5c:01:00/40 tag 19 ncq dma 4096 out</span></span>
+<span class="giallo-l"><span>                        res 40/00:01:00:00:00/00:00:00:00:00/00 Emask 0x4 (timeout)</span></span>
+<span class="giallo-l"><span>[ 7956.370085] ata1.00: status: { DRDY }</span></span>
+<span class="giallo-l"><span>[ 7956.370088] ata1.00: failed command: WRITE FPDMA QUEUED</span></span>
+<span class="giallo-l"><span>[ 7956.370090] ata1.00: cmd 61/08:a0:18:b0:81/00:00:5c:01:00/40 tag 20 ncq dma 4096 out</span></span>
+<span class="giallo-l"><span>                        res 40/00:01:00:4f:c2/00:00:00:00:00/00 Emask 0x4 (timeout)</span></span>
+<span class="giallo-l"><span>[ 7956.370096] ata1.00: status: { DRDY }</span></span>
+<span class="giallo-l"><span>[ 7956.370104] ata1: hard resetting link</span></span>
+<span class="giallo-l"><span>[ 7956.838153] ata1: SATA link up 6.0 Gbps (SStatus 133 SControl 300)</span></span>
+<span class="giallo-l"><span>[ 7956.842299] ata1.00: configured for UDMA/133</span></span>
+<span class="giallo-l"><span>[ 7956.842399] ata1: EH complete</span></span></code></pre>
+<p>Here's how the LLM interpreted these logs:</p>
+<ul>
+<li>The drive stopped responding to queued write commands (<code>WRITE FPDMA QUEUED</code>), resulting in timeouts (<code>Emask 0x4 (timeout)</code>).</li>
+<li>The <code>PHYRdyChg</code> error indicated the physical SATA connection between
+the motherboard and the drive had briefly dropped.</li>
+<li>The Linux kernel successfully performed a hard reset to recover the
+drive and re-established the connection (<code>SATA link up 6.0 Gbps... EH complete</code>).</li>
+</ul>
+<p>This pointed to a temporary hardware communication failure with a SATA
+drive on port 1. Likely culprits:</p>
+<ol>
+<li>Loose SATA cables.</li>
+<li>The drive's controller is crashing or failing.</li>
+</ol>
+<p>I felt a loose SATA data cable was a possibility, but the fact that
+the system recovered after a short time made me doubt it. Also, I was
+feeling a bit lazy to open up the cabinet and reseat cables if loose
+cables weren't the issue. I wanted to see how much information I could
+gather about the disk health purely from the software side before
+reaching for the screwdriver.</p>
+<h2 id="smart-diagnostics">SMART diagnostics</h2>
+<p><strong>SMART diagnostics</strong> (<code>smartmontools</code>) can query the drive's internal
+health data and error counters.</p>
+<p>First, I needed to identify the drive for <code>ata1</code>.  Then I used
+<strong>smartctl</strong> to check the drive's SMART attributes:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">sudo</span><span style="color: #032F62;"> smartctl</span><span style="color: #005CC5;"> -A</span><span style="color: #032F62;"> /dev/sda</span></span></code></pre>
+<p>The LLM asked me to look for these specific SMART attributes and
+explained how to interpret them:</p>
+<ul>
+<li><strong><code>199 UDMA_CRC_Error_Count</code></strong>: Greater than 0 and increasing over
+time would point to a faulty or loose SATA data cable.</li>
+<li><strong><code>5 Reallocated_Sector_Ct</code></strong> or <strong><code>197 Current_Pending_Sector</code></strong>:
+Greater than 0 would indicate the drive itself is failing.</li>
+<li><strong><code>192 Power-Off_Retract_Count</code></strong>: High numbers here could point to
+power supply issues.</li>
+</ul>
+<p>It also suggested running a drive self-test with <code>smartctl -t short /dev/sda</code> and checking results with <code>smartctl -l selftest /dev/sda</code>.
+A passing result would mean the drive's internal mechanics are likely
+fine, narrowing things down to cables or power.</p>
+<p>Here's what I got when I ran <code>smartctl</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span>$ smartctl -A /dev/sda</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">smartctl 7.5 2025-04-30 r5714 [x86_64-linux-6.12.60] (local build)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Copyright (C) 2002-25, Bruce Allen, Christian Franke, www.smartmontools.org</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #005CC5;">=== START OF READ SMART DATA SECTION ===</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">SMART Attributes Data Structure revision number: 16</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">Vendor Specific SMART Attributes with Thresholds:</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  1 Raw_Read_Error_Rate     0x002f   200   200   051    Pre-fail  Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  3 Spin_Up_Time            0x0027   206   205   021    Pre-fail  Always       -       2683</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  4 Start_Stop_Count        0x0032   100   100   000    Old_age   Always       -       639</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  5 Reallocated_Sector_Ct   0x0033   200   200   140    Pre-fail  Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  7 Seek_Error_Rate         0x002e   200   200   000    Old_age   Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  9 Power_On_Hours          0x0032   089   089   000    Old_age   Always       -       8118</span></span>
+<span class="giallo-l"><span style="color: #005CC5;"> 10 Spin_Retry_Count        0x0032   100   100   000    Old_age   Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;"> 11 Calibration_Retry_Count 0x0032   100   100   000    Old_age   Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;"> 12 Power_Cycle_Count       0x0032   100   100   000    Old_age   Always       -       638</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">192 Power-Off_Retract_Count 0x0032   200   200   000    Old_age   Always       -       4</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">193 Load_Cycle_Count        0x0032   200   200   000    Old_age   Always       -       2961</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">194 Temperature_Celsius     0x0022   109   103   000    Old_age   Always       -       38</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">196 Reallocated_Event_Count 0x0032   200   200   000    Old_age   Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">197 Current_Pending_Sector  0x0032   200   200   000    Old_age   Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">198 Offline_Uncorrectable   0x0030   100   253   000    Old_age   Offline      -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">199 UDMA_CRC_Error_Count    0x0032   200   200   000    Old_age   Always       -       0</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">200 Multi_Zone_Error_Rate   0x0008   100   253   000    Old_age   Offline      -       0</span></span></code></pre>
+<p>The SMART data looked clean to me. All values were within normal
+ranges, and the self-tests completed without errors. Thankfully, no
+issues from the drive's side.</p>
+<h2 id="sata-link-power-management">SATA Link Power Management</h2>
+<p><strong>SATA Link Power Management (ALPM)</strong> controls how aggressively the
+kernel puts SATA links into low-power states. If the policy is too
+aggressive, the link can fail to wake up properly, causing the
+<code>PHYRdyChg</code> error.</p>
+<p>I checked the current policy:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span>$ cat /sys/class/scsi_host/host</span><span style="color: #D73A49;">*</span><span>/link_power_management_policy</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">med_power_with_dipm</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">med_power_with_dipm</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">med_power_with_dipm</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">med_power_with_dipm</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">med_power_with_dipm</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">med_power_with_dipm</span></span></code></pre>
+<p>A value of <code>min_power</code> or <code>med_power_with_dipm</code> means the kernel is
+using aggressive power saving. If the link fails to wake up properly,
+it could cause the <code>PHYRdyChg</code> error.</p>
+<p>I read the <a rel="external" href="https://docs.kernel.org/scsi/link_power_management_policy.html">kernel documentation</a> to understand further about it. I
+found that my system was using medium power saving settings for the
+SATA links, allowing them to enter low-power sleep states. And since
+DIPM (Device Initiated Power Management) was enabled, the hard drive
+itself could ask the motherboard to put the connection into a
+low-power sleep.</p>
+<p>I applied this possible fix in my <a rel="external" href="https://github.com/psibi/dotfiles/commit/be04b04d109978b5c28e7544da948a4413d426b3">Nix configuration</a>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="diff"><span class="giallo-l"><span style="color: #22863A;background-color: #F0FFF4;">+  services.udev = {</span></span>
+<span class="giallo-l"><span style="color: #22863A;background-color: #F0FFF4;">+    # To avoid random freezes.</span></span>
+<span class="giallo-l"><span style="color: #22863A;background-color: #F0FFF4;">+    extraRules = &#39;&#39;</span></span>
+<span class="giallo-l"><span style="color: #22863A;background-color: #F0FFF4;">+      ACTION==&quot;add|change&quot;, SUBSYSTEM==&quot;scsi_host&quot;, KERNEL==&quot;host*&quot;, ATTR{link_power_management_policy}=&quot;max_performance&quot;</span></span>
+<span class="giallo-l"><span style="color: #22863A;background-color: #F0FFF4;">+    &#39;&#39;;</span></span>
+<span class="giallo-l"><span style="color: #22863A;background-color: #F0FFF4;">+  };</span></span></code></pre>
+<p>And that actually fixed it. My system has been running with zero
+freezes for the last two months.</p>
+<h2 id="what-caused-it">What caused it</h2>
+<p>I did a quick search to see if there was any kernel change related to
+this and found this <a rel="external" href="https://www.phoronix.com/news/SATA-Link-Power-Linux-6.11">Phoronix article</a>. Turns out the kernel
+defaults for SATA link power management changed in version 6.11.</p>
+<p>These are the past NixOS releases:</p>
+<table><thead><tr><th>Version</th><th>Codename</th><th>Release Date</th><th>Default Kernel</th></tr></thead><tbody>
+<tr><td>24.05</td><td>Uakari</td><td>May 31, 2024</td><td>Linux 6.6 LTS</td></tr>
+<tr><td>24.11</td><td>Vicuña</td><td>Nov 30, 2024</td><td>Linux 6.6 LTS</td></tr>
+<tr><td>25.05</td><td>Warbler</td><td>May 23, 2025</td><td>Linux 6.12 LTS</td></tr>
+</tbody></table>
+<p>Now I can see why my upgrade to 25.05 resulted in this issue!</p>
+<h2 id="llm-assistance">LLM assistance</h2>
+<p>In this case, using LLM accelerated my debugging and I learned several
+new things along the way. I fed it raw tool outputs, the <code>dmesg</code> logs
+with ATA errors, the <code>smartctl</code> SMART attribute dump, and it helped
+interpret what those cryptic registers and counters actually
+meant, and it pointed out exactly which fields to watch for. I had no
+prior experience with kernel logs, SMART diagnostics, or SATA power
+management.</p>
+<p>After solving the issue, I tried looking up the details in man pages,
+things like <code>UDMA_CRC_Error_Count</code> from the smartctl output and
+<code>WRITE FPDMA QUEUED</code> from the dmesg logs, but I couldn't find
+authoritative documentation for them. I found scattered forum
+discussions, but nothing I'd consider a canonical reference. If anyone
+can point me to proper documentation for these error codes, I'd
+appreciate it. The LLM answered confidently and its explanations
+matched what I observed, but I'd still prefer an authoritative source.</p>
+<p>That said, iterating with the LLM got me to a resolution quickly for a
+problem I had been living with for months, and I plan to lean on this
+approach more for debugging going forward.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;random-freezes&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;random-freezes&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

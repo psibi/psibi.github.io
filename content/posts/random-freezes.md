@@ -1,8 +1,7 @@
 +++
-title	= "Random freezes"
+title	= "The Case of the Frozen Desktop and the Moving Mouse"
 author	= "Sibi"
 date	= 2026-06-17
-draft	= true
 
 [taxonomies]
 tags = ["linux", "nixos", "hardware"]
@@ -214,7 +213,7 @@ Now I can see why my upgrade to 25.05 resulted in this issue!
 In this case, using LLM accelerated my debugging and I learned several
 new things along the way. I fed it raw tool outputs, the `dmesg` logs
 with ATA errors, the `smartctl` SMART attribute dump, and it helped
-it helped interpret what those cryptic registers and counters actually
+interpret what those cryptic registers and counters actually
 meant, and it pointed out exactly which fields to watch for. I had no
 prior experience with kernel logs, SMART diagnostics, or SATA power
 management.
