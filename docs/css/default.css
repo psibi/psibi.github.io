@@ -348,7 +348,8 @@ pre.giallo span, pre.giallo code {
     margin-bottom: 0.4rem;
 }
 
-.article-header .article-date {
+.article-header .article-date,
+.article-header .article-updated {
     font-size: 0.9rem;
     color: var(--text-faint);
 }
