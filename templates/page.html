@@ -4,6 +4,9 @@
 <article>
     <header class="article-header">
         <h1>{{ page.title }}</h1>
+        {% if page.updated %}
+        <span class="article-updated">Last updated: {{ page.updated | date(format="%B %e, %Y") }}</span>
+        {% endif %}
     </header>
     <div class="article-body">
         {{ page.content | safe }}
