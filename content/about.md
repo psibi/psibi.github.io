@@ -10,15 +10,14 @@ path = "about.html"
 
 Originally from the port city of Tuticorin and having spent most of my
 childhood in the Awadh region of Lucknow, I am currently residing in
-Bangalore with my wife [Divya](http://psibi.in/divya). I'm a software engineer with a
-strong interest in Functional Programming (especially Haskell). I'm an
-avid Ruskin Bond fan, like A.R. Rahman's music, and am usually very
-lazy.
-
+Bangalore with my wife [Divya](http://psibi.in/divya). I'm a software
+engineer with a strong interest in Functional Programming (especially
+Rust, Haskell). I'm an avid Ruskin Bond fan, like A.R. Rahman's music,
+and enjoy tinkering with side projects.
 
 <span class="heading-label">Work History</span>
 
-I previously worked in TCS R&D Labs at IIT Madras Research Park as a
+I worked in TCS R&D Labs at IIT Madras Research Park as a
 Researcher, where I focused on GIS systems used to simulate
 traffic conditions of large cities. Then, I worked with a startup
 named Inkmonk where I joined as their first engineering hire and handled
