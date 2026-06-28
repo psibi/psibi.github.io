@@ -17,16 +17,15 @@ and enjoy tinkering with side projects.
 
 <span class="heading-label">Work History</span>
 
-I worked in TCS R&D Labs at IIT Madras Research Park as a
-Researcher, where I focused on GIS systems used to simulate
-traffic conditions of large cities. Then, I worked with a startup
-named Inkmonk where I joined as their first engineering hire and handled
-frontend, backend, and devops. After
-that, I led a team at Pneuma Innovations where we built a Haskell-based
-system for inventory management to support QSR. Then I
-moved on to work as a consultant for McKinsey & Company on some of
-their health-related prototypes. Currently, I work as a Senior
-Engineer for FPComplete.
+I worked in TCS R&D Labs at IIT Madras Research Park as a Researcher,
+where I focused on GIS systems used to simulate traffic conditions of
+large cities. Then, I worked with a startup named Inkmonk where I
+joined as their first engineering hire and handled frontend, backend,
+and devops. After that, I led a team at Pneuma Innovations where we
+built a Haskell-based system for inventory management to support
+QSR. Then I moved on to work as a consultant for McKinsey & Company on
+some of their health-related prototypes. Currently, I work as a Lead
+Engineer for FP Complete / FP Block.
 
 <span class="heading-label">Current Focus</span>
 

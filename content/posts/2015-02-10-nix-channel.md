@@ -2,6 +2,7 @@
 title = "Nix: Managing multiple channels"
 author = "Sibi"
 date = 2015-02-10
+draft = true
 path = "posts/2015-02-10-nix-channel.html"
 
 [taxonomies]
@@ -29,7 +30,7 @@ Now this will update and download the related nix package expressions
 related to it. To see the actual downloaded path, you can do something
 like this:
 
-        sibi::monoid { ~ }-> cd ~/.nix-defexpr/        
+        sibi::monoid { ~ }-> cd ~/.nix-defexpr/
         sibi::monoid { ~/.nix-defexpr }-> ls
         channels
         sibi::monoid { ~/.nix-defexpr }-> cd channels
@@ -46,7 +47,7 @@ Note that the `nixpkgs` directory above under the `channels` directory
 contains expressions for the unstable channel. Now to install or
 search package from that stable channel, you can do something like this:
 
-`$ nix-env -f nixpkgs_channel_directory -iA package_name`     
+`$ nix-env -f nixpkgs_channel_directory -iA package_name`
 
 which can be something like this:
 
