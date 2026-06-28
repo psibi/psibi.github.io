@@ -12,7 +12,6 @@ engineering, or open-source collaborations.
 
 The absolute best way to reach me is via email:
 
-*   **Email:** [psibi2000@gmail.com](mailto:psibi2000@gmail.com)
 *   **Email:** [sibi@psibi.in](mailto:sibi@psibi.in)
 
 <span class="heading-label">Other Channels</span>
