@@ -13,7 +13,7 @@ childhood in the Awadh region of Lucknow, I am currently residing in
 Bangalore with my wife [Divya](http://psibi.in/divya). I'm a software
 engineer with a strong interest in Functional Programming (especially
 Rust, Haskell). I'm an avid Ruskin Bond fan, like A.R. Rahman's music,
-and enjoy tinkering with side projects.
+and enjoy tinkering with [side projects](/projects.html).
 
 <span class="heading-label">Work History</span>
 

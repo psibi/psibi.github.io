@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Projects — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Projects</h1>
+        
+    </header>
+    <div class="article-body">
+        <p>Here are some of the open-source projects and tools I've built.</p>
+<div class="project-card">
+  <h2>Emacs Packages</h2>
+  <div class="sub-project">
+    <h3><a href="https://github.com/psibi/justl.el" target="_blank" rel="noopener noreferrer">justl.el</a></h3>
+    <p>A major mode for driving <a href="https://github.com/casey/just" target="_blank" rel="noopener noreferrer">justfiles</a>. It features transient keymaps for listing and executing recipes, includes full TRAMP support, and is available on <strong>MELPA</strong>.</p>
+  </div>
+  <div class="sub-project">
+    <h3><a href="https://github.com/psibi/dhall-mode" target="_blank" rel="noopener noreferrer">dhall-mode</a></h3>
+    <p>A major mode for the <a href="https://dhall-lang.org" target="_blank" rel="noopener noreferrer">Dhall</a> configuration language. It provides syntax highlighting, smart indentation, auto-formatting on save via <code>dhall-format</code>, error diagnostics, and REPL integration. Available on <strong>MELPA</strong>.</p>
+  </div>
+</div>
+<div class="project-card">
+  <h2>Haskell Libraries</h2>
+  <div class="sub-project">
+    <h3><a href="https://github.com/psibi/tldr-hs" target="_blank" rel="noopener noreferrer">tldr-hs</a></h3>
+    <p>A native Haskell client for <a href="https://tldr.sh" target="_blank" rel="noopener noreferrer">tldr pages</a> (simplified, community-driven man pages). Features offline caching, platform-specific page filtering, and multi-language support. Available on <strong>Hackage</strong> and <strong>Stackage</strong>.</p>
+  </div>
+  <div class="sub-project">
+    <h3><a href="https://github.com/fakedata-haskell/fakedata" target="_blank" rel="noopener noreferrer">fakedata</a></h3>
+    <p>A high-performance library for generating realistic fake data (names, addresses, companies, and currencies) in Haskell. Built around a monadic generator with flexible combinators for composing complex randomized values. Available on <strong>Hackage</strong> and <strong>Stackage</strong>.</p>
+  </div>
+</div>
+<div class="project-card">
+  <h2>Financial Utilities</h2>
+  <div class="sub-project">
+    <h3>Credit Card Statement Parsers</h3>
+    <p>A suite of Rust CLI tools and WebAssembly (WASM) web applications designed to extract structured CSV data from PDF statements for seamless import into GnuCash.</p>
+  </div>
+  <div class="sub-project-item" style="margin-left: 20px; margin-bottom: 15px;">
+    <strong>Amazon Pay ICICI Card</strong> —
+    <a href="https://github.com/psibi/amazon-pay-cc-parser" target="_blank" rel="noopener noreferrer">CLI Source</a> |
+    <a href="https://psibi.in/amazon-pay-cc-parser/" target="_blank" rel="noopener noreferrer">Web App</a>
+  </div>
+  <div class="sub-project-item" style="margin-left: 20px; margin-bottom: 15px;">
+    <strong>HDFC Infinia Card</strong> —
+    <a href="https://github.com/psibi/hdfc-cc-parser" target="_blank" rel="noopener noreferrer">CLI Source</a> |
+    <a href="https://psibi.in/hdfc-cc-parser/" target="_blank" rel="noopener noreferrer">Web App</a>
+  </div>
+  <div class="sub-project-item" style="margin-left: 20px; margin-bottom: 5px;">
+    <strong>Scapia Federal Bank Card</strong> —
+    <a href="https://github.com/psibi/federal-cc-parser" target="_blank" rel="noopener noreferrer">CLI Source</a> |
+    <a href="https://psibi.in/federal-cc-parser/" target="_blank" rel="noopener noreferrer">Web App</a>
+  </div>
+</div>
+
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>
