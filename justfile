@@ -1,6 +1,7 @@
 default:
     @just --list
 
+# Build static assets
 build:
     zola build
 
