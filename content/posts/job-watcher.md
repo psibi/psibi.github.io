@@ -9,7 +9,7 @@ tags = ["rust", "tokio", "monitoring"]
 
 ## Introduction
 
-If your service runs background jobs (eg: a block indexer, a
+If your service runs background jobs (for example, a block indexer, a
 leaderboard refresher, a stream consumer), you eventually need to
 answer a simple question:
 
@@ -45,7 +45,7 @@ The library started life as application code written by my colleague
 working on. When I started working for another client, we ran into the
 same requirement again, and that's what motivated me to split
 Michael's code out into a standalone crate. We've been using and
-iterating on the library for the last 3 years or so, for various
+iterating on the library for the last three years or so, for various
 clients, adapting it to our needs as we go.
 
 ## The problem
@@ -117,8 +117,8 @@ looks roughly like this:
 
 The actual implementation has more state than this, particularly
 around distinguishing first failures, repeated failures, new errors,
-and recovery. That distinction turns out to be important for
-alerting.
+and recovery. That distinction is what decides which failures
+generate an alert and which are only recorded.
 
 The watcher handles the mechanics around the task. Your task
 implementation only needs to provide the actual work:
@@ -244,9 +244,10 @@ config.retries = 3;
 config.delay_between_retries = 5;
 ```
 
-and override them for individual tasks. The delay can also be
-configured in several ways: constant seconds, constant milliseconds,
-random ranges, or no delay at all.
+and override them for individual tasks. The periodic schedule can use
+a delay in seconds or milliseconds, a random range, or no delay. Retry
+delay is configured separately and is currently a fixed number of
+seconds.
 
 Retries are handled by the watcher rather than being repeated in every
 task implementation. When `run_single` returns an error:
@@ -275,21 +276,15 @@ out_of_date: Some(120),
 The watcher checks the current run: if it has been going on longer
 than the threshold, the task is flagged as out of date on the status
 page. Setting `out_of_date` also enables a hard timeout on each run:
-anything that takes longer than 180 seconds is killed and treated as a
-failure, so a stuck task doesn't hang forever.
+anything that takes longer than 180 seconds has its task future
+cancelled and is treated as a failure, so a stuck task doesn't hang
+forever.
 
-Note that the timeout is fixed at 180 seconds and is independent of
-the `out_of_date` threshold. The threshold only decides when a run
-*looks* stale on the status page; the timeout is the safety net that
-terminates runs exceeding the hard limit.
-
-It would be nice if the 180 second timeout were configurable per task;
-I'd like to add that in a future version of the library.
-
-For jobs where long runtimes are expected, the `out_of_date` threshold
-needs to be chosen accordingly. An indexer that normally completes in
-ten seconds needs a very different threshold from a job that
-legitimately runs for several minutes.
+Because configuring out_of_date also enables the current fixed
+180-second timeout, tasks expected to run longer than three minutes
+cannot safely use this feature yet. Making the timeout independently
+configurable is something that I would like to add in a future version
+of the library.
 
 ## Heartbeats
 
@@ -368,6 +363,10 @@ The status endpoints support several representations based on the
 * JSON for machines
 * plain text for simple integrations
 
+`/healthz` is a conventional process-liveness endpoint that returns a
+fixed healthy response; `/status` is the endpoint that reflects the
+health of the watched jobs.
+
 The HTML page includes application information such as the
 environment, build version, and process uptime, followed by the status
 of each task. For each task, it can show the current state, last
@@ -397,8 +396,6 @@ A monitoring system just has to check whether the endpoint returns
 `2xx` (healthy) or `500` (unhealthy). The watcher doesn't need to know
 which monitoring system will consume that endpoint.
 
-## Making the status endpoint reflect task health
-
 A health endpoint that only says whether the process itself is alive
 isn't very useful for a service whose primary responsibility is
 running background jobs.
@@ -427,8 +424,9 @@ machine:
 * `NewFailure`: the task was already failing, but the error changed.
 * `Recovered`: a failing task has started succeeding again.
 
-Repeated identical failures are deduplicated. That gives us a useful
-property:
+Only the transitions into and out of failure generate alerts; a task
+that keeps failing, even with a changed error, doesn't produce a new
+notification:
 
 ```text
 healthy
@@ -437,22 +435,28 @@ healthy
    ▼
   down ──────────────┐
    │                 │
-   │ same error      │ success
-   │                 │
+   │ still failing   │ success
+   │ (same or new    │
+   │  error)         │
    ▼                 ▼
 no new alert       recovered
 ```
 
-The `Down` vs `NewFailure` distinction has been particularly useful in
-practice. A persistent failure is worth knowing about, but a
-*different* failure may indicate that the situation has changed and
-deserves another notification.
+We still track the `Down` vs `NewFailure` distinction: the status page
+can show that the error changed since the last failure. But we
+deliberately don't send a notification on `NewFailure`. In the vast
+majority of cases we've seen, a task that keeps failing fails with a
+slightly different error message each time — a rate-limited request
+includes the current time in the message, for example, so the error is
+never exactly the same twice. Treating a changed error as a fresh
+alert would mean a notification for every retry, which is the spam
+we're trying to avoid in the first place.
 
 The library also supports expiring task output with
-`WatchedTaskOutput::set_expiry(duration)`. This lets a task mark
-output as something that should stop alerting after a specified
-period, which is useful for transient conditions that shouldn't page
-someone indefinitely.
+`WatchedTaskOutput::set_expiry(duration)`. This lets a task error stop
+contributing to the application's unhealthy status after a specified
+duration. The original notification is still sent, but the expired
+condition no longer keeps `/status` in an alerting state.
 
 Currently the built-in notifier is Slack because that's what we use.
 The notifier configuration is an enum and can be extended with
@@ -506,7 +510,8 @@ and expose that state directly.
 ## Production usage
 
 In production, we couple `job-watcher` with Cloudflare health checks.
-Do note that you have to have a Pro plan ($25 per month) for that.
+Do note that standalone Cloudflare Health Checks require a Pro or
+higher plan.
 
 The architecture is deliberately simple:
 
@@ -549,6 +554,23 @@ filters out transient blips. And we configure the notification policy
 to fire on both the unhealthy and the healthy transitions, so we get
 notified not only when a job goes down but also when it recovers,
 mirroring the `Recovered` alert that `job-watcher` itself knows about.
+
+You might notice that a single failure can produce two Slack
+notifications: one from `job-watcher` directly, and one via
+Cloudflare. That's intentional, and the two paths serve different
+operational purposes.
+
+The direct Slack notification came first. We originally built it for a
+client that didn't have a paid Cloudflare plan, so health checks
+weren't available at all. We kept it even after adopting Cloudflare,
+because the two paths complement each other. The `job-watcher`
+notification fires immediately when a task starts failing, carries the
+actual error message, and also fires on recovery. The Cloudflare path
+is delayed and debounced: it only fires after roughly three minutes of
+sustained unhealthy responses, it checks the service from the outside
+and so also catches problems `job-watcher` can't report on, like the
+whole process being down or unreachable, and it's the path that
+reaches PagerDuty.
 
 ## Where `job-watcher` fits
 
