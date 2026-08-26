@@ -442,15 +442,15 @@ healthy
 no new alert       recovered
 ```
 
-We still track the `Down` vs `NewFailure` distinction: the status page
-can show that the error changed since the last failure. But we
-deliberately don't send a notification on `NewFailure`. In the vast
-majority of cases we've seen, a task that keeps failing fails with a
-slightly different error message each time — a rate-limited request
-includes the current time in the message, for example, so the error is
-never exactly the same twice. Treating a changed error as a fresh
-alert would mean a notification for every retry, which is the spam
-we're trying to avoid in the first place.
+The NewFailure variant remains part of the alert model, but changed
+errors do not trigger another notification; the status page simply
+reflects the latest error. In the vast majority of cases we've seen, a
+task that keeps failing fails with a slightly different error message
+each time — a rate-limited request includes the current time in the
+message, for example, so the error is never exactly the same
+twice. Treating a changed error as a fresh alert would mean a
+notification for every retry, which is the spam we're trying to avoid
+in the first place.
 
 The library also supports expiring task output with
 `WatchedTaskOutput::set_expiry(duration)`. This lets a task error stop
