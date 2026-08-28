@@ -597,11 +597,11 @@ pre.giallo span, pre.giallo code {
 /* ===== About/Contact pages ===== */
 .heading-label {
     display: block;
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-faint);
+    color: var(--text-muted);
     margin: 2rem 0 0.5rem;
     font-family: 'Inter', sans-serif;
 }
@@ -701,7 +701,7 @@ pre.giallo span, pre.giallo code {
 
     .heading-label {
         margin: 1.5rem 0 0.4rem;
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
     pre {
