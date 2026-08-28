@@ -783,3 +783,18 @@ pre.giallo span, pre.giallo code {
   margin: 0 10px;
   color: #ccc;
 }
+
+.heading-link {
+  text-decoration: none;
+  margin-left: 0.4em;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.heading-link:hover {
+  text-decoration: none;
+}
+.article-body h2:hover .heading-link,
+.article-body h3:hover .heading-link,
+.article-body h4:hover .heading-link {
+  opacity: 1;
+}
