@@ -20,15 +20,16 @@ be stuck, failing repeatedly, taking much longer than it used to, or
 quietly retrying forever while the rest of the application serves
 requests normally. None of that shows up in a process liveness check.
 
-I've run into this problem repeatedly over the last few years. At my
-workplace, we've been using [job-watcher](https://github.com/veloxwarp/job-watcher) in
-production for roughly three years, across several clients and
-different kinds of background jobs.
+I've run into this problem repeatedly over the last few years. Across
+the clients I consult for, we've been using
+[job-watcher](https://github.com/veloxwarp/job-watcher) in production for
+roughly three years, on different kinds of background jobs.
 
 [job-watcher](https://github.com/veloxwarp/job-watcher) is a small Rust library that packages
 the mechanics you'd otherwise write by hand: a loop with a timer, a
-retry counter, a way to tell whether things are still working, and an
-alert when they aren't. What I find most useful about it is that
+retry counter, a way to tell whether things are still working, an
+alert when they aren't, and a web page that shows you all of it. What
+I find most useful about it is that
 **job-watcher owns the lifecycle of the jobs it monitors**. Because it
 runs the jobs itself, it knows things that an external monitoring
 system would otherwise have to reconstruct: whether a task is
@@ -36,13 +37,19 @@ currently running, how long it has been running, how many retries it
 has used, what its last result was, and whether an error is a new
 failure or the same failure we've already seen.
 
+It also serves a status page over HTTP, so there's something you can
+open in a browser and look at, without deploying anything extra.
+
 I'll walk through the design below, and how we use it in production.
 
 ## History
 
 The library started life as application code written by my colleague
 [Michael Snoyman](https://www.snoyman.com/) as part of a larger application we were
-working on. When I started working for another client, we ran into the
+working on: the backend services of a futures trading platform that
+processed $4bn in trade volume. For a system moving that much money,
+knowing whether a background job was stuck or silently failing
+mattered a lot. When I started working for another client, we ran into the
 same requirement again, and that's what motivated me to split
 Michael's code out into a standalone crate. We've been using and
 iterating on the library for the last three years or so, for various
@@ -218,14 +225,18 @@ async fn main() -> Result<()> {
 ```
 
 With those pieces in place, the watcher runs the task and exposes its
-status on port 8080.
+status on port 8080:
 
-One deliberate design choice: every registered task must have a
-corresponding configuration entry. If you register a task without
-configuring it, the builder panics rather than silently using an
-implicit default. This is a fail-fast choice: forgetting to configure
-a production task should be an application-development error, not
-something that quietly changes its runtime behaviour.
+![job-watcher status page](/images/posts/job-watcher/status_page.png)
+
+One deliberate design choice: every task you register, with a call
+like `builder.watch_periodic(...)` above, must have a matching entry
+in the `tasks` map returned by `watcher_config`. If you register a
+task but forget its `config.tasks.insert`, the builder panics at
+startup rather than silently using an implicit default. This is a
+fail-fast choice: forgetting to configure a production task should be
+an application-development error, not something that quietly changes
+its runtime behaviour.
 
 ## Retries
 
@@ -261,7 +272,7 @@ give up and fire an alert.
 
 ## Detecting stuck jobs
 
-Failures are relatively easy to detect. Stuck jobs are harder.
+Failures are relatively easy to detect, but stuck jobs are harder.
 
 Say an indexer normally completes in a few seconds, but one invocation
 gets stuck waiting for an external service. There's no error to
@@ -334,8 +345,22 @@ async fn consume_forever(
             .set_status(format!("Consumed {i} messages"))
             .await;
 
-        i += 1;
-        tokio::time::sleep(Duration::from_secs(1)).await;
+        // Wake up as soon as a message arrives, but no less often
+        // than every 30 seconds, so the heartbeat stays fresh even
+        // when nothing is being consumed.
+        match tokio::time::timeout(
+            Duration::from_secs(30),
+            consume_next_message(),
+        )
+        .await
+        {
+            Ok(Ok(message)) => {
+                handle_message(message).await?;
+                i += 1;
+            }
+            Ok(Err(err)) => return Err(err),
+            Err(_) => (), // nothing available; loop and refresh the heartbeat
+        }
     }
 }
 ```
@@ -360,20 +385,19 @@ The status endpoints support several representations based on the
 `Accept` header:
 
 * HTML for humans
-* JSON for machines
-* plain text for simple integrations
+* JSON for machines and CLIs
+* plain text for monitoring integrations
 
-`/healthz` is a conventional process-liveness endpoint that returns a
-fixed healthy response; `/status` is the endpoint that reflects the
-health of the watched jobs.
+`/healthz` is a conventional process-liveness endpoint. It always
+returns a healthy response, so the infrastructure running job-watcher
+can tell that the process is still alive. `/status` is the endpoint
+that reflects the health of the watched jobs.
 
-The HTML page includes application information such as the
-environment, build version, and process uptime, followed by the status
-of each task. For each task, it can show the current state, last
-result, run duration, success count, retry count, error count, and any
-heartbeat/status information.
-
-![job-watcher status page](/images/posts/job-watcher/status_page.png)
+The page you saw in the [minimal application](#a-minimal-application) section shows the
+application information, such as the environment, build version, and
+process uptime, followed by the status of each task. For each task, it
+can show the current state, last result, run duration, success count,
+retry count, error count, and any heartbeat/status information.
 
 For external monitoring, the useful bit is the HTTP status code. If a
 task is currently in an alerting state, `/status` returns HTTP 500
@@ -396,17 +420,9 @@ A monitoring system just has to check whether the endpoint returns
 `2xx` (healthy) or `500` (unhealthy). The watcher doesn't need to know
 which monitoring system will consume that endpoint.
 
-A health endpoint that only says whether the process itself is alive
-isn't very useful for a service whose primary responsibility is
-running background jobs.
-
-A traditional liveness check might return 200 even when the process is
-alive, the HTTP server is up, but the indexer is failing. From the
-perspective of the system's actual purpose, the service isn't healthy.
-
-So `job-watcher` treats an alerting task as part of the application's
-health state. `/status` then works both for humans looking at a
-browser and for infrastructure that understands HTTP health checks.
+In production, the monitoring system that consumes `/status` is
+Cloudflare's health check service; we'll describe that setup in more
+detail later.
 
 ## Alerting
 
@@ -421,7 +437,6 @@ machine:
 
 * `FirstFailure`: the task has failed for the first time.
 * `Down`: a previously successful task is now failing.
-* `NewFailure`: the task was already failing, but the error changed.
 * `Recovered`: a failing task has started succeeding again.
 
 Only the transitions into and out of failure generate alerts; a task
@@ -442,21 +457,14 @@ healthy
 no new alert       recovered
 ```
 
-The NewFailure variant remains part of the alert model, but changed
-errors do not trigger another notification; the status page simply
-reflects the latest error. In the vast majority of cases we've seen, a
-task that keeps failing fails with a slightly different error message
-each time — a rate-limited request includes the current time in the
-message, for example, so the error is never exactly the same
+A changed error doesn't trigger a fresh notification; the status page
+simply reflects the latest error. In the vast majority of cases we've
+seen, a task that keeps failing fails with a slightly different error
+message each time. A rate-limited request includes the current time in
+the message, for example, so the error is never exactly the same
 twice. Treating a changed error as a fresh alert would mean a
 notification for every retry, which is the spam we're trying to avoid
 in the first place.
-
-The library also supports expiring task output with
-`WatchedTaskOutput::set_expiry(duration)`. This lets a task error stop
-contributing to the application's unhealthy status after a specified
-duration. The original notification is still sent, but the expired
-condition no longer keeps `/status` in an alerting state.
 
 Currently the built-in notifier is Slack because that's what we use.
 The notifier configuration is an enum and can be extended with
@@ -482,7 +490,7 @@ lives. Prometheus observes the metrics that an application exposes;
 
 With Prometheus, you can expose metrics for all of this, but you have
 to build the instrumentation and the alerting semantics yourself. For
-a small Rust application with a handful of background jobs, having the
+a Rust application with background jobs, having the
 component that runs the jobs also track that lifecycle is often
 simpler.
 
@@ -498,9 +506,11 @@ The trade-off looks roughly like this:
 | Status page               | Built-in                                    | Usually Grafana/Alertmanager    |
 | Additional infrastructure | None to deploy for the watcher itself       | Monitoring stack to operate     |
 
-There's one failure mode worth calling out: if the entire
-`job-watcher` process dies, it cannot report its own death. That's why
-I see the two approaches as complementary.
+If the entire `job-watcher` process dies, it can't report its own
+death. That's not unique to this library; Prometheus can't either.
+Someone has to watch the watchmen, and for job-watcher that someone
+is an external service polling `/status` and `/healthz`. That's why I
+see the two approaches as complementary.
 
 Prometheus is useful when you need long-term metrics, cross-service
 correlation, dashboards, or sophisticated alerting. `job-watcher` is
@@ -509,7 +519,8 @@ and expose that state directly.
 
 ## Production usage
 
-In production, we couple `job-watcher` with Cloudflare health checks.
+We couple `job-watcher` with Cloudflare health checks, as previewed
+in the [status page section](#the-status-page).
 Do note that standalone Cloudflare Health Checks require a Pro or
 higher plan.
 
@@ -560,17 +571,13 @@ notifications: one from `job-watcher` directly, and one via
 Cloudflare. That's intentional, and the two paths serve different
 operational purposes.
 
-The direct Slack notification came first. We originally built it for a
-client that didn't have a paid Cloudflare plan, so health checks
-weren't available at all. We kept it even after adopting Cloudflare,
-because the two paths complement each other. The `job-watcher`
-notification fires immediately when a task starts failing, carries the
-actual error message, and also fires on recovery. The Cloudflare path
-is delayed and debounced: it only fires after roughly three minutes of
-sustained unhealthy responses, it checks the service from the outside
-and so also catches problems `job-watcher` can't report on, like the
-whole process being down or unreachable, and it's the path that
-reaches PagerDuty.
+The `job-watcher` notification fires immediately when a task starts
+failing, carries the actual error message, and also fires on
+recovery. The Cloudflare path is delayed and debounced: it only fires
+after roughly three minutes of sustained unhealthy responses, it
+checks the service from the outside and so also catches problems
+`job-watcher` can't report on, like the whole process being down or
+unreachable, and it's the path that reaches PagerDuty.
 
 ## Where `job-watcher` fits
 
@@ -581,9 +588,9 @@ want to correlate failures across systems, or need sophisticated alert
 routing, Prometheus and Alertmanager (or another dedicated monitoring
 system) are much better suited to that problem.
 
-But if you have a Rust application with a small number of important
-background jobs, having the component that runs them also track their
-operational state is a reasonable trade-off.
+But if you have a Rust application running important background jobs,
+having the component that runs them also track their operational state
+is often the better trade-off.
 
 It's a small library rather than another service to deploy. When I
 register a task:
