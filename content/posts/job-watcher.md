@@ -1,7 +1,7 @@
 +++
 title = "job-watcher: Monitoring background jobs in Rust"
 author = "Sibi"
-date = 2026-08-26
+date = 2026-08-28
 
 [taxonomies]
 tags = ["rust", "tokio", "monitoring"]
