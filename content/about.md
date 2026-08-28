@@ -1,47 +1,93 @@
 +++
 title = "About"
 date = 1970-01-01
-updated = 2026-06-25
+updated = 2026-08-28
 path = "about.html"
 +++
 
+I enjoy turning difficult technical problems into systems that work in the
+real world.
 
-<span class="heading-label">Origin, Hobbies and Interests</span>
+I work primarily with [Rust](https://www.rust-lang.org) and
+[Haskell](https://www.haskell.org), and I'm particularly interested in
+distributed systems, cloud infrastructure, blockchain, protocol design, and
+functional programming. I like working on problems where the boundaries
+between architecture, implementation, and operations aren't especially
+clear, and where getting the details right matters.
 
-Originally from the port city of Tuticorin and having spent most of my
-childhood in the Awadh region of Lucknow, I am currently residing in
-Bangalore with my wife [Divya](http://psibi.in/divya). I'm a software
-engineer with a strong interest in Functional Programming (especially
-Rust, Haskell). I'm an avid Ruskin Bond fan, like A.R. Rahman's music,
-and enjoy tinkering with [side projects](/projects.html).
+<span class="heading-label">Work</span>
 
-<span class="heading-label">Work History</span>
+I currently work as a **Principal Engineer at
+[FP Complete / FP Block](https://www.fpblock.com)**, where I've spent the last several
+years working across a variety of engineering engagements. My work has ranged
+from designing and building cloud infrastructure and distributed systems to
+developing blockchain and DeFi protocols and working on security related
+projects.
 
-I worked in TCS R&D Labs at IIT Madras Research Park as a Researcher,
-where I focused on GIS systems used to simulate traffic conditions of
-large cities. Then, I worked with a startup named Inkmonk where I
-joined as their first engineering hire and handled frontend, backend,
-and devops. After that, I led a team at Pneuma Innovations where we
-built a Haskell-based system for inventory management to support
-QSR. Then I moved on to work as a consultant for McKinsey & Company on
-some of their health-related prototypes. Currently, I work as a Lead
-Engineer for FP Complete / FP Block.
+A large part of my work involves helping teams solve difficult technical
+problems: understanding the problem, figuring out the right architecture, and
+then working alongside the team to build and ship it. I enjoy the combination
+of technical depth and breadth that comes from working on different systems
+and with different teams.
+
+Before FP Complete, I worked at **Pneuma Innovations**, where I led a team
+building an inventory management system for quick service restaurants. Before
+that, I was the **first engineering hire at Inkmonk**, working across the
+application stack and infrastructure.
+
+I started my career at **TCS R&D Labs at IIT Madras Research Park**, where I
+worked on GIS systems for simulating traffic conditions in large cities.
 
 <span class="heading-label">Current Focus</span>
 
-I specialize in smart contract development and systems programming
-with Rust. My recent work spans DeFi protocols, blockchain work, and
-cloud-native infrastructure. I also maintain several open source
-projects across the Haskell and NixOS ecosystems — including Yesod,
-XMonad, various Rust tooling, and several Emacs modes (rustic,
-lsp-mode).
+These days, I'm particularly interested in **systems programming, distributed
+systems, and cloud native infrastructure**.
 
-<span class="heading-label">Professional & Speaking</span>
+Rust has become an important part of my recent work, particularly for systems
+where performance, correctness, and reliability matter. I continue to work
+with Haskell as well, both professionally and through my involvement in the
+Haskell ecosystem.
+
+I'm also interested in blockchain and DeFi, especially the engineering
+problems around protocol design, smart contracts, and building reliable
+systems around decentralized infrastructure.
+
+More generally, I like systems that force me to think carefully about
+boundaries, failure modes, correctness, and how individual components fit
+together.
+
+<span class="heading-label">Open Source</span>
+
+Open source has been a significant part of my life as a programmer since the
+early days of my career.
+
+I've contributed to and maintained projects across the **Haskell, Rust,
+[NixOS](https://nixos.org), and [Emacs](https://www.gnu.org/software/emacs/)
+ecosystems**. Some of the projects I've worked on include
+[Yesod](https://www.yesodweb.com), [XMonad](https://xmonad.org),
+[Rustic](https://github.com/emacs-rustic/rustic), and various Haskell
+libraries and tools. I also contribute to NixOS packages and other projects
+that I use in my own development.
+
+<span class="heading-label">Outside of Software</span>
+
+I'm originally from **Tuticorin** and spent much of my childhood in
+**Lucknow**. I currently live in **Bangalore** with my wife,
+[Divya](http://psibi.in/divya).
+
+Outside of programming, I'm an avid **Ruskin Bond** reader and enjoy
+**A. R. Rahman's** music. I also spend a fair amount of time
+[tinkering](/projects.html) with things, which sometimes turns into software
+projects.
+
+<span class="heading-label">Elsewhere</span>
+
+<span class="heading-label">Professional &amp; Speaking</span>
 
 * [LinkedIn](http://www.linkedin.com/in/psibi)
 * [SpeakerDeck](https://speakerdeck.com/psibi)
 
-<span class="heading-label">Code & Contributions</span>
+<span class="heading-label">Code &amp; Contributions</span>
 
 * [GitHub](http://github.com/psibi)
 * [Hackage](http://hackage.haskell.org/user/psibi)
