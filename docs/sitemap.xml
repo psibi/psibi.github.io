@@ -95,6 +95,10 @@
         <lastmod>2024-08-04</lastmod>
     </url>
     <url>
+        <loc>https://psibi.in/posts/job-watcher/</loc>
+        <lastmod>2026-08-26</lastmod>
+    </url>
+    <url>
         <loc>https://psibi.in/posts/lsp-mode.html/</loc>
         <lastmod>2019-01-01</lastmod>
     </url>
@@ -163,6 +167,9 @@
         <loc>https://psibi.in/tags/maths/</loc>
     </url>
     <url>
+        <loc>https://psibi.in/tags/monitoring/</loc>
+    </url>
+    <url>
         <loc>https://psibi.in/tags/nix/</loc>
     </url>
     <url>
@@ -191,6 +198,9 @@
     </url>
     <url>
         <loc>https://psibi.in/tags/terraform/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/tokio/</loc>
     </url>
     <url>
         <loc>https://psibi.in/tags/web/</loc>

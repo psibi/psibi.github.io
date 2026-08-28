@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>job-watcher: Monitoring background jobs in Rust — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>job-watcher: Monitoring background jobs in Rust</h1>
+        <span class="article-date">August 26, 2026</span>
+        
+        <div class="article-tags">
+            
+            <a href="https://psibi.in/tags/rust/" class="tag">rust</a>
+            
+            <a href="https://psibi.in/tags/tokio/" class="tag">tokio</a>
+            
+            <a href="https://psibi.in/tags/monitoring/" class="tag">monitoring</a>
+            
+        </div>
+        
+    </header>
+
+    <div class="article-body">
+        <h2 id="introduction">Introduction</h2>
+<p>If your service runs background jobs (for example, a block indexer, a
+leaderboard refresher, a stream consumer), you eventually need to
+answer a simple question:</p>
+<p><strong>Is this thing actually working?</strong></p>
+<p>Knowing that the process is alive isn't enough. A background job can
+be stuck, failing repeatedly, taking much longer than it used to, or
+quietly retrying forever while the rest of the application serves
+requests normally. None of that shows up in a process liveness check.</p>
+<p>I've run into this problem repeatedly over the last few years. Across
+the clients I consult for, we've been using
+<a rel="external" href="https://github.com/veloxwarp/job-watcher">job-watcher</a> in production for
+roughly three years, on different kinds of background jobs.</p>
+<p><a rel="external" href="https://github.com/veloxwarp/job-watcher">job-watcher</a> is a small Rust library that packages
+the mechanics you'd otherwise write by hand: a loop with a timer, a
+retry counter, a way to tell whether things are still working, an
+alert when they aren't, and a web page that shows you all of it. What
+I find most useful about it is that
+<strong>job-watcher owns the lifecycle of the jobs it monitors</strong>. Because it
+runs the jobs itself, it knows things that an external monitoring
+system would otherwise have to reconstruct: whether a task is
+currently running, how long it has been running, how many retries it
+has used, what its last result was, and whether an error is a new
+failure or the same failure we've already seen.</p>
+<p>It also serves a status page over HTTP, so there's something you can
+open in a browser and look at, without deploying anything extra.</p>
+<p>I'll walk through the design below, and how we use it in production.</p>
+<h2 id="history">History</h2>
+<p>The library started life as application code written by my colleague
+<a rel="external" href="https://www.snoyman.com/">Michael Snoyman</a> as part of a larger application we were
+working on: the backend services of a futures trading platform that
+processed $4bn in trade volume. For a system moving that much money,
+knowing whether a background job was stuck or silently failing
+mattered a lot. When I started working for another client, we ran into the
+same requirement again, and that's what motivated me to split
+Michael's code out into a standalone crate. We've been using and
+iterating on the library for the last three years or so, for various
+clients, adapting it to our needs as we go.</p>
+<h2 id="the-problem">The problem</h2>
+<p>In the blockchain world, a block is a batch of transactions, and an
+indexer is a background job that watches for new blocks and keeps a
+remote store up to date with them. Say your service runs such an
+indexer every minute:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>             ┌──────────────┐</span></span>
+<span class="giallo-l"><span>             │    indexer   │</span></span>
+<span class="giallo-l"><span>             └──────┬───────┘</span></span>
+<span class="giallo-l"><span>                    │</span></span>
+<span class="giallo-l"><span>                    ▼</span></span>
+<span class="giallo-l"><span>             fetch new blocks</span></span>
+<span class="giallo-l"><span>                    │</span></span>
+<span class="giallo-l"><span>                    ▼</span></span>
+<span class="giallo-l"><span>              update database</span></span></code></pre>
+<p>The initial implementation looks trivial:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">loop</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    run_indexer</span><span>()</span><span style="color: #D73A49;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    tokio</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">time</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">sleep</span><span>(</span><span style="color: #6F42C1;">Duration</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">from_secs</span><span>(</span><span style="color: #005CC5;">60</span><span>))</span><span style="color: #D73A49;">.await</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>But in production, you quickly run into new questions:</p>
+<ul>
+<li>What happens when the indexer fails?</li>
+<li>Should we retry immediately or wait?</li>
+<li>How many times should we retry?</li>
+<li>How do we know that the indexer is stuck rather than merely slow?</li>
+<li>How do we expose its current state to operators?</li>
+<li>How do we alert when it fails?</li>
+<li>How do we avoid sending an alert every time the same retry fails?</li>
+<li>How do we know when it has recovered?</li>
+</ul>
+<p>You can build all of this yourself, of course. The problem is that the
+answers end up being nearly identical for every background job, and
+you keep rewriting the same boilerplate in every service.</p>
+<h2 id="the-design">The design</h2>
+<p>The core abstraction in <code>job-watcher</code> is a watched task. Its lifecycle
+looks roughly like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>                    ┌─────────────┐</span></span>
+<span class="giallo-l"><span>                    │  not started│</span></span>
+<span class="giallo-l"><span>                    └──────┬──────┘</span></span>
+<span class="giallo-l"><span>                           │</span></span>
+<span class="giallo-l"><span>                           ▼</span></span>
+<span class="giallo-l"><span>                       running</span></span>
+<span class="giallo-l"><span>                       /     \</span></span>
+<span class="giallo-l"><span>                  success    failure</span></span>
+<span class="giallo-l"><span>                    │           │</span></span>
+<span class="giallo-l"><span>                    ▼           ▼</span></span>
+<span class="giallo-l"><span>                 healthy     retrying</span></span>
+<span class="giallo-l"><span>                                │</span></span>
+<span class="giallo-l"><span>                         retries exhausted</span></span>
+<span class="giallo-l"><span>                                │</span></span>
+<span class="giallo-l"><span>                                ▼</span></span>
+<span class="giallo-l"><span>                              failed</span></span></code></pre>
+<p>The actual implementation has more state than this, particularly
+around distinguishing first failures, repeated failures, new errors,
+and recovery. That distinction is what decides which failures
+generate an alert and which are only recorded.</p>
+<p>The watcher handles the mechanics around the task. Your task
+implementation only needs to provide the actual work:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">struct</span><span style="color: #6F42C1;"> Indexer</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">impl</span><span style="color: #6F42C1;"> WatchedTask</span><span>&lt;</span><span style="color: #6F42C1;">MyApp</span><span>&gt;</span><span style="color: #D73A49;"> for</span><span style="color: #6F42C1;"> Indexer</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    async fn</span><span style="color: #6F42C1;"> run_single</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        &amp;mut</span><span style="color: #005CC5;"> self</span><span>,</span></span>
+<span class="giallo-l"><span>        _app</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Arc</span><span>&lt;</span><span style="color: #6F42C1;">MyApp</span><span>&gt;,</span></span>
+<span class="giallo-l"><span>        _heartbeat</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Heartbeat</span><span>,</span></span>
+<span class="giallo-l"><span>    )</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Result</span><span>&lt;</span><span style="color: #6F42C1;">WatchedTaskOutput</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">        // do the actual work here</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        Ok</span><span>(</span><span style="color: #6F42C1;">WatchedTaskOutput</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(</span><span style="color: #032F62;">&quot;Indexed 1000 blocks&quot;</span><span>))</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>The task returns either an error or a <code>WatchedTaskOutput</code>.</p>
+<h2 id="a-minimal-application">A minimal application</h2>
+<p>Wiring this up involves three pieces.</p>
+<p>First, define the application context:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>#[derive(</span><span style="color: #6F42C1;">Clone</span><span>)]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">struct</span><span style="color: #6F42C1;"> MyApp</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">impl</span><span style="color: #6F42C1;"> WatcherAppContext</span><span style="color: #D73A49;"> for</span><span style="color: #6F42C1;"> MyApp</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> title</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> String</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;My App Status&quot;</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_owned</span><span>()</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> environment</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Option</span><span>&lt;</span><span style="color: #6F42C1;">String</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        Some</span><span>(</span><span style="color: #032F62;">&quot;production&quot;</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_owned</span><span>())</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> build_version</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Option</span><span>&lt;</span><span style="color: #6F42C1;">String</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        Some</span><span>(</span><span style="color: #6F42C1;">env!</span><span>(</span><span style="color: #032F62;">&quot;CARGO_PKG_VERSION&quot;</span><span>)</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_owned</span><span>())</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> watcher_config</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> WatcherConfig</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        let mut</span><span> config</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> WatcherConfig</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">default</span><span>();</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>        config</span><span style="color: #D73A49;">.</span><span>retries </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> 3</span><span>;</span></span>
+<span class="giallo-l"><span>        config</span><span style="color: #D73A49;">.</span><span>delay_between_retries </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> 5</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>        config</span><span style="color: #D73A49;">.</span><span>tasks</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">insert</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            &quot;indexer&quot;</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">to_owned</span><span>(),</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            TaskConfig</span><span> {</span></span>
+<span class="giallo-l"><span>                delay</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Delay</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">ConstantSecs</span><span>(</span><span style="color: #005CC5;">60</span><span>),</span></span>
+<span class="giallo-l"><span>                out_of_date</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Some</span><span>(</span><span style="color: #005CC5;">120</span><span>),</span></span>
+<span class="giallo-l"><span>                retries</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> None</span><span>,</span></span>
+<span class="giallo-l"><span>                delay_between_retries</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> None</span><span>,</span></span>
+<span class="giallo-l"><span>            },</span></span>
+<span class="giallo-l"><span>        );</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>        config</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> triggers_alert</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        &amp;</span><span style="color: #005CC5;">self</span><span>,</span></span>
+<span class="giallo-l"><span>        _label</span><span style="color: #D73A49;">: &amp;</span><span style="color: #6F42C1;">TaskLabel</span><span>,</span></span>
+<span class="giallo-l"><span>        _selected</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Option</span><span>&lt;</span><span style="color: #D73A49;">&amp;</span><span style="color: #6F42C1;">TaskLabel</span><span>&gt;,</span></span>
+<span class="giallo-l"><span>    )</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> bool</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">        true</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> show_output</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>, _label</span><span style="color: #D73A49;">: &amp;</span><span style="color: #6F42C1;">TaskLabel</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> bool</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">        true</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> notifier_config</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Option</span><span>&lt;job_watcher</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">NotifierConfig</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        None</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Then implement the task itself, as above.</p>
+<p>Finally, register it with a <code>WatcherBuilder</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>#[tokio</span><span style="color: #D73A49;">::</span><span>main]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">async fn</span><span style="color: #6F42C1;"> main</span><span>()</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> app</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> Arc</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(</span><span style="color: #6F42C1;">MyApp</span><span>);</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let mut</span><span> builder</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> WatcherBuilder</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(app);</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>    builder</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">watch_periodic</span><span>(</span><span style="color: #6F42C1;">TaskLabel</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(</span><span style="color: #032F62;">&quot;indexer&quot;</span><span>),</span><span style="color: #6F42C1;"> Indexer</span><span>)</span><span style="color: #D73A49;">?</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> listener</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> TcpListener</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">bind</span><span>(</span><span style="color: #032F62;">&quot;0.0.0.0:8080&quot;</span><span>)</span><span style="color: #D73A49;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>    builder</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">wait</span><span>(listener)</span><span style="color: #D73A49;">.await</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>With those pieces in place, the watcher runs the task and exposes its
+status on port 8080:</p>
+<p><img src="/images/posts/job-watcher/status_page.png" alt="job-watcher status page" /></p>
+<p>One deliberate design choice: every task you register, with a call
+like <code>builder.watch_periodic(...)</code> above, must have a matching entry
+in the <code>tasks</code> map returned by <code>watcher_config</code>. If you register a
+task but forget its <code>config.tasks.insert</code>, the builder panics at
+startup rather than silently using an implicit default. This is a
+fail-fast choice: forgetting to configure a production task should be
+an application-development error, not something that quietly changes
+its runtime behaviour.</p>
+<h2 id="retries">Retries</h2>
+<p>A failed background job doesn't necessarily mean that something is
+broken. Most of the failures I've seen here are transient: an RPC
+endpoint that's briefly down, a database that's unavailable for a few
+seconds, a flaky network request.</p>
+<p>So <code>job-watcher</code> distinguishes an individual failure from an
+exhausted retry policy.</p>
+<p>You can configure global retry defaults:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>config</span><span style="color: #D73A49;">.</span><span>retries </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> 3</span><span>;</span></span>
+<span class="giallo-l"><span>config</span><span style="color: #D73A49;">.</span><span>delay_between_retries </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> 5</span><span>;</span></span></code></pre>
+<p>and override them for individual tasks. The periodic schedule can use
+a delay in seconds or milliseconds, a random range, or no delay. Retry
+delay is configured separately and is currently a fixed number of
+seconds.</p>
+<p>Retries are handled by the watcher rather than being repeated in every
+task implementation. When <code>run_single</code> returns an error:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #6F42C1;">Err</span><span>(error)</span></span></code></pre>
+<p>the watcher decides whether to retry, how long to wait, and when to
+give up and fire an alert.</p>
+<h2 id="detecting-stuck-jobs">Detecting stuck jobs</h2>
+<p>Failures are relatively easy to detect, but stuck jobs are harder.</p>
+<p>Say an indexer normally completes in a few seconds, but one invocation
+gets stuck waiting for an external service. There's no error to
+trigger the retry logic. The task is simply still running.</p>
+<p>For this, a task can have an <code>out_of_date</code> threshold:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>out_of_date</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Some</span><span>(</span><span style="color: #005CC5;">120</span><span>),</span></span></code></pre>
+<p>The watcher checks the current run: if it has been going on longer
+than the threshold, the task is flagged as out of date on the status
+page. Setting <code>out_of_date</code> also enables a hard timeout on each run:
+anything that takes longer than 180 seconds has its task future
+cancelled and is treated as a failure, so a stuck task doesn't hang
+forever.</p>
+<p>Because configuring out_of_date also enables the current fixed
+180-second timeout, tasks expected to run longer than three minutes
+cannot safely use this feature yet. Making the timeout independently
+configurable is something that I would like to add in a future version
+of the library.</p>
+<h2 id="heartbeats">Heartbeats</h2>
+<p>Sometimes knowing that a task is running isn't enough.</p>
+<p>A long-running job can report progress through a <code>Heartbeat</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>heartbeat</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">set_status</span><span>(</span><span style="color: #6F42C1;">format!</span><span>(</span><span style="color: #032F62;">&quot;Indexed {i} blocks&quot;</span><span>))</span><span style="color: #D73A49;">.await</span><span>;</span></span></code></pre>
+<p>The status page can then show that progress while the task is still
+running. Instead of seeing only <code>indexer: running</code>, an operator sees
+something more useful:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>indexer: running</span></span>
+<span class="giallo-l"><span>Indexed 184,000 blocks</span></span></code></pre>
+<p>The task still owns the actual work. The watcher just gives it a way
+to surface its current status.</p>
+<h2 id="continuous-background-tasks">Continuous background tasks</h2>
+<p>Not every background job is periodic. A stream consumer might look
+more like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">loop</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    consume_next_message</span><span>()</span><span style="color: #D73A49;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>For these jobs, <code>job-watcher</code> provides
+<code>watch_background_with_status</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">async fn</span><span style="color: #6F42C1;"> consume_forever</span><span>(</span></span>
+<span class="giallo-l"><span>    _app</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Arc</span><span>&lt;</span><span style="color: #6F42C1;">MyApp</span><span>&gt;,</span></span>
+<span class="giallo-l"><span>    heartbeat</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Heartbeat</span><span>,</span></span>
+<span class="giallo-l"><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Result</span><span>&lt;</span><span style="color: #6F42C1;">Infallible</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let mut</span><span> i</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> 0</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">    loop</span><span> {</span></span>
+<span class="giallo-l"><span>        heartbeat</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">            .</span><span style="color: #6F42C1;">set_status</span><span>(</span><span style="color: #6F42C1;">format!</span><span>(</span><span style="color: #032F62;">&quot;Consumed {i} messages&quot;</span><span>))</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">            .await</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">        // Wake up as soon as a message arrives, but no less often</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">        // than every 30 seconds, so the heartbeat stays fresh even</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">        // when nothing is being consumed.</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        match</span><span style="color: #6F42C1;"> tokio</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">time</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">timeout</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            Duration</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">from_secs</span><span>(</span><span style="color: #005CC5;">30</span><span>),</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            consume_next_message</span><span>(),</span></span>
+<span class="giallo-l"><span>        )</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        .await</span></span>
+<span class="giallo-l"><span>        {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            Ok</span><span>(</span><span style="color: #6F42C1;">Ok</span><span>(message))</span><span style="color: #D73A49;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                handle_message</span><span>(message)</span><span style="color: #D73A49;">.await?</span><span>;</span></span>
+<span class="giallo-l"><span>                i</span><span style="color: #D73A49;"> +=</span><span style="color: #005CC5;"> 1</span><span>;</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            Ok</span><span>(</span><span style="color: #6F42C1;">Err</span><span>(err))</span><span style="color: #D73A49;"> =&gt; return</span><span style="color: #6F42C1;"> Err</span><span>(err),</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            Err</span><span>(_)</span><span style="color: #D73A49;"> =&gt;</span><span> (),</span><span style="color: #6A737D;"> // nothing available; loop and refresh the heartbeat</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Here the watcher isn't imposing a periodic schedule on the task. It
+just keeps track of a continuously running background future and
+exposes its status.</p>
+<h2 id="the-status-page">The status page</h2>
+<p>Once the watcher owns the task lifecycle, exposing the information it
+has collected is an obvious next step. The watcher runs an Axum server
+using the listener passed to <code>wait</code>, and provides three endpoints:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>/status</span></span>
+<span class="giallo-l"><span>/status/{label}</span></span>
+<span class="giallo-l"><span>/healthz</span></span></code></pre>
+<p>The status endpoints support several representations based on the
+<code>Accept</code> header:</p>
+<ul>
+<li>HTML for humans</li>
+<li>JSON for machines and CLIs</li>
+<li>plain text for monitoring integrations</li>
+</ul>
+<p><code>/healthz</code> is a conventional process-liveness endpoint. It always
+returns a healthy response, so the infrastructure running job-watcher
+can tell that the process is still alive. <code>/status</code> is the endpoint
+that reflects the health of the watched jobs.</p>
+<p>The page you saw in the <a href="https://psibi.in/posts/job-watcher/#a-minimal-application">minimal application</a> section shows the
+application information, such as the environment, build version, and
+process uptime, followed by the status of each task. For each task, it
+can show the current state, last result, run duration, success count,
+retry count, error count, and any heartbeat/status information.</p>
+<p>For external monitoring, the useful bit is the HTTP status code. If a
+task is currently in an alerting state, <code>/status</code> returns HTTP 500
+instead of 200.</p>
+<p>That gives us a very simple integration boundary:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>job state</span></span>
+<span class="giallo-l"><span>    │</span></span>
+<span class="giallo-l"><span>    ▼</span></span>
+<span class="giallo-l"><span>/status</span></span>
+<span class="giallo-l"><span>    │</span></span>
+<span class="giallo-l"><span>    ├── 2xx → healthy</span></span>
+<span class="giallo-l"><span>    │</span></span>
+<span class="giallo-l"><span>    └── 500 → unhealthy</span></span></code></pre>
+<p>A monitoring system just has to check whether the endpoint returns
+<code>2xx</code> (healthy) or <code>500</code> (unhealthy). The watcher doesn't need to know
+which monitoring system will consume that endpoint.</p>
+<p>In production, the monitoring system that consumes <code>/status</code> is
+Cloudflare's health check service; we'll describe that setup in more
+detail later.</p>
+<h2 id="alerting">Alerting</h2>
+<p>The same task state that drives the status page can drive
+notifications. We don't want an alert for every failed attempt.</p>
+<p>Say an indexer fails three times with <code>connection refused</code> each time.
+Three Slack messages wouldn't be useful.</p>
+<p>Instead, <code>job-watcher</code> models alerting as transitions in a small state
+machine:</p>
+<ul>
+<li><code>FirstFailure</code>: the task has failed for the first time.</li>
+<li><code>Down</code>: a previously successful task is now failing.</li>
+<li><code>Recovered</code>: a failing task has started succeeding again.</li>
+</ul>
+<p>Only the transitions into and out of failure generate alerts; a task
+that keeps failing, even with a changed error, doesn't produce a new
+notification:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>healthy</span></span>
+<span class="giallo-l"><span>   │</span></span>
+<span class="giallo-l"><span>   │ failure</span></span>
+<span class="giallo-l"><span>   ▼</span></span>
+<span class="giallo-l"><span>  down ──────────────┐</span></span>
+<span class="giallo-l"><span>   │                 │</span></span>
+<span class="giallo-l"><span>   │ still failing   │ success</span></span>
+<span class="giallo-l"><span>   │ (same or new    │</span></span>
+<span class="giallo-l"><span>   │  error)         │</span></span>
+<span class="giallo-l"><span>   ▼                 ▼</span></span>
+<span class="giallo-l"><span>no new alert       recovered</span></span></code></pre>
+<p>A changed error doesn't trigger a fresh notification; the status page
+simply reflects the latest error. In the vast majority of cases we've
+seen, a task that keeps failing fails with a slightly different error
+message each time. A rate-limited request includes the current time in
+the message, for example, so the error is never exactly the same
+twice. Treating a changed error as a fresh alert would mean a
+notification for every retry, which is the spam we're trying to avoid
+in the first place.</p>
+<p>Currently the built-in notifier is Slack because that's what we use.
+The notifier configuration is an enum and can be extended with
+additional notification mechanisms.</p>
+<p><img src="/images/posts/job-watcher/task_failure_slack_alert.png" alt="Slack alert on task failure" /></p>
+<p>Recovery notifications are sent separately:</p>
+<p><img src="/images/posts/job-watcher/task_recover_slack_alert.png" alt="Slack alert on task recovery" /></p>
+<h2 id="comparison-with-prometheus">Comparison with Prometheus</h2>
+<p>This is probably the question I get asked most often.</p>
+<p>There is certainly overlap. Prometheus can monitor jobs, alert on
+failures, and integrate with Slack and other notification systems. I
+don't think <code>job-watcher</code> replaces Prometheus.</p>
+<p>For me, the difference comes down to where the knowledge about the job
+lives. Prometheus observes the metrics that an application exposes;
+<code>job-watcher</code> is the component actually running the background jobs.</p>
+<p>With Prometheus, you can expose metrics for all of this, but you have
+to build the instrumentation and the alerting semantics yourself. For
+a Rust application with background jobs, having the
+component that runs the jobs also track that lifecycle is often
+simpler.</p>
+<p>The trade-off looks roughly like this:</p>
+<table><thead><tr><th></th><th>job-watcher</th><th>Prometheus + Alertmanager</th></tr></thead><tbody>
+<tr><td>Where it runs</td><td>Embedded in the Rust application</td><td>Separate monitoring services</td></tr>
+<tr><td>What it knows</td><td>Task lifecycle and execution state</td><td>Metrics exposed by applications</td></tr>
+<tr><td>Alert logic</td><td>Built-in task state machine</td><td>PromQL-based alerting rules</td></tr>
+<tr><td>History</td><td>Current state and process-lifetime counters</td><td>Long-term time-series data</td></tr>
+<tr><td>Alert channels</td><td>Slack currently</td><td>Many receivers</td></tr>
+<tr><td>Status page</td><td>Built-in</td><td>Usually Grafana/Alertmanager</td></tr>
+<tr><td>Additional infrastructure</td><td>None to deploy for the watcher itself</td><td>Monitoring stack to operate</td></tr>
+</tbody></table>
+<p>If the entire <code>job-watcher</code> process dies, it can't report its own
+death. That's not unique to this library; Prometheus can't either.
+Someone has to watch the watchmen, and for job-watcher that someone
+is an external service polling <code>/status</code> and <code>/healthz</code>. That's why I
+see the two approaches as complementary.</p>
+<p>Prometheus is useful when you need long-term metrics, cross-service
+correlation, dashboards, or sophisticated alerting. <code>job-watcher</code> is
+useful when you want a background job to own its own execution state
+and expose that state directly.</p>
+<h2 id="production-usage">Production usage</h2>
+<p>We couple <code>job-watcher</code> with Cloudflare health checks, as previewed
+in the <a href="https://psibi.in/posts/job-watcher/#the-status-page">status page section</a>.
+Do note that standalone Cloudflare Health Checks require a Pro or
+higher plan.</p>
+<p>The architecture is deliberately simple:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>                ┌─────────────────┐</span></span>
+<span class="giallo-l"><span>                │ background jobs │</span></span>
+<span class="giallo-l"><span>                └────────┬────────┘</span></span>
+<span class="giallo-l"><span>                         │</span></span>
+<span class="giallo-l"><span>                         ▼</span></span>
+<span class="giallo-l"><span>                  ┌─────────────┐</span></span>
+<span class="giallo-l"><span>                  │ job-watcher │</span></span>
+<span class="giallo-l"><span>                  └──────┬──────┘</span></span>
+<span class="giallo-l"><span>                         │</span></span>
+<span class="giallo-l"><span>                      /status</span></span>
+<span class="giallo-l"><span>                         │</span></span>
+<span class="giallo-l"><span>                         ▼</span></span>
+<span class="giallo-l"><span>                  ┌─────────────┐</span></span>
+<span class="giallo-l"><span>                  │  Cloudflare │</span></span>
+<span class="giallo-l"><span>                  │ health check│</span></span>
+<span class="giallo-l"><span>                  └──────┬──────┘</span></span>
+<span class="giallo-l"><span>                         │</span></span>
+<span class="giallo-l"><span>                  ┌──────┴──────┐</span></span>
+<span class="giallo-l"><span>                  ▼             ▼</span></span>
+<span class="giallo-l"><span>                Slack       PagerDuty</span></span></code></pre>
+<p>As described in the status page section, <code>/status</code> returns a 500 the
+moment any task is in an alerting state. The Cloudflare health check
+polls the status page every 60 seconds and only accepts <code>2xx</code>
+responses, so it flips to "unhealthy" exactly when one of our jobs is
+failing. We also configure it to expect the text "Status" in the
+response body, so we can be sure we're talking to the actual status
+page and not some other endpoint on the domain.</p>
+<p>The health check settings give us debouncing for free. We require
+three consecutive failed checks before Cloudflare treats the endpoint
+as unhealthy, so with a 60 second interval it has to observe roughly
+three minutes of sustained failure before anything fires, which
+filters out transient blips. And we configure the notification policy
+to fire on both the unhealthy and the healthy transitions, so we get
+notified not only when a job goes down but also when it recovers,
+mirroring the <code>Recovered</code> alert that <code>job-watcher</code> itself knows about.</p>
+<p>You might notice that a single failure can produce two Slack
+notifications: one from <code>job-watcher</code> directly, and one via
+Cloudflare. That's intentional, and the two paths serve different
+operational purposes.</p>
+<p>The <code>job-watcher</code> notification fires immediately when a task starts
+failing, carries the actual error message, and also fires on
+recovery. The Cloudflare path is delayed and debounced: it only fires
+after roughly three minutes of sustained unhealthy responses, it
+checks the service from the outside and so also catches problems
+<code>job-watcher</code> can't report on, like the whole process being down or
+unreachable, and it's the path that reaches PagerDuty.</p>
+<h2 id="where-job-watcher-fits">Where <code>job-watcher</code> fits</h2>
+<p>I don't think this is a universal replacement for a monitoring stack.</p>
+<p>If you have dozens of services, need months of historical metrics,
+want to correlate failures across systems, or need sophisticated alert
+routing, Prometheus and Alertmanager (or another dedicated monitoring
+system) are much better suited to that problem.</p>
+<p>But if you have a Rust application running important background jobs,
+having the component that runs them also track their operational state
+is often the better trade-off.</p>
+<p>It's a small library rather than another service to deploy. When I
+register a task:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span>builder</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">watch_periodic</span><span>(</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    TaskLabel</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>(</span><span style="color: #032F62;">&quot;indexer&quot;</span><span>),</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Indexer</span><span>,</span></span>
+<span class="giallo-l"><span>)</span><span style="color: #D73A49;">?</span><span>;</span></span></code></pre>
+<p>I don't need to think about retries, timeouts, status reporting, or
+alerts; the watcher handles all of that:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>                 ┌──────────────────────┐</span></span>
+<span class="giallo-l"><span>                 │       job code       │</span></span>
+<span class="giallo-l"><span>                 └──────────┬───────────┘</span></span>
+<span class="giallo-l"><span>                            │</span></span>
+<span class="giallo-l"><span>                            ▼</span></span>
+<span class="giallo-l"><span>                 ┌──────────────────────┐</span></span>
+<span class="giallo-l"><span>                 │     job-watcher      │</span></span>
+<span class="giallo-l"><span>                 │                      │</span></span>
+<span class="giallo-l"><span>                 │ retries              │</span></span>
+<span class="giallo-l"><span>                 │ execution state      │</span></span>
+<span class="giallo-l"><span>                 │ timeout              │</span></span>
+<span class="giallo-l"><span>                 │ heartbeat            │</span></span>
+<span class="giallo-l"><span>                 │ result               │</span></span>
+<span class="giallo-l"><span>                 │ alert state          │</span></span>
+<span class="giallo-l"><span>                 └──────────┬───────────┘</span></span>
+<span class="giallo-l"><span>                            │</span></span>
+<span class="giallo-l"><span>                 ┌──────────┴──────────┐</span></span>
+<span class="giallo-l"><span>                 ▼                     ▼</span></span>
+<span class="giallo-l"><span>              /status                Slack</span></span>
+<span class="giallo-l"><span>                 │</span></span>
+<span class="giallo-l"><span>                 ▼</span></span>
+<span class="giallo-l"><span>          external health</span></span>
+<span class="giallo-l"><span>             checking</span></span></code></pre>
+<p>That's the abstraction I've found useful across different applications
+and clients. The alternative is to implement pieces of this separately
+in every service: a timer here, a retry loop there, a Prometheus gauge
+somewhere else, an alerting rule, and some custom status endpoint.
+Individually, none of that is particularly hard. You just end up
+writing it over and over. At its core, <code>job-watcher</code> gives an
+application one clear answer:</p>
+<blockquote>
+<p><strong>Are my background jobs running, succeeding, and making progress?</strong></p>
+</blockquote>
+<p>Because that answer is exposed over HTTP, you can hook it up to
+whatever monitoring setup you prefer.</p>
+<p>One thing I'd like to explore is exposing an optional
+Prometheus-style metrics endpoint from <code>job-watcher</code> and seeing how it
+works in practice. It would let us feed the task state into Prometheus
+without giving up the parts of the design that work well.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;job-watcher&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;job-watcher&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[4].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>
