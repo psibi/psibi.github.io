@@ -5,15 +5,16 @@ updated = 2026-08-28
 path = "about.html"
 +++
 
-I enjoy turning difficult technical problems into systems that work in the
-real world.
+<span class="heading-label">Origin, Hobbies and Interests</span>
 
-I work primarily with [Rust](https://www.rust-lang.org) and
-[Haskell](https://www.haskell.org), and I'm particularly interested in
-distributed systems, cloud infrastructure, blockchain, protocol design, and
-functional programming. I like working on problems where the boundaries
-between architecture, implementation, and operations aren't especially
-clear, and where getting the details right matters.
+I'm originally from **Tuticorin** and spent much of my childhood in
+**Lucknow**. I currently live in **Bangalore** with my wife,
+[Divya](http://psibi.in/divya).
+
+Outside of programming, I'm an avid **Ruskin Bond** reader and enjoy
+**A. R. Rahman's** music. I also spend a fair amount of time
+[tinkering](/projects.html) with things, which sometimes turns into software
+projects.
 
 <span class="heading-label">Work</span>
 
@@ -68,17 +69,6 @@ ecosystems**. Some of the projects I've worked on include
 [Rustic](https://github.com/emacs-rustic/rustic), and various Haskell
 libraries and tools. I also contribute to NixOS packages and other projects
 that I use in my own development.
-
-<span class="heading-label">Outside of Software</span>
-
-I'm originally from **Tuticorin** and spent much of my childhood in
-**Lucknow**. I currently live in **Bangalore** with my wife,
-[Divya](http://psibi.in/divya).
-
-Outside of programming, I'm an avid **Ruskin Bond** reader and enjoy
-**A. R. Rahman's** music. I also spend a fair amount of time
-[tinkering](/projects.html) with things, which sometimes turns into software
-projects.
 
 <span class="heading-label">Elsewhere</span>
 
