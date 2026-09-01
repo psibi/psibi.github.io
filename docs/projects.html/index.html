@@ -92,6 +92,26 @@
     <a href="https://psibi.in/federal-cc-parser/" target="_blank" rel="noopener noreferrer">Web App</a>
   </div>
 </div>
+<div class="project-card">
+  <h2>Devops Tools</h2>
+  <p>I maintain these projects as part of the <a href="https://github.com/veloxwarp" target="_blank" rel="noopener noreferrer">veloxwarp</a> organization, where I'm a maintainer and core contributor.</p>
+  <div class="sub-project">
+    <h3><a href="https://github.com/veloxwarp/health-check" target="_blank" rel="noopener noreferrer">health-check</a></h3>
+    <p>A health check executable that checks for common server failure modes and sends out notifications to Slack. It is designed to be used as the entrypoint in a Docker container and includes <code>pid1</code> integration for proper signal handling and cleanup of resources.</p>
+  </div>
+  <div class="sub-project">
+    <h3><a href="https://github.com/veloxwarp/amber" target="_blank" rel="noopener noreferrer">amber</a></h3>
+    <p>A tool for managing encrypted secrets in version control using public-key cryptography. Secrets are stored in a plain-text YAML file, which keeps diffs minimal, and the primary use case is storing secret values for CI systems.</p>
+  </div>
+  <div class="sub-project">
+    <h3><a href="https://github.com/veloxwarp/pid1-rs" target="_blank" rel="noopener noreferrer">pid1-rs</a></h3>
+    <p>A Rust library and binary for correct PID 1 signal handling and zombie process reaping in containerized environments. It forwards signals like <code>SIGTERM</code> to child processes for graceful shutdown and reaps orphaned processes. Available on <strong>crates.io</strong> as <code>pid1</code> and <code>pid1-exe</code>.</p>
+  </div>
+  <div class="sub-project">
+    <h3><a href="https://github.com/veloxwarp/job-watcher" target="_blank" rel="noopener noreferrer">job-watcher</a></h3>
+    <p>A Rust library for running and monitoring periodic background tasks. It handles retries, timeouts, heartbeats, and alerting, and exposes a web-based status page. I wrote about its design and production usage in <a href="https://psibi.in/posts/job-watcher/" target="_blank" rel="noopener noreferrer">this blog post</a>.</p>
+  </div>
+</div>
 
     </div>
 </article>
