@@ -20,24 +20,22 @@ projects.
 
 I currently work as a **Principal Engineer at
 [FP Complete / FP Block](https://www.fpblock.com)**, where I've spent the last several
-years working across a variety of engineering engagements. My work has ranged
-from designing and building cloud infrastructure and distributed systems to
-developing blockchain and DeFi protocols and working on security related
-projects.
+years on a variety of engineering engagements. My work spans cloud
+infrastructure, distributed systems, blockchain, DeFi protocols, and
+security.
 
-A large part of my work involves helping teams solve difficult technical
-problems: understanding the problem, figuring out the right architecture, and
-then working alongside the team to build and ship it. I enjoy the combination
-of technical depth and breadth that comes from working on different systems
-and with different teams.
+A large part of my work is helping teams solve difficult technical
+problems: understand the problem, settle the right architecture, then work
+alongside the team to build and ship. I enjoy work that combines technical
+depth with breadth across different systems and teams.
 
-Before FP Complete, I worked at **Pneuma Innovations**, where I led a team
-building an inventory management system for quick service restaurants. Before
+Before FP Complete, I worked at **Pneuma Innovations**, leading a team that
+built an inventory management system for quick service restaurants. Before
 that, I was the **first engineering hire at Inkmonk**, working across the
 application stack and infrastructure.
 
-I started my career at **TCS R&D Labs at IIT Madras Research Park**, where I
-worked on GIS systems for simulating traffic conditions in large cities.
+I started my career at **TCS R&D Labs at IIT Madras Research Park**, working
+on GIS systems for simulating traffic conditions in large cities.
 
 <span class="heading-label">Current Focus</span>
 
