@@ -55,6 +55,11 @@ Here are some of the open-source projects and tools I've built.
     <a href="https://github.com/psibi/federal-cc-parser" target="_blank" rel="noopener noreferrer">CLI Source</a> |
     <a href="https://psibi.in/federal-cc-parser/" target="_blank" rel="noopener noreferrer">Web App</a>
   </div>
+
+  <div class="sub-project">
+    <h3><a href="https://github.com/psibi/gst" target="_blank" rel="noopener noreferrer">gst</a></h3>
+    <p>A GST tax invoice generator built with <a href="https://leptos.dev" target="_blank" rel="noopener noreferrer">Leptos</a> and compiled to WebAssembly. Everything runs client-side, so invoice data never leaves the browser. It supports automatic invoice numbering, persists your seller profile in local storage, and can print the invoice, save it as a PDF, or export it as a standalone HTML file. It's available at <a href="https://psibi.in/gst/" target="_blank" rel="noopener noreferrer">psibi.in/gst</a>.</p>
+  </div>
 </div>
 
 <div class="project-card">
