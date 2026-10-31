@@ -29,6 +29,7 @@
                 <a href="/about.html" class="nav-link">About</a>
                 <a href="/contact.html" class="nav-link">Contact</a>
                 <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/read.html" class="nav-link">Reading</a>
                 <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -90,6 +91,10 @@
     <strong>Scapia Federal Bank Card</strong> —
     <a href="https://github.com/psibi/federal-cc-parser" target="_blank" rel="noopener noreferrer">CLI Source</a> |
     <a href="https://psibi.in/federal-cc-parser/" target="_blank" rel="noopener noreferrer">Web App</a>
+  </div>
+  <div class="sub-project">
+    <h3><a href="https://github.com/psibi/gst" target="_blank" rel="noopener noreferrer">gst</a></h3>
+    <p>A GST tax invoice generator built with <a href="https://leptos.dev" target="_blank" rel="noopener noreferrer">Leptos</a> and compiled to WebAssembly. Everything runs client-side, so invoice data never leaves the browser. It supports automatic invoice numbering, persists your seller profile in local storage, and can print the invoice, save it as a PDF, or export it as a standalone HTML file. It's available at <a href="https://psibi.in/gst/" target="_blank" rel="noopener noreferrer">psibi.in/gst</a>.</p>
   </div>
 </div>
 <div class="project-card">
@@ -153,8 +158,10 @@
                 links[2].classList.add('active');
             } else if (path.startsWith('/posts')) {
                 links[3].classList.add('active');
-            } else if (path.startsWith('/search')) {
+            } else if (path.startsWith('/read')) {
                 links[4].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[5].classList.add('active');
             }
         })();
     </script>

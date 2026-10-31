@@ -29,6 +29,7 @@
                 <a href="/about.html" class="nav-link">About</a>
                 <a href="/contact.html" class="nav-link">Contact</a>
                 <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/read.html" class="nav-link">Reading</a>
                 <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -166,8 +167,10 @@ tree-sitter utilities.</p>
                 links[2].classList.add('active');
             } else if (path.startsWith('/posts')) {
                 links[3].classList.add('active');
-            } else if (path.startsWith('/search')) {
+            } else if (path.startsWith('/read')) {
                 links[4].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[5].classList.add('active');
             }
         })();
     </script>
