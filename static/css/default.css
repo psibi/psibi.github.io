@@ -398,6 +398,20 @@ pre.giallo span, pre.giallo code {
     margin: 0;
 }
 
+/* ===== Reading Page ===== */
+.reading-list .sub-project h3 a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(37, 99, 235, 0.45);
+}
+
+.reading-list .sub-project h3 a:hover {
+    color: var(--accent-hover);
+    text-decoration-color: var(--accent-hover);
+}
+
 /* ===== Article (post/page) ===== */
 .article-header {
     margin-bottom: 2rem;
