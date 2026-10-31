@@ -14,7 +14,7 @@ tags = ["rust", "aws", "security"]
 Credstash is a cli utility for managing credentials securely in AWS
 cloud. It uses a combination of AWS Key Management Service (KMS) and
 DynamoDB to achieve it. One of my co-worker has written a more
-[detailed tutorial](https://www.fpcomplete.com/blog/2017/08/credstash)
+[detailed tutorial](https://web.archive.org/web/20230529092524/https://www.fpcomplete.com/blog/2017/08/credstash)
 here. The original tool was written by a company named
 [Fugue](https://github.com/fugue/credstash) in Python. It has been
 implemented in [various
@@ -230,11 +230,11 @@ page:
 That being said, I should note that Rust and Haskell are different
 languages with different trade offs. It would be unfair to compare
 them on a purely language basis. (Although I feel this [blog
-post](https://www.fpcomplete.com/blog/2018/11/haskell-and-rust/) does
+post](https://web.archive.org/web/20230529095135/https://www.fpcomplete.com/blog/2018/11/haskell-and-rust/) does
 a nice job of comparing them!). One part of the Rust language which
 I'm starting to prefer is error handling. It's much easier to
 understand than Haskell's exception mechanism. Doing safe [exception
-handling](https://www.fpcomplete.com/haskell/tutorial/exceptions/) in
+handling](https://web.archive.org/web/20240520062332/https://www.fpcomplete.com/haskell/tutorial/exceptions/) in
 Haskell isn't easy and with the presence of async exceptions things
 get more complicated. You don't have to deal with such issues in Rust
 as errors are modeled via enum type and you can use the `?` operator

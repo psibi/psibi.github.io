@@ -19,7 +19,7 @@ projects.
 <span class="heading-label">Work</span>
 
 I currently work as a **Principal Engineer at
-[FP Complete / FP Block](https://www.fpblock.com)**, where I've spent the last several
+[FP Complete / FP Block](https://github.com/fpco)**, where I've spent the last several
 years on a variety of engineering engagements. My work spans cloud
 infrastructure, distributed systems, blockchain, DeFi protocols, and
 security.

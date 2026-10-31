@@ -78,7 +78,7 @@ observed that it was too slow. This post will demonstrate the steps
 involved in finding out why it is slow and operating on that data to
 see if we can improve the performance. The first step to determine why
 something is slow is by adding benchmarks to it. I decided to use the
-[gauge library](https://tech.fpcomplete.com/haskell/library/gauge) to
+[gauge library](https://web.archive.org/web/20250217014533/https://tech.fpcomplete.com/haskell/library/gauge/) to
 perform the analysis.
 
 I added two different benchmarks using the above function `fakePerson`
