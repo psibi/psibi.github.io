@@ -211,6 +211,16 @@ pre.giallo span, pre.giallo code {
     background: #eff6ff;
 }
 
+.search-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-link svg {
+    display: block;
+}
+
 /* ===== Content ===== */
 .site-content {
     max-width: var(--content-width);
