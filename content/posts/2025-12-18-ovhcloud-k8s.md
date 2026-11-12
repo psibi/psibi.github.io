@@ -10,6 +10,8 @@ tags = ["devops", "kubernetes", "k3s", "ovhcloud", "bare-metal"]
 +++
 
 > **Mirrored from FP Complete.** The original FP Complete site is no longer available, so this post is mirrored here. [Read the archived original on the Wayback Machine](https://web.archive.org/web/20260607110150/https://academy.fpblock.com/blog/ovhcloud-k8s/).
+>
+> There's also a discussion about this post on [Reddit](https://www.reddit.com/r/kubernetes/comments/1ppmtzg/is_bare_metal_kubernetes_worth_the_effort_an/).
 
 At FP Block, we are always looking for ways to optimize and improve our
 deployment processes. For both our internal projects and our clients, we
