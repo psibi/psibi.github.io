@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reflections on Haskell and Rust — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/read.html" class="nav-link">Reading</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Reflections on Haskell and Rust</h1>
+        <span class="article-date">June 30, 2025</span>
+        
+        <div class="article-tags">
+            
+            <a href="https://psibi.in/tags/rust/" class="tag">rust</a>
+            
+            <a href="https://psibi.in/tags/haskell/" class="tag">haskell</a>
+            
+        </div>
+        
+    </header>
+
+    <div class="article-body">
+        <blockquote>
+<p><strong>Mirrored from FP Complete.</strong> The original FP Complete site is no longer available, so this post is mirrored here. <a rel="external" href="https://web.archive.org/web/20260723202819/https://academy.fpblock.com/blog/rust-haskell-reflections/">Read the archived original on the Wayback Machine</a>.</p>
+</blockquote>
+<h2 id="introduction">Introduction</h2>
+<p>For most of my professional experience, I have been writing production
+code in both Haskell and Rust, primarily focusing on web services,
+APIs, and HTTP stack development. My journey started with Haskell,
+followed by working with Rust, and most recently returning to the
+Haskell ecosystem.</p>
+<p>This experience has given me perspective on both languages' strengths
+and limitations in real-world applications. Each language has aspects
+that I appreciate and miss when working with the other. This post
+examines the features and characteristics that stand out to me in each
+language.</p>
+<h2 id="variable-shadowing">Variable shadowing</h2>
+<p>Rust's ability to shadow variables seamlessly is something I came to
+appreciate. In Rust, you can write:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">let</span><span> config</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> load_config</span><span>();</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">let</span><span> config</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> validate_config</span><span>(config)</span><span style="color: #D73A49;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">let</span><span> config</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> merge_defaults</span><span>(config);</span></span></code></pre>
+<p>This pattern is common and encouraged in Rust, making code more
+readable by avoiding the need for intermediate variable names. In
+Haskell, you would typically need different names:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span>config </span><span style="color: #D73A49;">&lt;-</span><span> loadConfig</span></span>
+<span class="giallo-l"><span>config&#39; </span><span style="color: #D73A49;">&lt;-</span><span> validateConfig config</span></span>
+<span class="giallo-l"><span>config&#39;&#39; </span><span style="color: #D73A49;">&lt;-</span><span> mergeDefaults config&#39;</span></span></code></pre>
+<p>Haskell's approach is slightly harder to read, while Rust's shadowing
+makes transformation pipelines more natural.</p>
+<h2 id="sum-types-of-records">Sum types of records</h2>
+<p>Rust's enum system, particularly when combined with pattern matching,
+feels more robust than Haskell's sum types of records. When defining
+sum types of records in Haskell, there is a possibility of introducing
+partial record accessors which can cause runtime crashes, though
+recent versions of GHC now produce compile-time warnings for this
+pattern:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">data Person =</span><span style="color: #005CC5;"> Student</span><span> { name</span><span style="color: #D73A49;"> :: String</span><span>, university</span><span style="color: #D73A49;"> :: String</span><span> }</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">            |</span><span style="color: #005CC5;"> Worker</span><span> { name</span><span style="color: #D73A49;"> :: String</span><span>, company</span><span style="color: #D73A49;"> :: String</span><span> }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- This can crash if applied to a Student</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">getCompany</span><span style="color: #D73A49;"> :: Person -&gt; String</span></span>
+<span class="giallo-l"><span>getCompany p </span><span style="color: #D73A49;">=</span><span> company p  </span><span style="color: #6A737D;">-- runtime error for Student</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- Safe approach requires pattern matching</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">getCompany</span><span style="color: #D73A49;"> :: Person -&gt; Maybe String</span></span>
+<span class="giallo-l"><span>getCompany (</span><span style="color: #005CC5;">Worker</span><span> _ c)</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> Just</span><span> c</span></span>
+<span class="giallo-l"><span>getCompany (</span><span style="color: #005CC5;">Student</span><span> _ _)</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> Nothing</span></span></code></pre>
+<p>Rust eliminates this class of errors by design:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">enum</span><span style="color: #6F42C1;"> Person</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Student</span><span> { name</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>, university</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span> },</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Worker</span><span> { name</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>, company</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span> },</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> get_company</span><span>(person</span><span style="color: #D73A49;">: &amp;</span><span style="color: #6F42C1;">Person</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Option</span><span>&lt;</span><span style="color: #D73A49;">&amp;</span><span style="color: #6F42C1;">str</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    match</span><span> person {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        Person</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Worker</span><span> { company,</span><span style="color: #D73A49;"> ..</span><span> }</span><span style="color: #D73A49;"> =&gt;</span><span style="color: #6F42C1;"> Some</span><span>(company),</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        Person</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Student</span><span> {</span><span style="color: #D73A49;"> ..</span><span> }</span><span style="color: #D73A49;"> =&gt;</span><span style="color: #6F42C1;"> None</span><span>,</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre><h2 id="enum-variant-namespacing">Enum variant namespacing</h2>
+<p>Rust allows multiple enum types to have the same variant names within
+the same module, while Haskell's constructor names must be unique
+within their scope. This leads to different patterns in the two
+languages.</p>
+<p>In Rust, you can define:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">enum</span><span style="color: #6F42C1;"> HttpStatus</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Success</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Error</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">enum</span><span style="color: #6F42C1;"> DatabaseOperation</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Success</span><span>,</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Error</span><span>,</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">// Usage is clear due to explicit namespacing</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> handle_request</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> http_result</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> HttpStatus</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Success</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> db_result</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> DatabaseOperation</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Error</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>The same approach in Haskell would cause a compile error:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- This won&#39;t compile - duplicate constructor names</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">data HttpStatus =</span><span style="color: #005CC5;"> Success</span><span style="color: #D73A49;"> |</span><span style="color: #005CC5;"> Error</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">data DatabaseOperation =</span><span style="color: #005CC5;"> Success</span><span style="color: #D73A49;"> |</span><span style="color: #005CC5;"> Error</span><span style="color: #6A737D;">  -- Error: duplicate constructors</span></span></code></pre>
+<p>In Haskell, you need unique constructor names:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">data HttpStatus =</span><span style="color: #005CC5;"> HttpSuccess</span><span style="color: #D73A49;"> |</span><span style="color: #005CC5;"> HttpError</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">data DatabaseOperation =</span><span style="color: #005CC5;"> DbSuccess</span><span style="color: #D73A49;"> |</span><span style="color: #005CC5;"> DbError</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- Usage</span></span>
+<span class="giallo-l"><span>handleRequest </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> httpResult </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> HttpSuccess</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> dbResult </span><span style="color: #D73A49;">=</span><span style="color: #005CC5;"> DbError</span></span></code></pre>
+<p>Alternatively, Haskell developers often use qualified imports syntax
+to achieve similar namespacing:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- Using modules for namespacing</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">module</span><span style="color: #6F42C1;"> Http</span><span style="color: #D73A49;"> where</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">data Status =</span><span style="color: #005CC5;"> Success</span><span style="color: #D73A49;"> |</span><span style="color: #005CC5;"> Error</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">module</span><span style="color: #6F42C1;"> Database</span><span style="color: #D73A49;"> where</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">data Operation =</span><span style="color: #005CC5;"> Success</span><span style="color: #D73A49;"> |</span><span style="color: #005CC5;"> Error</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- Usage with qualified imports</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import qualified</span><span style="color: #6F42C1;"> Http</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import qualified</span><span style="color: #6F42C1;"> Database</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>handleRequest </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> httpResult </span><span style="color: #D73A49;">=</span><span style="color: #6F42C1;"> Http.</span><span style="color: #005CC5;">Success</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> dbResult </span><span style="color: #D73A49;">=</span><span style="color: #6F42C1;"> Database.</span><span style="color: #005CC5;">Error</span></span></code></pre>
+<p>The <code>Typename::Variant</code> syntax in Rust makes the intent clearer at the
+usage site. You immediately know which enum type you're working with,
+while Haskell's approach can sometimes require additional context or
+prefixing to achieve the same clarity.</p>
+<h2 id="struct-field-visibility">Struct field visibility</h2>
+<p>Rust provides granular visibility control for struct fields, allowing
+you to expose only specific fields while keeping others private. This
+fine-grained control is built into the language:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">pub struct</span><span style="color: #6F42C1;"> User</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub</span><span> name</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;">        // publicly accessible</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub</span><span> email</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;">       // publicly accessible</span></span>
+<span class="giallo-l"><span>    created_at</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> DateTime</span><span>,</span><span style="color: #6A737D;">    // private field</span></span>
+<span class="giallo-l"><span>    password_hash</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;">   // private field</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">impl</span><span style="color: #6F42C1;"> User</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub fn</span><span style="color: #6F42C1;"> new</span><span>(name</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>, email</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>, password</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #005CC5;"> Self</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        User</span><span> {</span></span>
+<span class="giallo-l"><span>            name,</span></span>
+<span class="giallo-l"><span>            email,</span></span>
+<span class="giallo-l"><span>            created_at</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> Utc</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">now</span><span>(),</span></span>
+<span class="giallo-l"><span>            password_hash</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> hash_password</span><span>(password),</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Controlled access to private field</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub fn</span><span style="color: #6F42C1;"> created_at</span><span>(</span><span style="color: #D73A49;">&amp;</span><span style="color: #005CC5;">self</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> DateTime</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">        self</span><span style="color: #D73A49;">.</span><span>created_at</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Rust offers even more granular visibility control beyond simple <code>pub</code>
+and private fields. You can specify exactly where a field should be
+accessible:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">pub struct</span><span style="color: #6F42C1;"> Config</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub</span><span> name</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;">              // accessible everywhere</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub</span><span>(</span><span style="color: #D73A49;">crate</span><span>) internal_id</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> u64</span><span>,</span><span style="color: #6A737D;">   // accessible within this crate only</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub</span><span>(</span><span style="color: #005CC5;">super</span><span>) parent_ref</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;"> // accessible to parent module only</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    pub</span><span>(</span><span style="color: #D73A49;">in crate::</span><span>utils) debug_info</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;"> // accessible within utils module only</span></span>
+<span class="giallo-l"><span>    private_key</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> String</span><span>,</span><span style="color: #6A737D;">           // private to this module</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>These granular visibility modifiers (<code>pub(crate)</code>, <code>pub(super)</code>,
+<code>pub(in path)</code>) allow you to create sophisticated access patterns that
+match your module hierarchy and architectural boundaries. Some of
+these patterns are simply not possible to replicate in Haskell's
+module system.</p>
+<p>In Haskell, record field visibility is controlled at the type level,
+not the field level. This means you typically either export all of a
+record's fields at once (using <code>..</code>) or none of them. To achieve
+similar granular control, you need to use more awkward patterns:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- All fields exported - no control</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">module</span><span style="color: #6F42C1;"> User</span></span>
+<span class="giallo-l"><span>  (</span><span style="color: #D73A49;"> User</span><span>(..)</span><span style="color: #6A737D;">  -- exports User constructor and all fields</span></span>
+<span class="giallo-l"><span>  )</span><span style="color: #D73A49;"> where</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">data User =</span><span style="color: #005CC5;"> User</span></span>
+<span class="giallo-l"><span>  { name</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>  , email</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>  , createdAt</span><span style="color: #D73A49;"> :: UTCTime</span></span>
+<span class="giallo-l"><span>  , passwordHash</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- Or no fields exported, requiring accessor functions</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">module</span><span style="color: #6F42C1;"> User</span></span>
+<span class="giallo-l"><span>  (</span><span style="color: #D73A49;"> User</span><span style="color: #6A737D;">        -- only type constructor exported</span></span>
+<span class="giallo-l"><span>  ,</span><span style="color: #6F42C1;"> mkUser</span><span style="color: #6A737D;">      -- smart constructor</span></span>
+<span class="giallo-l"><span>  ,</span><span style="color: #6F42C1;"> userName</span><span style="color: #6A737D;">    -- accessor for name</span></span>
+<span class="giallo-l"><span>  ,</span><span style="color: #6F42C1;"> userEmail</span><span style="color: #6A737D;">   -- accessor for email</span></span>
+<span class="giallo-l"><span>  ,</span><span style="color: #6F42C1;"> userCreatedAt</span><span style="color: #6A737D;"> -- accessor for createdAt</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  -- passwordHash intentionally not exported</span></span>
+<span class="giallo-l"><span>  )</span><span style="color: #D73A49;"> where</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">data User =</span><span style="color: #005CC5;"> User</span></span>
+<span class="giallo-l"><span>  { name</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>  , email</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>  , createdAt</span><span style="color: #D73A49;"> :: UTCTime</span></span>
+<span class="giallo-l"><span>  , passwordHash</span><span style="color: #D73A49;"> :: String</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">mkUser</span><span style="color: #D73A49;"> :: String -&gt; String -&gt; String -&gt; IO User</span></span>
+<span class="giallo-l"><span>mkUser name email password </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span>  now </span><span style="color: #D73A49;">&lt;-</span><span> getCurrentTime</span></span>
+<span class="giallo-l"><span>  hash </span><span style="color: #D73A49;">&lt;-</span><span> hashPassword password</span></span>
+<span class="giallo-l"><span>  return </span><span style="color: #D73A49;">$</span><span style="color: #005CC5;"> User</span><span> name email now hash</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">userName</span><span style="color: #D73A49;"> :: User -&gt; String</span></span>
+<span class="giallo-l"><span>userName </span><span style="color: #D73A49;">=</span><span> name</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">userEmail</span><span style="color: #D73A49;"> :: User -&gt; String</span></span>
+<span class="giallo-l"><span>userEmail </span><span style="color: #D73A49;">=</span><span> email</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">userCreatedAt</span><span style="color: #D73A49;"> :: User -&gt; UTCTime</span></span>
+<span class="giallo-l"><span>userCreatedAt </span><span style="color: #D73A49;">=</span><span> createdAt</span></span></code></pre>
+<p>The Haskell approach requires writing boilerplate accessor functions
+and losing the convenient record syntax for the fields you want to
+keep private. Rust's per-field visibility eliminates this awkwardness
+while maintaining the benefits of direct field access for public
+fields.</p>
+<h2 id="purity-and-referential-transparency">Purity and Referential Transparency</h2>
+<p>One of Haskell's most significant strengths is its commitment to
+purity. Pure functions, which have no side effects, are easier to
+reason about, test, and debug. Referential transparency—the principle
+that a function call can be replaced by its resulting value without
+changing the program's behavior—is a direct benefit of this purity.</p>
+<p>In Haskell, the type system explicitly tracks effects through monads
+like <code>IO</code>, making it clear which parts of the code interact with the
+outside world. This separation of pure and impure code is a powerful
+tool for building reliable software.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- Pure function: predictable and testable</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">add</span><span style="color: #D73A49;"> :: Int -&gt; Int -&gt; Int</span></span>
+<span class="giallo-l"><span>add x y </span><span style="color: #D73A49;">=</span><span> x </span><span style="color: #D73A49;">+</span><span> y</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- Impure action: clearly marked by the IO type</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">printAndAdd</span><span style="color: #D73A49;"> :: Int -&gt; Int -&gt; IO Int</span></span>
+<span class="giallo-l"><span>printAndAdd x y </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span>  putStrLn </span><span style="color: #032F62;">&quot;Adding numbers&quot;</span></span>
+<span class="giallo-l"><span>  return (x </span><span style="color: #D73A49;">+</span><span> y)</span></span></code></pre>
+<p>While Rust encourages a similar separation of concerns, it does not
+enforce it at the language level in the same way. A function in Rust
+can perform I/O or mutate state without any explicit indication in its
+type signature (beyond <code>&amp;mut</code> for mutable borrows). This means that
+while you <em>can</em> write pure functions in Rust, the language doesn't
+provide the same strong guarantees as Haskell.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #6A737D;">// This function looks pure, but isn&#39;t</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> add_and_print</span><span>(x</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> i32</span><span>, y</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> i32</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> i32</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    println!</span><span>(</span><span style="color: #032F62;">&quot;Adding numbers&quot;</span><span>);</span><span style="color: #6A737D;"> // side effect</span></span>
+<span class="giallo-l"><span>    x</span><span style="color: #D73A49;"> +</span><span> y</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>This lack of enforced purity in Rust means you lose some of the strong
+reasoning and refactoring guarantees that are a hallmark of Haskell
+development.</p>
+<h2 id="error-handling">Error handling</h2>
+<p>Rust's explicit error handling through <code>Result&lt;T, E&gt;</code> removes the
+cognitive overhead of exceptions. Compare these approaches:</p>
+<p>Haskell (with potential exceptions):</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6F42C1;">parseConfig</span><span style="color: #D73A49;"> :: FilePath -&gt; IO Config</span></span>
+<span class="giallo-l"><span>parseConfig path </span><span style="color: #D73A49;">= do</span></span>
+<span class="giallo-l"><span>    content </span><span style="color: #D73A49;">&lt;-</span><span> readFile path  </span><span style="color: #6A737D;">-- can throw IOException</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    case</span><span> parseJSON content </span><span style="color: #D73A49;">of</span><span style="color: #6A737D;">  -- direct error handling</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">        Left</span><span> err </span><span style="color: #D73A49;">-&gt;</span><span> throwIO (</span><span style="color: #005CC5;">ConfigParseError</span><span> err)</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">        Right</span><span> config </span><span style="color: #D73A49;">-&gt;</span><span> return config</span></span></code></pre>
+<p>Rust (explicit throughout):</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> parse_config</span><span>(path</span><span style="color: #D73A49;">: &amp;</span><span style="color: #6F42C1;">str</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Result</span><span>&lt;</span><span style="color: #6F42C1;">Config</span><span>,</span><span style="color: #6F42C1;"> ConfigError</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> content</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> std</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">fs</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">read_to_string</span><span>(path)</span><span style="color: #D73A49;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span><span> config</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> serde_json</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">from_str</span><span>(</span><span style="color: #D73A49;">&amp;</span><span>content)</span><span style="color: #D73A49;">?</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    Ok</span><span>(config)</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>In Rust, the <code>?</code> operator makes error propagation clean while keeping
+the flow clear.</p>
+<h2 id="unit-tests-as-part-of-source-code">Unit tests as part of source code</h2>
+<p>Rust's built-in support for unit tests within the same file as the
+code being tested is convenient:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">fn</span><span style="color: #6F42C1;"> add</span><span>(a</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> i32</span><span>, b</span><span style="color: #D73A49;">:</span><span style="color: #6F42C1;"> i32</span><span>)</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> i32</span><span> {</span></span>
+<span class="giallo-l"><span>    a</span><span style="color: #D73A49;"> +</span><span> b</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>#[cfg(test)]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">mod</span><span style="color: #6F42C1;"> tests</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    use</span><span style="color: #005CC5;"> super</span><span style="color: #D73A49;">::*</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>    #[test]</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    fn</span><span style="color: #6F42C1;"> test_add</span><span>() {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        assert_eq!</span><span>(</span><span style="color: #6F42C1;">add</span><span>(</span><span style="color: #005CC5;">2</span><span>,</span><span style="color: #005CC5;"> 3</span><span>),</span><span style="color: #005CC5;"> 5</span><span>);</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>In Haskell, tests are typically in separate files:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- src/Math.hs</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">add</span><span style="color: #D73A49;"> :: Int -&gt; Int -&gt; Int</span></span>
+<span class="giallo-l"><span>add a b </span><span style="color: #D73A49;">=</span><span> a </span><span style="color: #D73A49;">+</span><span> b</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- test/MathSpec.hs</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Math</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">import</span><span style="color: #6F42C1;"> Test.Hspec</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">spec</span><span style="color: #D73A49;"> :: Spec</span></span>
+<span class="giallo-l"><span>spec </span><span style="color: #D73A49;">=</span><span> describe </span><span style="color: #032F62;">&quot;add&quot;</span><span style="color: #D73A49;"> $</span></span>
+<span class="giallo-l"><span>    it </span><span style="color: #032F62;">&quot;adds two numbers&quot;</span><span style="color: #D73A49;"> $</span></span>
+<span class="giallo-l"><span>        add </span><span style="color: #005CC5;">2 3</span><span style="color: #D73A49;"> `shouldBe`</span><span style="color: #005CC5;"> 5</span></span></code></pre>
+<p>Rust's co-location makes tests harder to forget and easier to
+maintain. Additionally, in Haskell you often need to export internal
+types and functions from your modules just to make them accessible for
+testing, which can pollute your public API.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- src/Parser.hs</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">module</span><span style="color: #6F42C1;"> Parser</span></span>
+<span class="giallo-l"><span>  (</span><span style="color: #6F42C1;"> parseConfig</span></span>
+<span class="giallo-l"><span>  ,</span><span style="color: #D73A49;"> InternalState</span><span>(..)</span><span style="color: #6A737D;">  -- exported only for testing</span></span>
+<span class="giallo-l"><span>  ,</span><span style="color: #6F42C1;"> validateToken</span><span style="color: #6A737D;">      -- exported only for testing</span></span>
+<span class="giallo-l"><span>  )</span><span style="color: #D73A49;"> where</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">data InternalState =</span><span style="color: #005CC5;"> InternalState</span><span> { ... }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">validateToken</span><span style="color: #D73A49;"> :: Token -&gt; Bool</span></span>
+<span class="giallo-l"><span>validateToken </span><span style="color: #D73A49;">= ...</span><span style="color: #6A737D;">  -- internal function we want to test</span></span></code></pre>
+<p>Rust's <code>#[cfg(test)]</code> attribute means test code has access to private
+functions and types without exposing them publicly.</p>
+<h2 id="standard-formatting">Standard formatting</h2>
+<p>Rust's <code>rustfmt</code> provides a standard formatting tool that the entire
+community has adopted:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> cargo fmt</span><span style="color: #6A737D;">  # formats entire project consistently</span></span></code></pre>
+<p>In Haskell, while we have excellent tools like <code>fourmolu</code> and
+<code>ormolu</code>, the lack of a single standard has led to configuration
+debates:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- Which style?</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">function</span><span style="color: #D73A49;"> :: Int -&gt; Int -&gt; Int -&gt; IO Int</span></span>
+<span class="giallo-l"><span>function arg1 arg2 arg3 </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span>    someComputation arg1 arg2 arg3</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">-- Or:</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">function</span><span style="color: #D73A49;"> ::</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">	   Int</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">	-&gt; Int</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">	-&gt; Int</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">	-&gt; IO Int</span></span>
+<span class="giallo-l"><span>function arg1 arg2 arg3 </span><span style="color: #D73A49;">=</span></span>
+<span class="giallo-l"><span>    someComputation arg1 arg2 arg3</span></span></code></pre>
+<p>I have witnessed significant time spent on style discussions when team
+members are reluctant to adopt formatting tools.</p>
+<h2 id="language-server-support">Language server support</h2>
+<p>While Haskell Language Server (HLS) has improved significantly, it
+still struggles with larger projects. Basic functionality like
+variable renaming can fail in certain scenarios, particularly in
+Template Haskell heavy codebases.</p>
+<p>rust-analyzer provides a more reliable experience across different
+project sizes, with features like "go to definition" working
+consistently even in large monorepos. One feature I'm particularly
+fond of is rust-analyzer's ability to jump into the definitions of
+standard library functions and external dependencies. This seamless
+navigation into library code is something I miss when using HLS, even
+on smaller projects, where such functionality is not <a rel="external" href="https://github.com/haskell/haskell-language-server/issues/708">currently</a>
+possible.</p>
+<p>Another feature I extensively use in rust-analyzer is the ability to
+run tests inline directly from the editor. This functionality is
+currently missing in HLS, though there is an <a rel="external" href="https://github.com/haskell/haskell-language-server/issues/3357">open issue</a> tracking
+this feature request.</p>
+<h2 id="compilation-time">Compilation time</h2>
+<p>Despite Rust's reputation for slow compilation, I've found it
+consistently faster than Haskell for equivalent services. The Rust
+team has made significant efforts to optimize the compiler over the
+years, and these improvements are noticeable in practice. In contrast,
+Haskell compilation times have remained slow, and newer GHC versions
+unfortunately don't seem to provide meaningful improvements in this
+area.</p>
+<h2 id="interactive-development-experience">Interactive development experience</h2>
+<p>I appreciate Haskell's REPL (Read-eval-print loop) for rapid
+prototyping and experimentation. Not having a native REPL in Rust
+noticeably slows down development when you need to try things out
+quickly or explore library APIs interactively. In GHCi, you can load
+your existing codebase and experiment around it, making it easy to
+test functions, try different inputs, and explore how your code
+behaves.</p>
+<p>As an alternative, I have been using <a rel="external" href="https://github.com/emacs-rustic/rustic?tab=readme-ov-file#org-babel">org babel in rustic mode</a> for
+interactive Rust development. While this provides some level of
+interactivity within Emacs, it feels more like a band-aid than an
+actual solution for quickly experimenting with code. The workflow is
+more cumbersome compared to the direct approach of typing expressions
+directly into GHCi and seeing results instantly.</p>
+<h2 id="lists-as-first-class-citizens">Lists as first-class citizens</h2>
+<p>Haskell's treatment of lists as first-class citizens through special
+syntax can be problematic. The convenient <code>[]</code> syntax defaults to
+linked lists:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #6A737D;">-- Easy to accidentally use inefficient linked lists</span></span>
+<span class="giallo-l"><span>users </span><span style="color: #D73A49;">=</span><span> [user1, user2, user3]</span><span style="color: #6A737D;">  -- O(n) access to user3</span></span>
+<span class="giallo-l"><span>processUsers users </span><span style="color: #D73A49;">=</span><span> map processUser users  </span><span style="color: #6A737D;">-- fine for small lists</span></span></code></pre>
+<p>Better alternatives exist but require more verbose syntax:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #D73A49;">import qualified</span><span style="color: #6F42C1;"> Data.Vector</span><span style="color: #D73A49;"> as</span><span style="color: #6F42C1;"> V</span></span>
+<span class="giallo-l"><span>users </span><span style="color: #D73A49;">=</span><span style="color: #6F42C1;"> V.</span><span>fromList [user1, user2, user3]</span><span style="color: #6A737D;">  -- O(1) access via (!?) operator</span></span></code></pre>
+<p>While Haskell has the <code>OverloadedLists</code> extension to make this more
+convenient, it hasn't enjoyed the same widespread adoption as
+<code>OverloadedStrings</code>.</p>
+<p>Rust also has <a rel="external" href="https://doc.rust-lang.org/std/collections/struct.LinkedList.html"><code>LinkedList</code></a> in its standard library, but it comes
+with clear documentation discouraging its use:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #6A737D;">// std::collections::LinkedList documentation explicitly states:</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">// &quot;It is almost always better to use Vec or VecDeque&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">let</span><span> users</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> vec!</span><span>[user1, user2, user3];</span><span style="color: #6A737D;">  // O(1) access by default</span></span></code></pre><h2 id="configuration-file-experience">Configuration file experience</h2>
+<p>Cabal and TOML represent different approaches to project
+configuration. While cabal's tool support has improved greatly with
+HLS integration, which now supports features like automatic formatting
+using cabal-gild, TOML enjoys broader ecosystem support.</p>
+<p>TOML benefits from independent language servers like <a rel="external" href="https://github.com/tamasfe/taplo">taplo</a> and
+the recent <a rel="external" href="https://github.com/tombi-toml/tombi">tombi</a>, providing a superior editing
+experience. Features like jumping to different Cargo.toml files across
+a workspace or seeing descriptions of specific Cargo.toml fields on
+hover work seamlessly.</p>
+<p>Additionally, TOML has upstream support in editors like Emacs through
+toml-ts-mode, which takes advantage of tree-sitter. No equivalent
+exists for cabal files, likely due to the format's limited popularity
+outside the Haskell ecosystem.</p>
+<p>It's worth noting that when Cabal was created, there was likely no
+widely adopted standard configuration format available. Rust had the
+benefit of coming later and choosing an existing, well-established
+format rather than inventing something new.</p>
+<h2 id="operational-experience">Operational experience</h2>
+<p>I handle production operations for both Rust and Haskell services,
+including parts of the Stackage infrastructure at FP Complete (which
+FP Complete later donated to the Haskell Foundation). I have
+encountered significantly more operational challenges with Haskell
+services.</p>
+<p>Haskell services often require tweaking GHC's RTS (Runtime system)
+parameters to avoid memory issues and achieve stable performance. This
+remains an ongoing challenge - recently, Bryan from the Haskell
+Foundation team opened a <a rel="external" href="https://github.com/commercialhaskell/stackage-server/issues/354">similar issue</a> on the Stackage server,
+encountering the same type of issue I dealt with. In contrast, Rust
+services have been much easier to operate.</p>
+<p>Building static binaries is trivial in Rust, and the ecosystem
+actively works to reduce non-Rust dependencies. Recent efforts like
+the <a rel="external" href="https://trifectatech.org/blog/bzip2-crate-switches-from-c-to-rust/">bzip2 crate switching from C to Rust</a> further simplify the
+build process by removing C library dependencies wherever possible.</p>
+<p>Cross-compilation to ARM is particularly straightforward. For one of
+our clients, we run all production services on ARM
+architecture. Setting up the entire cross-compilation pipeline took
+less than a day. I would not be confident about achieving the same
+with GHC and the various commonly used dependencies in Hackage.</p>
+<p>The build process is quite simple:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6A737D;"># Rust: simple static binary</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> cargo build</span><span style="color: #005CC5;"> --release --target</span><span style="color: #032F62;"> x86_64-unknown-linux-musl</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> docker build</span><span style="color: #005CC5;"> -f</span><span style="color: #032F62;"> Dockerfile.scratch .</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;"># Cross-compilation is trivial</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> cargo build</span><span style="color: #005CC5;"> --release --target</span><span style="color: #032F62;"> aarch64-unknown-linux-musl</span></span></code></pre>
+<p>My experience has been that Rust services typically consume less
+memory and CPU cycles than the Haskell ones in general.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Both languages have their place in the software development
+ecosystem. However, I find that Rust's larger user base brings
+tangible benefits through more robust tooling and actively maintained
+libraries. I used to reach for Haskell when writing CLI tools,
+appreciating its expressiveness. These days, I find myself choosing
+Rust instead, largely due to how polished libraries like <code>clap</code> have
+become for command-line parsing.</p>
+<p>While I appreciate that Haskell's theoretical foundations remain
+strong for exploring effect systems and advanced type-level
+programming, I observe that its library ecosystem has become less
+active compared to Rust's rapidly evolving landscape.</p>
+<p>For the web services and API development I work on, I find that Rust's
+practical decisions around error handling, tooling, and operational
+aspects often result in more maintainable and deployable systems.
+While language choice always depends on numerous factors like team
+expertise and project requirements, Rust's powerful combination of
+design and ecosystem makes it a compelling option. For me, it has
+become the pragmatic choice for building reliable software,
+specifically when a greenfield project is involved.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2025-06-30-rust-haskell-reflections.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2025-06-30-rust-haskell-reflections.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            document.querySelectorAll('.article-body h2, .article-body h3, .article-body h4').forEach(function(h) {
+                if (!h.id) return;
+                var a = document.createElement('a');
+                a.href = '#' + h.id;
+                a.className = 'heading-link';
+                a.textContent = '#';
+                a.setAttribute('aria-hidden', 'true');
+                h.appendChild(a);
+            });
+        })();
+    </script>
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/read')) {
+                links[4].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[5].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

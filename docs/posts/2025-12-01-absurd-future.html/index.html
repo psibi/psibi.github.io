@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Introducing absurd-future: Handling Infallible Futures in Rust — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/read.html" class="nav-link">Reading</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Introducing absurd-future: Handling Infallible Futures in Rust</h1>
+        <span class="article-date">December  1, 2025</span>
+        
+        <div class="article-tags">
+            
+            <a href="https://psibi.in/tags/rust/" class="tag">rust</a>
+            
+            <a href="https://psibi.in/tags/async/" class="tag">async</a>
+            
+            <a href="https://psibi.in/tags/future/" class="tag">future</a>
+            
+            <a href="https://psibi.in/tags/infallible/" class="tag">infallible</a>
+            
+        </div>
+        
+    </header>
+
+    <div class="article-body">
+        <blockquote>
+<p><strong>Mirrored from FP Complete.</strong> The original FP Complete site is no longer available, so this post is mirrored here. <a rel="external" href="https://web.archive.org/web/20260607103103/https://academy.fpblock.com/blog/absurd-future/">Read the archived original on the Wayback Machine</a>.</p>
+</blockquote>
+<p>FP Block has released a new crate, <a rel="external" href="https://crates.io/crates/absurd-future"><code>absurd-future</code></a>. This small utility helps solve a specific but tricky problem in asynchronous Rust: how to handle futures that never return a value.</p>
+<p>This code was originally part of <a rel="external" href="https://github.com/fpco/kolme">Kolme's codebase</a>. We refactored and published it as a separate crate as we were running into similar use cases for our other projects.</p>
+<p>For a more detailed guide that motivates the need for these types, with some discussion of type theory and Haskell, please see our post on <a rel="external" href="https://academy.fpblock.com/blog/rust-never-type-async-code/">how to use Rust's never type to write cleaner async code</a>. For a short guide on how to use the <code>absurd-future</code> crate, read on!</p>
+<h2 id="the-problem-never-returning-futures">The Problem: Never-Returning Futures</h2>
+<p>In asynchronous programming, it's common to have tasks that are designed to run forever. Think of a web server listener, a background job processor, or a metrics collector. In Rust, the logical return type for a function or future that never completes is the "never" type, <code>!</code>, or its stable counterpart, <code>std::convert::Infallible</code>.</p>
+<p>This works well until you need to manage these tasks alongside other tasks that are also designed to run forever, but might eventually fail. A great tool for managing multiple tasks is <code>tokio::task::JoinSet</code>, which allows you to spawn several futures and wait for any of them to complete. However, <code>JoinSet</code> has one requirement: all tasks spawned into it must have the same return type.</p>
+<p>So, what happens when you have:</p>
+<ol>
+<li>A background task that runs forever and returns <code>Infallible</code>.</li>
+<li>Another background task that runs forever but can fail and returns <code>Result&lt;Infallible, Error&gt;</code>.</li>
+</ol>
+<p>You can't put both into the same <code>JoinSet</code> due to the type mismatch.</p>
+<h2 id="the-solution-absurd-future">The Solution: <code>absurd-future</code></h2>
+<p>This is where <code>absurd-future</code> comes in. It's a simple future adapter that takes a future returning an uninhabited type (like <code>Infallible</code>) and transforms its type signature to <em>any other type</em> you need, without changing its behavior.</p>
+<p>This is safe because a value of an uninhabited type can never be constructed. Since the original future can never produce such a value, we can safely claim it produces a value of any other type, because that code path is unreachable.</p>
+<h2 id="how-to-use-it-an-example-with-joinset">How to Use It: An Example with <code>JoinSet</code></h2>
+<p>Let's walk through a practical example from the crate's documentation. Here, we have two tasks we want to run in a <code>JoinSet</code>.</p>
+<p>First, let's define our two tasks.</p>
+<p><code>task_one</code> is a simple background task that prints a message every second and never stops. Its return type is <code>Infallible</code>.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> std</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">convert</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Infallible</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> std</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">time</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Duration</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">async fn</span><span style="color: #6F42C1;"> task_one</span><span>()</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Infallible</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    loop</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        println!</span><span>(</span><span style="color: #032F62;">&quot;Hello from task 1&quot;</span><span>);</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        tokio</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">time</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">sleep</span><span>(</span><span style="color: #6F42C1;">Duration</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">from_secs</span><span>(</span><span style="color: #005CC5;">1</span><span>))</span><span style="color: #D73A49;">.await</span><span>;</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p><code>task_two</code> is a task that also loops but is designed to fail after a few iterations. Its return type is
+<code>Result&lt;Infallible&gt;</code>, indicating it can either run forever successfully or return an error.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> anyhow</span><span style="color: #D73A49;">::</span><span>{bail,</span><span style="color: #6F42C1;"> Result</span><span>};</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> std</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">time</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Duration</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">async fn</span><span style="color: #6F42C1;"> task_two</span><span>()</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Result</span><span>&lt;</span><span style="color: #6F42C1;">Infallible</span><span>&gt; {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let mut</span><span> counter</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> 1</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    loop</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        println!</span><span>(</span><span style="color: #032F62;">&quot;Hello from task 2&quot;</span><span>);</span></span>
+<span class="giallo-l"><span>        counter</span><span style="color: #D73A49;"> +=</span><span style="color: #005CC5;"> 1</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        tokio</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">time</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">sleep</span><span>(</span><span style="color: #6F42C1;">Duration</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">from_secs</span><span>(</span><span style="color: #005CC5;">1</span><span>))</span><span style="color: #D73A49;">.await</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        if</span><span> counter</span><span style="color: #D73A49;"> &gt;=</span><span style="color: #005CC5;"> 3</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            bail!</span><span>(</span><span style="color: #032F62;">&quot;Counter is &gt;= 3&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Now, let's see how we can run these together using <code>JoinSet</code>. The <code>JoinSet</code> will be of type
+<code>JoinSet&lt;Result&lt;Infallible&gt;&gt;</code> to match the return type of <code>task_two</code>.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="rust"><span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> absurd_future</span><span style="color: #D73A49;">::</span><span>absurd_future;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> tokio</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">task</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">JoinSet</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> anyhow</span><span style="color: #D73A49;">::</span><span>{bail,</span><span style="color: #6F42C1;"> Result</span><span>};</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">use</span><span style="color: #6F42C1;"> std</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">convert</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">Infallible</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">// ... task_one and task_two definitions from above ...</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #D73A49;">async fn</span><span style="color: #6F42C1;"> main_inner</span><span>()</span><span style="color: #D73A49;"> -&gt;</span><span style="color: #6F42C1;"> Result</span><span>&lt;()&gt; {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let mut</span><span> join_set</span><span style="color: #D73A49;"> =</span><span style="color: #6F42C1;"> JoinSet</span><span style="color: #D73A49;">::</span><span style="color: #6F42C1;">new</span><span>();</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Spawn task_two directly, its type matches.</span></span>
+<span class="giallo-l"><span>    join_set</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">spawn</span><span>(</span><span style="color: #6F42C1;">task_two</span><span>());</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // We can&#39;t spawn task_one directly due to a type mismatch.</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // join_set.spawn(task_one()); // &lt;-- This would not compile!</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Wrap task_one with absurd_future to change its type.</span></span>
+<span class="giallo-l"><span>    join_set</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">spawn</span><span>(</span><span style="color: #6F42C1;">absurd_future</span><span>(</span><span style="color: #6F42C1;">task_one</span><span>()));</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    // Now, wait for a task to complete.</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    match</span><span> join_set</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">join_next</span><span>()</span><span style="color: #D73A49;">.await</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        Some</span><span>(result)</span><span style="color: #D73A49;"> =&gt; match</span><span> result {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            Ok</span><span>(res)</span><span style="color: #D73A49;"> =&gt; match</span><span> res {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">                // This branch is impossible, as Infallible can&#39;t be created.</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                Ok</span><span>(_res)</span><span style="color: #D73A49;"> =&gt;</span><span style="color: #6F42C1;"> bail!</span><span>(</span><span style="color: #032F62;">&quot;Impossible: Infallible witnessed!&quot;</span><span>),</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">                // This is the expected path: task_two fails.</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                Err</span><span>(e)</span><span style="color: #D73A49;"> =&gt;</span><span> {</span></span>
+<span class="giallo-l"><span>                    join_set</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">abort_all</span><span>();</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                    bail!</span><span>(</span><span style="color: #032F62;">&quot;Task exited with {e}&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>                }</span></span>
+<span class="giallo-l"><span>            },</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            Err</span><span>(e)</span><span style="color: #D73A49;"> =&gt;</span><span> {</span><span style="color: #6A737D;"> // Task panicked</span></span>
+<span class="giallo-l"><span>                join_set</span><span style="color: #D73A49;">.</span><span style="color: #6F42C1;">abort_all</span><span>();</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">                bail!</span><span>(</span><span style="color: #032F62;">&quot;Task exited with {e}&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>            }</span></span>
+<span class="giallo-l"><span>        },</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        None</span><span style="color: #D73A49;"> =&gt;</span><span> {</span><span style="color: #6A737D;"> // No tasks were in the set</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">            bail!</span><span>(</span><span style="color: #032F62;">&quot;No tasks found in task set&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>In <code>main_inner</code>, we create our <code>JoinSet</code>. We can spawn <code>task_two</code> without any issues. However, if we
+tried to spawn <code>task_one</code>, we'd get a compile error because <code>Infallible</code> does not match
+<code>Result&lt;Infallible&gt;</code>.</p>
+<p>By wrapping <code>task_one</code> with <code>absurd_future(task_one())</code>, we adapt its return type. The compiler infers
+that we want to change it from <code>Infallible</code> to <code>Result&lt;Infallible&gt;</code>, and now it can be added to the
+<code>JoinSet</code>.</p>
+<p>When we <code>join_next()</code>, we only expect to see the error from <code>task_two</code>. The <code>Ok(_res)</code> arm is logically
+unreachable, as <code>task_one</code> will never return and <code>task_two</code> only returns an <code>Err</code>.</p>
+<h2 id="get-started">Get Started</h2>
+<p><code>absurd-future</code> is a small, focused library that can help you write cleaner and more type-safe
+asynchronous code when dealing with never-returning tasks.</p>
+<p>You can find the crate on <a rel="external" href="https://crates.io/crates/absurd-future">crates.io</a> and the source code on
+<a rel="external" href="https://github.com/fpco/absurd-future">GitHub</a>. The documentation is available on <a rel="external" href="https://docs.rs/absurd-future">docs.rs</a>.</p>
+<p>Give it a try and let us know what you think!</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2025-12-01-absurd-future.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2025-12-01-absurd-future.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            document.querySelectorAll('.article-body h2, .article-body h3, .article-body h4').forEach(function(h) {
+                if (!h.id) return;
+                var a = document.createElement('a');
+                a.href = '#' + h.id;
+                a.className = 'heading-link';
+                a.textContent = '#';
+                a.setAttribute('aria-hidden', 'true');
+                h.appendChild(a);
+            });
+        })();
+    </script>
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/read')) {
+                links[4].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[5].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

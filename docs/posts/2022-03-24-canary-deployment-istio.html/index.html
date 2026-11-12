@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Canary Deployment with Kubernetes and Istio — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/read.html" class="nav-link">Reading</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Canary Deployment with Kubernetes and Istio</h1>
+        <span class="article-date">March 24, 2022</span>
+        
+        <div class="article-tags">
+            
+            <a href="https://psibi.in/tags/devops/" class="tag">devops</a>
+            
+            <a href="https://psibi.in/tags/istio/" class="tag">istio</a>
+            
+            <a href="https://psibi.in/tags/kubernetes/" class="tag">kubernetes</a>
+            
+        </div>
+        
+    </header>
+
+    <div class="article-body">
+        <blockquote>
+<p><strong>Mirrored from FP Complete.</strong> The original FP Complete site is no longer available, so this post is mirrored here. <a rel="external" href="https://web.archive.org/web/20230529075426/https://www.fpcomplete.com/blog/canary-deployment-istio/">Read the archived original on the Wayback Machine</a>.</p>
+</blockquote>
+<p>Istio is a service mesh that transparently adds various capabilities
+like observability, traffic management and security to your
+distributed collection of microservices. It comes with various
+functionalities like circuit breaking, granular traffic routing, mTLS
+management, authentication and authorization polices, ability to do
+chaos testing etc.</p>
+<p>In this post, we will explore on how to do canary deployments of our
+application using Istio.</p>
+<h2 id="what-is-canary-deployment">What is Canary Deployment</h2>
+<p>Using Canary deployment strategy, you release a new version of your
+application to a small percentage of the production traffic. And then
+you monitor your application and gradually expand its percentage of
+the production traffic.</p>
+<p>For a canary deployment to be shipped successfully, you need good
+monitoring in place. Based on your exact use case, you might want to
+check various metrics like performance, user experience or <a rel="external" href="https://en.wikipedia.org/wiki/Bounce_rate">bounce
+rate</a>.</p>
+<h2 id="pre-requisites">Pre requisites</h2>
+<p>This post assumes that following components are already provisioned or
+installed:</p>
+<ul>
+<li>Kubernetes cluster</li>
+<li>Istio</li>
+<li>cert-manager: (Optional, required if you want to provision TLS
+certificates)</li>
+<li>Kiali (Optional)</li>
+</ul>
+<h2 id="istio-concepts">Istio Concepts</h2>
+<p>For this specific deployment, we will be using three specific features
+of Istio's traffic management capabilities:</p>
+<ul>
+<li><a rel="external" href="https://istio.io/latest/docs/concepts/traffic-management/#virtual-services">Virtual Service</a>: Virtual Service describes how traffic flows to
+a set of destinations. Using Virtual Service you can configure how
+to route the requests to a service within the mesh. It contains a
+bunch of routing rules that are evaluated, and then a decision is
+made on where to route the incoming request (or even reject if no
+routes match).</li>
+<li><a rel="external" href="https://istio.io/latest/docs/concepts/traffic-management/#gateways">Gateway</a>: Gateways are used to manage your inbound and outbound
+traffic. They allow you to specify the virtual hosts and their
+associated ports that needs to be opened for allowing the traffic
+into the cluster.</li>
+<li><a rel="external" href="https://istio.io/latest/docs/reference/config/networking/destination-rule/">Destination Rule</a>: This is used to configure how a client in
+the mesh interacts with your service. It's used for configuring TLS
+settings of <a rel="external" href="https://istio.io/latest/docs/reference/config/networking/sidecar/">your sidecar</a>, splitting your service into subsets,
+load balancing strategy for your clients etc.</li>
+</ul>
+<p>For doing canary deployment, destination rule plays a major role as
+that's what we will be using to split the service into subset and
+route traffic accordingly.</p>
+<h2 id="application-deployment">Application deployment</h2>
+<p>For our canary deployment, we will be using the following version of
+the application:</p>
+<ul>
+<li><a rel="external" href="https://httpbin.org/">httpbin.org</a>: This will be the version one (v1) of our
+application. This is the application that's already deployed, and
+your aim is to partially replace it with a newer version of the
+application.</li>
+<li><a rel="external" href="https://github.com/psibi/tornado-websocket-example">websocket app</a>: This will be the version two (v2) of the
+application that has to be gradually introduced.</li>
+</ul>
+<p>Note that in the actual real world, both the applications will share
+the same code. For our example, we are just taking two arbitrary
+applications to make testing easier.</p>
+<p>Our assumption is that we already have version one of our application
+deployed. So let's deploy that initially. We will write our usual
+Kubernetes resources for it. The deployment manifest for the version
+one application:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> apps/v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> Deployment</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  replicas</span><span>:</span><span style="color: #005CC5;"> 1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  selector</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    matchLabels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      app</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      version</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  template</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      labels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        app</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        version</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      containers</span><span>:</span></span>
+<span class="giallo-l"><span>      -</span><span style="color: #22863A;"> image</span><span>:</span><span style="color: #032F62;"> docker.io/kennethreitz/httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        imagePullPolicy</span><span>:</span><span style="color: #032F62;"> IfNotPresent</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        ports</span><span>:</span></span>
+<span class="giallo-l"><span>        -</span><span style="color: #22863A;"> containerPort</span><span>:</span><span style="color: #005CC5;"> 80</span></span></code></pre>
+<p>And let's create a corresponding service for it:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> Service</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  labels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    app</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  ports</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    port</span><span>:</span><span style="color: #005CC5;"> 8000</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    targetPort</span><span>:</span><span style="color: #005CC5;"> 80</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> name</span><span>:</span><span style="color: #032F62;"> tornado</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    port</span><span>:</span><span style="color: #005CC5;"> 8001</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    targetPort</span><span>:</span><span style="color: #005CC5;"> 8888</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  selector</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    app</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  type</span><span>:</span><span style="color: #032F62;"> ClusterIP</span></span></code></pre>
+<p>SSL certificate for the application which will use cert-manager:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> cert-manager.io/v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> Certificate</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin-ingress-cert</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> istio-system</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  secretName</span><span>:</span><span style="color: #032F62;"> httpbin-ingress-cert</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  issuerRef</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    name</span><span>:</span><span style="color: #032F62;"> letsencrypt-dns-prod</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    kind</span><span>:</span><span style="color: #032F62;"> ClusterIssuer</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  dnsNames</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #032F62;"> canary.33test.dev-sandbox.fpcomplete.com</span></span></code></pre>
+<p>And the Istio resources for the application:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> networking.istio.io/v1alpha3</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> Gateway</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin-gateway</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  selector</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    istio</span><span>:</span><span style="color: #032F62;"> ingressgateway</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  servers</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> hosts</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #032F62;"> canary.33test.dev-sandbox.fpcomplete.com</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    port</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      name</span><span>:</span><span style="color: #032F62;"> https-httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      number</span><span>:</span><span style="color: #005CC5;"> 443</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      protocol</span><span>:</span><span style="color: #032F62;"> HTTPS</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    tls</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      credentialName</span><span>:</span><span style="color: #032F62;"> httpbin-ingress-cert</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      mode</span><span>:</span><span style="color: #032F62;"> SIMPLE</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> hosts</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #032F62;"> canary.33test.dev-sandbox.fpcomplete.com</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    port</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      name</span><span>:</span><span style="color: #032F62;"> http-httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      number</span><span>:</span><span style="color: #005CC5;"> 80</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      protocol</span><span>:</span><span style="color: #032F62;"> HTTP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    tls</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      httpsRedirect</span><span>:</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">---</span></span>
+<span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> networking.istio.io/v1alpha3</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> VirtualService</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  gateways</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #032F62;"> httpbin-gateway</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  hosts</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #032F62;"> canary.33test.dev-sandbox.fpcomplete.com</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  http</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> route</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #22863A;"> destination</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        host</span><span>:</span><span style="color: #032F62;"> httpbin.canary.svc.cluster.local</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        port</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          number</span><span>:</span><span style="color: #005CC5;"> 8000</span></span></code></pre>
+<p>The above resource define gateway and virtual service. You could see
+that we are using TLS here and redirecting HTTP to HTTPS.</p>
+<p>We also have to make sure that namespace has istio injection enabled:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> Namespace</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  labels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    app.kubernetes.io/component</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    istio-injection</span><span>:</span><span style="color: #032F62;"> enabled</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> canary</span></span></code></pre>
+<p>I have the above set of k8s resources managed via
+<a rel="external" href="https://kustomize.io/">kustomize</a>. Let's deploy them to get the initial environment which
+consists of only v1 (httpbin) application:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span>❯ kustomize build overlays/istio_canary </span><span style="color: #D73A49;">&gt;</span><span> istio.yaml</span></span>
+<span class="giallo-l"><span>❯ kubectl apply -f istio.yaml</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">namespace/canary created</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">service/httpbin created</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">deployment.apps/httpbin created</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">gateway.networking.istio.io/httpbin-gateway created</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">virtualservice.networking.istio.io/httpbin created</span></span>
+<span class="giallo-l"><span>❯ kubectl apply -f overlays/istio_canary/certificate.yaml</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">certificate.cert-manager.io/httpbin-ingress-cert created</span></span></code></pre>
+<p>Now I can go and verify in my browser that my application is actually
+up and running:</p>
+<p><img src="/images/posts/canary-deployment-istio/istio_httpbin_application.png" alt="httpbin: Version 1 application" /></p>
+<p>Now comes the interesting part. We have to deploy the version two of
+our application and make sure around 20% of our traffic goes to
+it. Let's write the deployment manifest for it:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> apps/v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> Deployment</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin-v2</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  replicas</span><span>:</span><span style="color: #005CC5;"> 1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  selector</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    matchLabels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      app</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      version</span><span>:</span><span style="color: #032F62;"> v2</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  template</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      labels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        app</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        version</span><span>:</span><span style="color: #032F62;"> v2</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      containers</span><span>:</span></span>
+<span class="giallo-l"><span>      -</span><span style="color: #22863A;"> image</span><span>:</span><span style="color: #032F62;"> psibi/tornado-websocket:v0.3</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        imagePullPolicy</span><span>:</span><span style="color: #032F62;"> IfNotPresent</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        name</span><span>:</span><span style="color: #032F62;"> tornado</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        ports</span><span>:</span></span>
+<span class="giallo-l"><span>        -</span><span style="color: #22863A;"> containerPort</span><span>:</span><span style="color: #005CC5;"> 8888</span></span></code></pre>
+<p>And now the destination rule to split the service:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> networking.istio.io/v1alpha3</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> DestinationRule</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  host</span><span>:</span><span style="color: #032F62;"> httpbin.canary.svc.cluster.local</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  subsets</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> labels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      version</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    name</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> labels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      version</span><span>:</span><span style="color: #032F62;"> v2</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    name</span><span>:</span><span style="color: #032F62;"> v2</span></span></code></pre>
+<p>And finally let's modify the virtual service to split 20% of the
+traffic to the newer version:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> networking.istio.io/v1alpha3</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> VirtualService</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> canary</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  gateways</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #032F62;"> httpbin-gateway</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  hosts</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #032F62;"> canary.33test.dev-sandbox.fpcomplete.com</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  http</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> route</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #22863A;"> destination</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        host</span><span>:</span><span style="color: #032F62;"> httpbin.canary.svc.cluster.local</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        port</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          number</span><span>:</span><span style="color: #005CC5;"> 8000</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        subset</span><span>:</span><span style="color: #032F62;"> v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      weight</span><span>:</span><span style="color: #005CC5;"> 80</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #22863A;"> destination</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        host</span><span>:</span><span style="color: #032F62;"> httpbin.canary.svc.cluster.local</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        port</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          number</span><span>:</span><span style="color: #005CC5;"> 8001</span></span>
+<span class="giallo-l"><span style="color: #22863A;">        subset</span><span>:</span><span style="color: #032F62;"> v2</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      weight</span><span>:</span><span style="color: #005CC5;"> 20</span></span></code></pre>
+<p>And now if you go again to the browser and refresh it a number of
+times (note that we route only 20% of the traffic to the new
+deployment), you will see the new application eventually:</p>
+<p><img src="/images/posts/canary-deployment-istio/istio_tornado_application.png" alt="websocket: Version 2 application" /></p>
+<h2 id="testing-deployment">Testing deployment</h2>
+<p>Let's do around 10 curl requests to our endpoint to see how the
+traffic is getting routed:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellsession"><span class="giallo-l"><span>❯ seq 10 </span><span style="color: #D73A49;">|</span><span style="color: #6F42C1;"> xargs</span><span style="color: #005CC5;"> -Iz</span><span style="color: #032F62;"> curl</span><span style="color: #005CC5;"> -s</span><span style="color: #032F62;"> https://canary.33test.dev-sandbox.fpcomplete.com</span><span style="color: #D73A49;"> |</span><span style="color: #6F42C1;"> rg</span><span style="color: #032F62;"> &quot;&lt;title&gt;&quot;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">&lt;title&gt;tornado WebSocket example&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">    &lt;title&gt;httpbin.org&lt;/title&gt;</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">&lt;title&gt;tornado WebSocket example&lt;/title&gt;</span></span></code></pre>
+<p>And you can confirm how out of the 10 requests, 2 requests are routed
+to the websocket (v2) application. If you have <a rel="external" href="https://kiali.io/">Kiali</a> deployed,
+you can even visualize the above traffic flow:</p>
+<p><img src="/images/posts/canary-deployment-istio/istio_kiali.png" alt="Kiali visualization" /></p>
+<p>And that summarizes our post on how to achieve canary deployment using
+Istio. While this post shows a basic example, traffic steering and
+routing is one of the core features of Istio and it offers various
+ways to configure the routing decisions made by it. You can find more
+further details about it in the <a rel="external" href="https://istio.io/latest/docs/concepts/traffic-management/#virtual-services">official docs</a>. You can also use a
+controller like <a rel="external" href="https://argoproj.github.io/argo-rollouts/features/traffic-management/istio/">Argo Rollouts with Istio</a> to perform canary
+deployments and use additional features like <a rel="external" href="https://argoproj.github.io/argo-rollouts/features/analysis/">analysis</a> and
+<a rel="external" href="https://argoproj.github.io/argo-rollouts/features/experiment/">experiment</a>.</p>
+<hr />
+<p>If you're looking for a solid Kubernetes platform, batteries included
+with a first class support of Istio, <a rel="external" href="https://www.fpcomplete.com/products/kube360/">check out Kube360</a>.</p>
+<p>If you liked this article, you may also like:</p>
+<ul>
+<li><a rel="external" href="https://www.fpcomplete.com/blog/istio-mtls-debugging-story/">An Istio/mutual TLS debugging story</a></li>
+<li><a rel="external" href="https://www.fpcomplete.com/blog/rust-kubernetes-windows/">Deploying Rust with Windows Containers on Kubernetes</a></li>
+<li><a rel="external" href="https://www.fpcomplete.com/blog/cloud-vendor-neutrality/">Cloud Vendor Neutrality</a></li>
+<li><a rel="external" href="https://www.fpcomplete.com/blog/devops-for-developers/">DevOps for (Skeptical) Developers</a></li>
+<li><a rel="external" href="https://www.fpcomplete.com/blog/kube360s-kubernetes-security-focus/">Secure defaults with Kubernetes Security with Kube360</a></li>
+</ul>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2022-03-24-canary-deployment-istio.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2022-03-24-canary-deployment-istio.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            document.querySelectorAll('.article-body h2, .article-body h3, .article-body h4').forEach(function(h) {
+                if (!h.id) return;
+                var a = document.createElement('a');
+                a.href = '#' + h.id;
+                a.className = 'heading-link';
+                a.textContent = '#';
+                a.setAttribute('aria-hidden', 'true');
+                h.appendChild(a);
+            });
+        })();
+    </script>
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/read')) {
+                links[4].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[5].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

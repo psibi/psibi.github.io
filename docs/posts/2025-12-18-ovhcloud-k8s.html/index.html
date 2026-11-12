@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Is Bare Metal Kubernetes Worth the Effort? An Engineer&#x27;s Experience Report — Sibi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/default.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTDENDXYYY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JTDENDXYYY');
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="site-logo">Sibi</a>
+            <nav class="site-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about.html" class="nav-link">About</a>
+                <a href="/contact.html" class="nav-link">Contact</a>
+                <a href="/posts/" class="nav-link">Archive</a>
+                <a href="/read.html" class="nav-link">Reading</a>
+                <a href="/search/" class="nav-link search-link" title="Search" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-content">
+        
+<article>
+    <header class="article-header">
+        <h1>Is Bare Metal Kubernetes Worth the Effort? An Engineer&#x27;s Experience Report</h1>
+        <span class="article-date">December 18, 2025</span>
+        
+        <div class="article-tags">
+            
+            <a href="https://psibi.in/tags/devops/" class="tag">devops</a>
+            
+            <a href="https://psibi.in/tags/kubernetes/" class="tag">kubernetes</a>
+            
+            <a href="https://psibi.in/tags/k3s/" class="tag">k3s</a>
+            
+            <a href="https://psibi.in/tags/ovhcloud/" class="tag">ovhcloud</a>
+            
+            <a href="https://psibi.in/tags/bare-metal/" class="tag">bare-metal</a>
+            
+        </div>
+        
+    </header>
+
+    <div class="article-body">
+        <blockquote>
+<p><strong>Mirrored from FP Complete.</strong> The original FP Complete site is no longer available, so this post is mirrored here. <a rel="external" href="https://web.archive.org/web/20260607110150/https://academy.fpblock.com/blog/ovhcloud-k8s/">Read the archived original on the Wayback Machine</a>.</p>
+</blockquote>
+<p>At FP Block, we are always looking for ways to optimize and improve our
+deployment processes. For both our internal projects and our clients, we
+typically leverage the three major cloud providers: AWS, GCP, and
+Azure. We also extensively use Cloudflare for services
+like DNS, DDoS protection, and Cloudflare Pages for client-side rendered
+applications that use WebAssembly (WASM), or for static HTML pages.</p>
+<p>However, specific project requirements have led us to explore the
+potential of bare metal servers. This post is an experience report on
+our journey of setting up a Kubernetes cluster on bare metal,
+detailing our objectives, technology choices, and the architecture we
+designed.</p>
+<h1 id="objective">Objective</h1>
+<p>Our primary goals for this project were clear from the outset:</p>
+<ul>
+<li><strong>Cost-Effectiveness</strong>: A major motivation for exploring bare metal
+was to reduce infrastructure costs compared to major cloud
+providers.</li>
+<li><strong>High Availability (HA)</strong>: The platform needed to be resilient and
+highly available to support production workloads.</li>
+<li><strong>Simplicity</strong>: We aimed for a setup that was straightforward to
+install, maintain, and update.</li>
+<li><strong>Security</strong>: The entire stack had to be secure by design.</li>
+</ul>
+<p>We needed a robust platform for deploying our applications. Given our
+extensive experience with Kubernetes (k8s) and its strong community
+support, it was a natural choice. We specifically opted for k3s, a
+lightweight Kubernetes distribution, as it is known for its
+simplicity and ease of installation and management.</p>
+<h1 id="tech-stack">Tech Stack</h1>
+<p>Based on our objectives, we selected the following technology stack:</p>
+<ul>
+<li><strong>Bare Metal Servers</strong>: We chose <a rel="external" href="https://www.ovhcloud.com/en/">OVHcloud</a>
+for their competitive pricing and availability of bare metal servers.</li>
+<li><strong>Kubernetes Distribution</strong>: As mentioned, we went with
+<a rel="external" href="https://k3s.io/">k3s</a>, a lightweight and certified Kubernetes
+distribution perfect for environments where simplicity is key.</li>
+<li><strong>Load Balancer</strong>: To manage HTTP/HTTPS traffic and distribute it
+across our nodes, we decided to set up a dedicated load balancer in
+front of the cluster.</li>
+</ul>
+<h1 id="architecture">Architecture</h1>
+<p>Coming from a background with extensive AWS experience, our initial
+architectural design was heavily influenced by the patterns we were
+familiar with. Our plan was to:</p>
+<ul>
+<li><strong>Establish a Private Network</strong>: All servers would be connected
+through a private network (vRack in OVHcloud's terminology) to
+ensure secure communication between them.</li>
+<li><strong>Isolate Kubernetes Components</strong>: The Kubernetes control plane and
+data plane components would reside entirely within this private
+network, inaccessible from the public internet.</li>
+<li><strong>Use a Load Balancer for Ingress</strong>: A public-facing load balancer
+would act as the single entry point for all incoming traffic, which
+it would then distribute to the appropriate services running on the
+worker nodes.</li>
+</ul>
+<h1 id="infrastructure-provisioning">Infrastructure Provisioning</h1>
+<p>With a high-level architecture in place, it was time to bring it to
+life. My goal was to use a declarative setup wherever possible,
+primarily using Terraform (or its open-source fork, OpenTofu) and
+Kubernetes manifests. This approach ensures the infrastructure is
+reproducible, version-controlled, and easier to manage over time.</p>
+<h2 id="provisioning-the-bare-metal-servers">Provisioning the Bare Metal Servers</h2>
+<p>We first needed to set up control plane nodes. For that, we had to
+order some bare metal nodes. This was what my Terraform code looked
+like:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;ovh_dedicated_server&quot; &quot;k3s_one&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  ovh_subsidiary</span><span style="color: #D73A49;"> =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_me</span><span style="color: #D73A49;">.</span><span>account</span><span style="color: #D73A49;">.</span><span>ovh_subsidiary</span></span>
+<span class="giallo-l"><span>  display_name</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;k3s-one&quot;</span></span>
+<span class="giallo-l"><span>  os</span><span style="color: #D73A49;">           =</span><span style="color: #032F62;"> &quot;ubuntu2404-server_64&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>  customizations</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span>    ssh_key</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> file</span><span>(</span><span style="color: #032F62;">&quot;</span><span style="color: #D73A49;">${</span><span>path</span><span style="color: #D73A49;">.</span><span>module</span><span style="color: #D73A49;">}</span><span style="color: #032F62;">/ovh_cloud.pub&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>  rescue_ssh_key</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> file</span><span>(</span><span style="color: #032F62;">&quot;</span><span style="color: #D73A49;">${</span><span>path</span><span style="color: #D73A49;">.</span><span>module</span><span style="color: #D73A49;">}</span><span style="color: #032F62;">/ovh_cloud.pub&quot;</span><span>)</span></span>
+<span class="giallo-l"><span>  plan</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span>    {</span></span>
+<span class="giallo-l"><span>      plan_code</span><span style="color: #D73A49;">    =</span><span style="color: #032F62;"> &quot;26risele01-v1&quot;</span></span>
+<span class="giallo-l"><span>      duration</span><span style="color: #D73A49;">     =</span><span style="color: #032F62;"> &quot;P1M&quot;</span></span>
+<span class="giallo-l"><span>      pricing_mode</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;default&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>      configuration</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span>        {</span></span>
+<span class="giallo-l"><span>          label</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;dedicated_datacenter&quot;</span></span>
+<span class="giallo-l"><span>          value</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;bhs&quot;</span></span>
+<span class="giallo-l"><span>        },</span></span>
+<span class="giallo-l"><span>        {</span></span>
+<span class="giallo-l"><span>          label</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;dedicated_os&quot;</span></span>
+<span class="giallo-l"><span>          value</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;none_64.en&quot;</span></span>
+<span class="giallo-l"><span>        },</span></span>
+<span class="giallo-l"><span>        {</span></span>
+<span class="giallo-l"><span>          label</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;region&quot;</span></span>
+<span class="giallo-l"><span>          value</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;bhs&quot;</span></span>
+<span class="giallo-l"><span>        }</span></span>
+<span class="giallo-l"><span>      ]</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>  ]</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>It took some trial and error to determine the correct <code>plan_code</code>. The
+process was not straightforward, requiring me to inspect the DOM on
+their Dedicated Server pricing page to find it. Customer support also
+pointed me to their API control center as another way to find this
+information.</p>
+<p>When I ran <code>terraform apply</code>, the process timed out after an hour. This
+was because the Terraform resource creates a server <em>order</em> with
+OVHcloud, which can take 24-48 hours to process. The provider
+implementation blocks until the server is delivered instead of returning
+an order ID, which caused the timeout.</p>
+<p>After the server was delivered, running <code>terraform plan</code> would show a plan
+to place <em>another</em> order. I resolved this by manually importing the
+provisioned server into my Terraform state:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">import</span><span> {</span></span>
+<span class="giallo-l"><span>  to</span><span style="color: #D73A49;"> =</span><span> ovh_dedicated_server</span><span style="color: #D73A49;">.</span><span>k3s_one</span></span>
+<span class="giallo-l"><span>  id</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;server-12345.dedicated.ovh.us&quot;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>After importing, I had to comment out several attributes in the original
+resource to prevent Terraform from detecting a drift. Overall, the
+provisioning experience for bare metal servers via Terraform was less
+streamlined than with major cloud providers, requiring some manual
+intervention and workarounds.</p>
+<p>I repeated this process for two more servers, giving me a total of
+three bare metal servers for our high-availability (HA) setup.</p>
+<h2 id="private-network-vrack">Private Network (vRack)</h2>
+<p>Upon delivery, I was a bit surprised to find that each bare metal server
+had a public IP address by default. Because each bare metal was exposed
+to the internet, this meant a slight departure from our original
+architecture, where we wanted our entire control plane and data plane
+in a private network. Unfortunately, there was no way to prevent this
+without changing it from within the OS. Instead, I decided to embrace
+it, as I'll explain in the Load Balancer section. My goal was still to
+ensure all k3s control plane and data plane communication happened over
+a private, isolated network. This was where OVHcloud's vRack private
+network came in.</p>
+<p>The Terraform experience for ordering the vRack was similar to the
+dedicated server. After applying the Terraform configuration, I had to
+wait a couple of hours for the order to be fulfilled. And, similar to the
+dedicated server resource, I had to import the vRack after it was
+provisioned. I also had to comment out the <code>plan</code> section to prevent
+Terraform from placing a new order. My code looked like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;ovh_vrack&quot; &quot;vrack&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  ovh_subsidiary</span><span style="color: #D73A49;"> =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_me</span><span style="color: #D73A49;">.</span><span>account</span><span style="color: #D73A49;">.</span><span>ovh_subsidiary</span></span>
+<span class="giallo-l"><span>  name</span><span style="color: #D73A49;">           =</span><span style="color: #032F62;"> &quot;k3s&quot;</span></span>
+<span class="giallo-l"><span>  description</span><span style="color: #D73A49;">    =</span><span style="color: #032F62;"> &quot;k3s vrack&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> plan</span><span> {</span></span>
+<span class="giallo-l"><span>    duration</span><span style="color: #D73A49;">     =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_order_cart_product_plan</span><span style="color: #D73A49;">.</span><span>vrack</span><span style="color: #D73A49;">.</span><span>selected_price</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">0</span><span style="color: #D73A49;">.</span><span>duration</span></span>
+<span class="giallo-l"><span>    plan_code</span><span style="color: #D73A49;">    =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_order_cart_product_plan</span><span style="color: #D73A49;">.</span><span>vrack</span><span style="color: #D73A49;">.</span><span>plan_code</span></span>
+<span class="giallo-l"><span>    pricing_mode</span><span style="color: #D73A49;"> =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_order_cart_product_plan</span><span style="color: #D73A49;">.</span><span>vrack</span><span style="color: #D73A49;">.</span><span>selected_price</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">0</span><span style="color: #D73A49;">.</span><span>pricing_mode</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">import</span><span> {</span></span>
+<span class="giallo-l"><span>  to</span><span style="color: #D73A49;"> =</span><span> ovh_vrack</span><span style="color: #D73A49;">.</span><span>vrack</span></span>
+<span class="giallo-l"><span>  id</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;vrack-12345&quot;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Adding the dedicated server instances to the vRack worked as expected:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;ovh_vrack_dedicated_server_interface&quot; &quot;k3s_one&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  service_name</span><span style="color: #D73A49;"> =</span><span> ovh_vrack</span><span style="color: #D73A49;">.</span><span>vrack</span><span style="color: #D73A49;">.</span><span>service_name</span></span>
+<span class="giallo-l"><span>  interface_id</span><span style="color: #D73A49;"> =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_dedicated_server</span><span style="color: #D73A49;">.</span><span>k3s_one</span><span style="color: #D73A49;">.</span><span>enabled_vrack_vnis[</span><span style="color: #005CC5;">0</span><span>]</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;ovh_vrack_dedicated_server_interface&quot; &quot;k3s_two&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  service_name</span><span style="color: #D73A49;"> =</span><span> ovh_vrack</span><span style="color: #D73A49;">.</span><span>vrack</span><span style="color: #D73A49;">.</span><span>service_name</span></span>
+<span class="giallo-l"><span>  interface_id</span><span style="color: #D73A49;"> =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_dedicated_server</span><span style="color: #D73A49;">.</span><span>k3s_two</span><span style="color: #D73A49;">.</span><span>enabled_vrack_vnis[</span><span style="color: #005CC5;">0</span><span>]</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;ovh_vrack_dedicated_server_interface&quot; &quot;k3s_three&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  service_name</span><span style="color: #D73A49;"> =</span><span> ovh_vrack</span><span style="color: #D73A49;">.</span><span>vrack</span><span style="color: #D73A49;">.</span><span>service_name</span></span>
+<span class="giallo-l"><span>  interface_id</span><span style="color: #D73A49;"> =</span><span> data</span><span style="color: #D73A49;">.</span><span>ovh_dedicated_server</span><span style="color: #D73A49;">.</span><span>k3s_three</span><span style="color: #D73A49;">.</span><span>enabled_vrack_vnis[</span><span style="color: #005CC5;">0</span><span>]</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre><h2 id="load-balancer">Load Balancer</h2>
+<p>And finally, we needed a load balancer. It serves two purposes:</p>
+<ul>
+<li>To have a stable interface for our applications. We wanted our k3s
+nodes to be flexible: we might add more nodes based on demand etc,
+and we wanted a consistent IP or DNS entry to target.</li>
+<li>To be able to apply arbitrary DDoS protection, etc., on it.</li>
+</ul>
+<p>I initially provisioned a load balancer from OVHcloud. They offer two tiers:</p>
+<p><img src="/images/posts/ovhcloud-k8s/ovhcloud_lb_prices.png" alt="OVHcloud Load Balancer Options" /></p>
+<p>I chose the first option due to its lower cost, but soon discovered it
+lacked vRack integration. This was a deal-breaker, as my architecture
+required the load balancer to forward traffic to my nodes over the
+private network. This led me to explore other options, but not before
+grappling with OVHcloud's Terraform provider for their load balancer.</p>
+<p>The provider's behavior for applying changes was not immediately
+obvious. While load balancer resources defined in Terraform appear in the
+OVHcloud UI, they are not actually <em>applied</em> until you also add an
+<code>ovh_iploadbalancing_refresh</code> resource, a detail that took some time to
+uncover.</p>
+<p>The combination of the pricing for vRack integration and the quirks in
+the Terraform workflow led me to look for alternatives. Given that each
+node had a public IP, it gave us the freedom to integrate with
+third-party load balancers. This wouldn't have been possible if the
+bare metal nodes weren't public by default, and this flexibility opened
+up a lot of options. Since we were already using Cloudflare for DNS,
+their Load Balancer service was a natural fit. It turned out to be
+superior in every aspect: cost, ease of use, and quality of the
+Terraform provider.</p>
+<p>In Cloudflare's terminology, the backend servers that handle traffic
+are called "origins." For our setup, the public IP of each bare metal
+node served as an origin. Adding additional origins was inexpensive. A
+load balancer backed by our three bare metal nodes would cost only $10
+USD per month. This also gave us access to Cloudflare's robust
+notification system, which could alert us via email or webhooks if a
+node became unhealthy.</p>
+<p>The Terraform configuration for the Cloudflare Load Balancer looked like
+this. First, a pool of origin servers:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;cloudflare_load_balancer_pool&quot; &quot;k3s_pool&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  account_id</span><span style="color: #D73A49;"> =</span><span> var</span><span style="color: #D73A49;">.</span><span>cloudflare_account_id</span></span>
+<span class="giallo-l"><span>  name</span><span style="color: #D73A49;">       =</span><span style="color: #032F62;"> &quot;k3s-pool&quot;</span></span>
+<span class="giallo-l"><span>  origins</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span>    {</span></span>
+<span class="giallo-l"><span>      address</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;203.0.113.10&quot;</span></span>
+<span class="giallo-l"><span>      enabled</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span>      name</span><span style="color: #D73A49;">    =</span><span style="color: #032F62;"> &quot;k3s-one&quot;</span></span>
+<span class="giallo-l"><span>      port</span><span style="color: #D73A49;">    =</span><span style="color: #005CC5;"> 443</span></span>
+<span class="giallo-l"><span>      weight</span><span style="color: #D73A49;">  =</span><span style="color: #005CC5;"> 1.0</span></span>
+<span class="giallo-l"><span>    },</span></span>
+<span class="giallo-l"><span>    {</span></span>
+<span class="giallo-l"><span>      address</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;203.0.113.11&quot;</span></span>
+<span class="giallo-l"><span>      enabled</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span>      name</span><span style="color: #D73A49;">    =</span><span style="color: #032F62;"> &quot;k3s-two&quot;</span></span>
+<span class="giallo-l"><span>      port</span><span style="color: #D73A49;">    =</span><span style="color: #005CC5;"> 443</span></span>
+<span class="giallo-l"><span>      weight</span><span style="color: #D73A49;">  =</span><span style="color: #005CC5;"> 1.0</span></span>
+<span class="giallo-l"><span>    },</span></span>
+<span class="giallo-l"><span>    {</span></span>
+<span class="giallo-l"><span>      address</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;203.0.113.12&quot;</span></span>
+<span class="giallo-l"><span>      enabled</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span>      name</span><span style="color: #D73A49;">    =</span><span style="color: #032F62;"> &quot;k3s-three&quot;</span></span>
+<span class="giallo-l"><span>      port</span><span style="color: #D73A49;">    =</span><span style="color: #005CC5;"> 443</span></span>
+<span class="giallo-l"><span>      weight</span><span style="color: #D73A49;">  =</span><span style="color: #005CC5;"> 1.0</span></span>
+<span class="giallo-l"><span>    },</span></span>
+<span class="giallo-l"><span>  ]</span></span>
+<span class="giallo-l"><span>  minimum_origins</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> 2</span></span>
+<span class="giallo-l"><span>  enabled</span><span style="color: #D73A49;">         =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span>  monitor</span><span style="color: #D73A49;">         =</span><span> cloudflare_load_balancer_monitor</span><span style="color: #D73A49;">.</span><span>lb_tcp_monitor</span><span style="color: #D73A49;">.</span><span>id</span></span>
+<span class="giallo-l"><span>  description</span><span style="color: #D73A49;">     =</span><span style="color: #032F62;"> &quot;k3s cluster on OVHcloud&quot;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>With the pool defined, creating the load balancer itself was straightforward:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;cloudflare_load_balancer&quot; &quot;k3s_lb&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  name</span><span style="color: #D73A49;">          =</span><span style="color: #032F62;"> &quot;cluster.your-domain.com&quot;</span></span>
+<span class="giallo-l"><span>  zone_id</span><span style="color: #D73A49;">       =</span><span> var</span><span style="color: #D73A49;">.</span><span>cloudflare_zone_id</span></span>
+<span class="giallo-l"><span>  fallback_pool</span><span style="color: #D73A49;"> =</span><span> cloudflare_load_balancer_pool</span><span style="color: #D73A49;">.</span><span>k3s_pool</span><span style="color: #D73A49;">.</span><span>id</span></span>
+<span class="giallo-l"><span>  default_pools</span><span style="color: #D73A49;"> =</span><span> [cloudflare_load_balancer_pool</span><span style="color: #D73A49;">.</span><span>k3s_pool</span><span style="color: #D73A49;">.</span><span>id]</span></span>
+<span class="giallo-l"><span>  proxied</span><span style="color: #D73A49;">       =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>And the nice thing was that we could also use the Cloudflare
+infrastructure to set up notifications in case one of the nodes had
+issues. In this case, I used a TCP health check, but it can also use
+HTTP/HTTPS checks or various other protocols that Cloudflare supports:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;cloudflare_load_balancer_monitor&quot; &quot;lb_tcp_monitor&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  account_id</span><span style="color: #D73A49;">       =</span><span> local</span><span style="color: #D73A49;">.</span><span>account_id</span></span>
+<span class="giallo-l"><span>  allow_insecure</span><span style="color: #D73A49;">   =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  consecutive_down</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> 3</span></span>
+<span class="giallo-l"><span>  consecutive_up</span><span style="color: #D73A49;">   =</span><span style="color: #005CC5;"> 3</span></span>
+<span class="giallo-l"><span>  description</span><span style="color: #D73A49;">      =</span><span style="color: #032F62;"> &quot;K3s master node one&quot;</span></span>
+<span class="giallo-l"><span>  expected_body</span><span style="color: #D73A49;">    =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  expected_codes</span><span style="color: #D73A49;">   =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  follow_redirects</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  header</span><span style="color: #D73A49;">           =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  interval</span><span style="color: #D73A49;">         =</span><span style="color: #005CC5;"> 60</span></span>
+<span class="giallo-l"><span>  method</span><span style="color: #D73A49;">           =</span><span style="color: #032F62;"> &quot;connection_established&quot;</span></span>
+<span class="giallo-l"><span>  path</span><span style="color: #D73A49;">             =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  port</span><span style="color: #D73A49;">             =</span><span style="color: #005CC5;"> 443</span></span>
+<span class="giallo-l"><span>  probe_zone</span><span style="color: #D73A49;">       =</span><span style="color: #005CC5;"> null</span></span>
+<span class="giallo-l"><span>  retries</span><span style="color: #D73A49;">          =</span><span style="color: #005CC5;"> 0</span></span>
+<span class="giallo-l"><span>  timeout</span><span style="color: #D73A49;">          =</span><span style="color: #005CC5;"> 2</span></span>
+<span class="giallo-l"><span>  type</span><span style="color: #D73A49;">             =</span><span style="color: #032F62;"> &quot;tcp&quot;</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;cloudflare_notification_policy&quot; &quot;notify&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  account_id</span><span style="color: #D73A49;">  =</span><span> local</span><span style="color: #D73A49;">.</span><span>account_id</span></span>
+<span class="giallo-l"><span>  name</span><span style="color: #D73A49;">        =</span><span style="color: #032F62;"> &quot;LB Pool Unhealthy TCP Alert&quot;</span></span>
+<span class="giallo-l"><span>  description</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;Policy for OVHcloud k3s Notification&quot;</span></span>
+<span class="giallo-l"><span>  enabled</span><span style="color: #D73A49;">     =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # The type of alert to send.</span></span>
+<span class="giallo-l"><span>  alert_type</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;load_balancing_health_alert&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # The destination for the alert</span></span>
+<span class="giallo-l"><span>  mechanisms</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span>    email</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span>      {</span></span>
+<span class="giallo-l"><span>        id</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;alerts@example.com&quot;</span></span>
+<span class="giallo-l"><span>      }</span></span>
+<span class="giallo-l"><span>    ]</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>  filters</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span>    pool_id</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span>      cloudflare_load_balancer_pool.k3s_pool.id</span></span>
+<span class="giallo-l"><span>    ]</span></span>
+<span class="giallo-l"><span>    new_health</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;">&quot;Unhealthy&quot;</span><span>, </span><span style="color: #032F62;">&quot;Healthy&quot;</span><span>]</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>The experience with the Cloudflare terraform provider, in contrast,
+was much better.  It was well-documented, behaved predictably, and was
+straightforward to work with.</p>
+<p>You can confirm that the load balancer has been created by checking the
+Cloudflare dashboard.</p>
+<p><img src="/images/posts/ovhcloud-k8s/cloudflare_lb.png" alt="Cloudflare Load Balancer" /></p>
+<h1 id="node-and-cluster-configuration">Node and Cluster Configuration</h1>
+<p>Okay, now that our infrastructure was ready, the final piece was to
+install and configure k3s. For a high-availability setup, we needed at
+least three control plane nodes. We decided to use the embedded etcd data
+store that comes with k3s, though it also supports external databases
+like PostgreSQL. The <a rel="external" href="https://docs.k3s.io/datastore">official documentation</a> has more details on this.</p>
+<p>We had three nodes for our control plane:</p>
+<table><thead><tr><th>Node name</th><th>Public IP</th><th>Role</th></tr></thead><tbody>
+<tr><td>k3s-one</td><td>203.0.113.10</td><td>Control plane</td></tr>
+<tr><td>k3s-two</td><td>203.0.113.11</td><td>Control plane</td></tr>
+<tr><td>k3s-three</td><td>203.0.113.12</td><td>Control plane</td></tr>
+</tbody></table>
+<h2 id="operating-system">Operating System</h2>
+<p>The choice of operating system was between Ubuntu and NixOS. NixOS would
+have fit well with the idea of having a declarative setup. Its <a rel="external" href="https://github.com/NixOS/nixpkgs/blob/nixos-25.11/nixos/modules/services/cluster/rancher/default.nix">k3s
+integration</a> seemed decent. Ultimately, I decided for the time
+being to use Ubuntu because:</p>
+<ul>
+<li>I wouldn't need to update the operating system every 6 months since
+NixOS is a rolling release distribution. That being said, upgrades
+in NixOS are usually easy. This was a hard sell when compared to
+Ubuntu's LTS edition.</li>
+<li>NixOS is a second citizen in OVHcloud: Installing Ubuntu is trivial
+as it is natively supported. With NixOS, I would have to use
+something like a third party <a rel="external" href="https://github.com/nix-community/nixos-install-scripts/blob/master/hosters/ovh-dedicated/ovh-dedicated-wipe-and-install-nixos.sh">installer script</a> and do additional
+work myself to get it working.</li>
+<li>Debugging: While NixOS can be predictable when everything works,
+debugging can be challenging when you stray from the happy path. My
+experience, after using it for over five years, is mixed.</li>
+<li>Learning curve: I knew that at some point, the cluster would be maintained
+by other engineers on our team. And I saw it as a hard sell if the
+engineers aren't invested into Nix already.</li>
+</ul>
+<h2 id="configuring-node-networking">Configuring Node Networking</h2>
+<p>We previously saw the public IPs for our nodes. Now we needed to configure their private networking:</p>
+<ul>
+<li>All k3s control plane and data plane communication had to happen over the private vRack network.</li>
+<li>We needed to assign a static private IP address to each node. The final
+mapping looked like this:</li>
+</ul>
+<table><thead><tr><th>Node name</th><th>Public IP</th><th>Private IP</th></tr></thead><tbody>
+<tr><td>k3s-one</td><td>203.0.113.10</td><td>10.0.0.10</td></tr>
+<tr><td>k3s-two</td><td>203.0.113.11</td><td>10.0.0.11</td></tr>
+<tr><td>k3s-three</td><td>203.0.113.12</td><td>10.0.0.12</td></tr>
+</tbody></table>
+<p>Since we were using Ubuntu, this could be configured with Netplan. On each
+node, I created a configuration file under <code>/etc/netplan</code> (this example
+is for <code>k3s-two</code>):</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">network</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  version</span><span>:</span><span style="color: #005CC5;"> 2</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  ethernets</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    enp3s0f1np1</span><span>:</span><span style="color: #6A737D;"> # Private vRack interface</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      dhcp4</span><span>:</span><span style="color: #005CC5;"> no</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      addresses</span><span>: [</span><span style="color: #032F62;">10.0.0.11/24</span><span>]</span><span style="color: #6A737D;"> # Assign a static IP</span></span></code></pre>
+<p>And then apply those changes:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">sudo</span><span style="color: #032F62;"> netplan apply</span></span></code></pre><h2 id="haproxy-and-keepalived">HAProxy and Keepalived</h2>
+<p>HAProxy and Keepalived played a major part in the HA nature of the k3s
+control plane.</p>
+<ul>
+<li><strong>HAProxy</strong>: Acts as a local TCP load balancer for the Kubernetes API
+server. It runs on each node and performs health checks. If one of
+the <code>k3s</code> master processes becomes unhealthy, HAProxy will stop
+sending traffic to it.</li>
+</ul>
+<p>I installed HAProxy on all three nodes and used the following
+configuration in <code>/etc/haproxy/haproxy.cfg</code>. On each node, the <code>bind</code>
+address should be set to its local private IP. The example below was
+for <code>k3s-one</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>frontend k3s-api</span></span>
+<span class="giallo-l"><span>    bind 10.0.0.10:6443</span></span>
+<span class="giallo-l"><span>    mode tcp</span></span>
+<span class="giallo-l"><span>    default_backend k3s-api-backend</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>backend k3s-api-backend</span></span>
+<span class="giallo-l"><span>    mode tcp</span></span>
+<span class="giallo-l"><span>    balance roundrobin</span></span>
+<span class="giallo-l"><span>    option tcp-check</span></span>
+<span class="giallo-l"><span>    # Add all your control plane nodes here</span></span>
+<span class="giallo-l"><span>    server k3s-one   10.0.0.10:6443 check</span></span>
+<span class="giallo-l"><span>    server k3s-two   10.0.0.11:6443 check</span></span>
+<span class="giallo-l"><span>    server k3s-three 10.0.0.12:6443 check</span></span></code></pre>
+<ul>
+<li><strong>Keepalived</strong>: Manages a single, "floating" virtual IP address (VIP)
+that can move between servers. It ensures that the VIP is always
+assigned to a healthy node, providing a stable endpoint for the
+Kubernetes API.</li>
+</ul>
+<p>For Keepalived, the configuration was slightly different on each node
+(mainly the <code>priority</code>). This example for <code>k3s-one</code> went in
+<code>/etc/keepalived/keepalived.conf</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>vrrp_instance VI_1 {</span></span>
+<span class="giallo-l"><span>    state MASTER          # Set to BACKUP on other nodes</span></span>
+<span class="giallo-l"><span>    interface enp1s0f1    # Your vRack network interface</span></span>
+<span class="giallo-l"><span>    virtual_router_id 51</span></span>
+<span class="giallo-l"><span>    priority 101          # Use a lower priority on other nodes (e.g., 100)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>    advert_int 1</span></span>
+<span class="giallo-l"><span>    authentication {</span></span>
+<span class="giallo-l"><span>        auth_type PASS</span></span>
+<span class="giallo-l"><span>        auth_pass &quot;your_secret_password&quot; # Use the same password on all nodes</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>    virtual_ipaddress {</span></span>
+<span class="giallo-l"><span>        10.0.0.100/24     # Your VIP</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>For the other nodes, you'll need to adjust fields like <code>state</code>,
+<code>interface</code>, and <code>priority</code>. The <code>state</code> should be <code>BACKUP</code> and the
+<code>priority</code> must be a lower value than the master node's. Here is a
+sample configuration for another node:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>vrrp_instance VI_1 {</span></span>
+<span class="giallo-l"><span>    state BACKUP</span></span>
+<span class="giallo-l"><span>    interface enp3s0f1np1    # Your vRack network interface</span></span>
+<span class="giallo-l"><span>    virtual_router_id 51</span></span>
+<span class="giallo-l"><span>    priority 100          # Lower priority (use 99 on the next node)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>    advert_int 1</span></span>
+<span class="giallo-l"><span>    authentication {</span></span>
+<span class="giallo-l"><span>        auth_type PASS</span></span>
+<span class="giallo-l"><span>        auth_pass &quot;your_secret_password&quot; # Use the same password on all nodes</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>    virtual_ipaddress {</span></span>
+<span class="giallo-l"><span>        10.0.0.100/24  # Your VIP</span></span>
+<span class="giallo-l"><span>    }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Make sure to restart both the services:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span>sudo systemctl restart haproxy</span></span>
+<span class="giallo-l"><span>sudo systemctl restart keepalived</span></span></code></pre><h2 id="k3s-installation">K3s installation</h2>
+<p>I downloaded the installer script and committed it to the DevOps
+repository so that it could be used for all the nodes:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span>curl </span><span style="color: #D73A49;">-</span><span>sfL https</span><span style="color: #D73A49;">:</span><span style="color: #6A737D;">//get.k3s.io -o ./bin/install.sh</span></span></code></pre>
+<p>Next, I constructed the first k3s config.yaml configuration for the
+first node:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">cluster-init</span><span>:</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;"># --- Node-Specific Configuration ---</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"># You MUST change these values on each server node.</span></span>
+<span class="giallo-l"><span style="color: #22863A;">bind-address</span><span>:</span><span style="color: #005CC5;"> 10.0.0.10</span><span style="color: #6A737D;"> # &lt;-- Use this node&#39;s unique vRack IP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">node-ip</span><span>:</span><span style="color: #005CC5;"> 10.0.0.10</span><span style="color: #6A737D;">      # &lt;-- Use this node&#39;s unique vRack IP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">flannel-iface</span><span>:</span><span style="color: #032F62;"> enp1s0f1</span><span style="color: #6A737D;"> # Your vRack network interface</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;"># --- Common Cluster Configuration ---</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"># These values will be identical on all nodes</span></span>
+<span class="giallo-l"><span style="color: #22863A;">write-kubeconfig-mode</span><span>:</span><span style="color: #032F62;"> &quot;0644&quot;</span></span>
+<span class="giallo-l"><span style="color: #22863A;">https-listen-port</span><span>:</span><span style="color: #005CC5;"> 6443</span></span>
+<span class="giallo-l"><span style="color: #22863A;">token</span><span>:</span><span style="color: #032F62;"> &quot;a-very-secret-and-secure-token&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #22863A;">tls-san</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #005CC5;"> 10.0.0.100</span><span style="color: #6A737D;"> # &lt;-- Your Keepalived VIP</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #22863A;">disable</span><span>:</span></span>
+<span class="giallo-l"><span>-</span><span style="color: #032F62;"> servicelb</span></span>
+<span class="giallo-l"><span>-</span><span style="color: #032F62;"> traefik</span></span></code></pre>
+<p>The <code>flannel-iface</code> field is particularly important; it tells Flannel,
+the default CNI (Container Network Interface) in k3s, which network
+interface to use for pod-to-pod communication. By setting this to our
+vRack's private network interface, we ensured that all cluster
+networking traffic stayed within our isolated network. Most of the other
+fields are self-explanatory or can be found in the <a rel="external" href="https://docs.k3s.io/installation/configuration">official k3s
+documentation</a>.</p>
+<p>The <code>cluster-init</code> option tells k3s to initialize a new cluster using
+its embedded etcd. The configuration for the other nodes was similar,
+but without <code>cluster-init</code>. Instead, they would join the existing
+cluster using the VIP as the server address. For example, here is the
+configuration for <code>k3s-two</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #6A737D;"># --- Node-Specific Configuration ---</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"># You MUST change these values on each server node.</span></span>
+<span class="giallo-l"><span style="color: #22863A;">bind-address</span><span>:</span><span style="color: #005CC5;"> 10.0.0.11</span><span style="color: #6A737D;"> # &lt;-- Use this node&#39;s unique vRack IP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">node-ip</span><span>:</span><span style="color: #005CC5;"> 10.0.0.11</span><span style="color: #6A737D;">      # &lt;-- Use this node&#39;s unique vRack IP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">server</span><span>:</span><span style="color: #032F62;"> https://10.0.0.100:6443</span><span style="color: #6A737D;">       # &lt;-- The VIP to join</span></span>
+<span class="giallo-l"><span style="color: #22863A;">flannel-iface</span><span>:</span><span style="color: #032F62;"> enp3s0f1np1</span><span style="color: #6A737D;"> # Your vRack network interface</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;"># --- Common Cluster Configuration ---</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"># These values will be identical on all nodes</span></span>
+<span class="giallo-l"><span style="color: #22863A;">write-kubeconfig-mode</span><span>:</span><span style="color: #032F62;"> &quot;0644&quot;</span></span>
+<span class="giallo-l"><span style="color: #22863A;">https-listen-port</span><span>:</span><span style="color: #005CC5;"> 6443</span></span>
+<span class="giallo-l"><span style="color: #22863A;">token</span><span>:</span><span style="color: #032F62;"> &quot;a-very-secret-and-secure-token&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #22863A;">tls-san</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #005CC5;"> 10.0.0.100</span><span style="color: #6A737D;"> # &lt;-- Your Keepalived VIP</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #22863A;">disable</span><span>:</span></span>
+<span class="giallo-l"><span>-</span><span style="color: #032F62;"> servicelb</span></span>
+<span class="giallo-l"><span>-</span><span style="color: #032F62;"> traefik</span></span></code></pre>
+<p>And this was how I installed it on my nodes:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">env</span><span style="color: #032F62;"> K3S_CONFIG_FILE=&quot;/home/ubuntu/whatever_path/node-one.yaml&quot; ./install.sh</span></span></code></pre>
+<p>What the <code>install.sh</code> script does is that it downloads the binaries and
+starts a systemd service for k3s. You can check its status after the installation by</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">systemctl</span><span style="color: #032F62;"> status k3s.service</span></span></code></pre>
+<p>Once the installation was successful on all nodes, <code>kubectl get nodes</code> showed the full cluster:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> k3s kubectl get nodes</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">NAME</span><span style="color: #032F62;">        STATUS   ROLES                  AGE   VERSION</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">k3s-one</span><span style="color: #032F62;">     Ready    control-plane,master   15m   v1.33.6+k3s1</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">k3s-two</span><span style="color: #032F62;">     Ready    control-plane,master   12m   v1.33.6+k3s1</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">k3s-three</span><span style="color: #032F62;">   Ready    control-plane,master   10m   v1.33.6+k3s1</span></span></code></pre>
+<p>If you want to add a data plane node (also known as a worker or agent
+node) that only runs your application workloads and doesn't participate
+in the control plane, the process is very similar. The main difference
+is a simpler <code>config.yaml</code>. A worker node doesn't run the API server,
+so its configuration omits control-plane-specific options. Here is a
+sample configuration for a worker node:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #6A737D;"># config.yaml for a worker node</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;"># --- Node-Specific Configuration ---</span></span>
+<span class="giallo-l"><span style="color: #22863A;">node-ip</span><span>:</span><span style="color: #005CC5;"> 10.0.0.13</span><span style="color: #6A737D;">      # &lt;-- Use this node&#39;s unique vRack IP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">server</span><span>:</span><span style="color: #032F62;"> https://10.0.0.100:6443</span><span style="color: #6A737D;">       # &lt;-- The VIP to join</span></span>
+<span class="giallo-l"><span style="color: #22863A;">flannel-iface</span><span>:</span><span style="color: #032F62;"> enp4s0f0</span><span style="color: #6A737D;"> # Your vRack network interface for this node</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;"># --- Common Cluster Configuration ---</span></span>
+<span class="giallo-l"><span style="color: #22863A;">token</span><span>:</span><span style="color: #032F62;"> &quot;a-very-secret-and-secure-token&quot;</span></span></code></pre>
+<p>Notice that this configuration is much shorter. It doesn't include
+<code>bind-address</code>, <code>https-listen-port</code>, <code>tls-san</code>, or the <code>disable</code> list,
+as those are all related to control plane components. You would use the
+same <code>install.sh</code> script to provision the node, and it would
+automatically join the cluster as a worker.</p>
+<h1 id="security">Security</h1>
+<p>Securing the cluster is critical. The primary vulnerability in this setup
+is that an attacker could bypass Cloudflare's protection by discovering
+the public IP addresses of the bare metal servers and sending requests
+directly to them. For example, after deploying an application to
+<code>app.your-domain.com</code>, I could access it by targeting a node's public
+IP, completely bypassing services like DDoS protection and rate limiting.
+This can be easily tested:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> curl</span><span style="color: #005CC5;"> -w</span><span style="color: #032F62;"> &quot;%{http_code}\n&quot;</span><span style="color: #005CC5;"> -o</span><span style="color: #032F62;"> /dev/null</span><span style="color: #005CC5;"> -k \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -H</span><span style="color: #032F62;"> &quot;Host: app.your-domain.com&quot;</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #032F62;">  https://203.0.113.10</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">200</span></span></code></pre>
+<p>The successful <code>200</code> response confirmed that our origin server was
+accessible directly, which is a security risk.</p>
+<h2 id="the-solution-authenticated-origin-pulls">The solution: Authenticated Origin Pulls</h2>
+<p>To mitigate this, we can use Cloudflare's Authenticated Origin Pulls
+feature, which uses mutual TLS (mTLS) to ensure that our origin
+servers only accept traffic that comes from Cloudflare's network.</p>
+<p>The implementation involved three steps:</p>
+<h3 id="1-configure-cloudflare">1. Configure Cloudflare</h3>
+<p>First, I set the zone's SSL/TLS encryption mode to "Full (Strict)" to
+ensure end-to-end encryption. This was a prerequisite for Authenticated
+Origin Pulls.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;cloudflare_zone_settings_override&quot; &quot;ssl&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  zone_id</span><span style="color: #D73A49;"> =</span><span> var</span><span style="color: #D73A49;">.</span><span>cloudflare_zone_id</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  settings</span><span> {</span></span>
+<span class="giallo-l"><span>    ssl</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;strict&quot;</span><span style="color: #6A737D;"> # Options: &quot;off&quot;, &quot;flexible&quot;, &quot;full&quot;, &quot;strict&quot;</span></span>
+<span class="giallo-l"><span>  }</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Then, I enabled Authenticated Origin Pulls for the zone:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="hcl"><span class="giallo-l"><span style="color: #6F42C1;">resource</span><span style="color: #005CC5;"> &quot;cloudflare_authenticated_origin_pulls&quot; &quot;origin_pulls_settings&quot;</span><span> {</span></span>
+<span class="giallo-l"><span>  zone_id</span><span style="color: #D73A49;"> =</span><span> var</span><span style="color: #D73A49;">.</span><span>cloudflare_zone_id</span></span>
+<span class="giallo-l"><span>  enabled</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>You can verify this is enabled in the Cloudflare dashboard under
+"SSL/TLS" -&gt; "Origin Server":</p>
+<p><img src="/images/posts/ovhcloud-k8s/cloudflare_origin_pull.png" alt="Cloudflare Authenticated Origin Pulls setting" /></p>
+<h3 id="2-configure-the-ingress-controller">2. Configure the Ingress Controller</h3>
+<p>Enabling the setting in Cloudflare is not enough. You must also
+configure your ingress controller to <em>require</em> and <em>verify</em> the client
+certificate that Cloudflare now presents with each request. In my
+case, using the Traefik ingress controller, this required creating a
+<code>TLSOption</code> resource:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> traefik.io/v1alpha1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> TLSOption</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> require-cloudflare-client-cert</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> base-app</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  clientAuth</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    secretNames</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #032F62;"> cloudflare-orgin-pull</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    clientAuthType</span><span>:</span><span style="color: #032F62;"> RequireAndVerifyClientCert</span></span></code></pre>
+<p>And then referencing this <code>TLSOption</code> in my application's <code>IngressRoute</code>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> traefik.io/v1alpha1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> IngressRoute</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> my-app</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> base-app</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  annotations</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    external-dns.alpha.kubernetes.io/target</span><span>:</span><span style="color: #032F62;"> &quot;cluster.your-domain.com&quot;</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    external-dns.alpha.kubernetes.io/cloudflare-proxied</span><span>:</span><span style="color: #032F62;"> &quot;true&quot;</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  entryPoints</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #032F62;"> websecure</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  routes</span><span>:</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #22863A;"> match</span><span>:</span><span style="color: #032F62;"> Host(`app.your-domain.com`)</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      kind</span><span>:</span><span style="color: #032F62;"> Rule</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      services</span><span>:</span></span>
+<span class="giallo-l"><span>        -</span><span style="color: #22863A;"> name</span><span>:</span><span style="color: #032F62;"> httpbin</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          port</span><span>:</span><span style="color: #005CC5;"> 80</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  tls</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    secretName</span><span>:</span><span style="color: #032F62;"> your-domain-com-tls</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    options</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      name</span><span>:</span><span style="color: #032F62;"> require-cloudflare-client-cert</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      namespace</span><span>:</span><span style="color: #032F62;"> base-app</span></span></code></pre>
+<p>I would recommend making this <code>TLSOption</code> the default for all ingresses
+to ensure all applications are protected.</p>
+<h3 id="3-verify-the-fix">3. Verify the fix</h3>
+<p>With these changes in place, the direct request to the server's public
+IP now failed, as expected:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> curl</span><span style="color: #005CC5;"> -w</span><span style="color: #032F62;"> &quot;%{http_code}\n&quot;</span><span style="color: #005CC5;"> -o</span><span style="color: #032F62;"> /dev/null</span><span style="color: #005CC5;"> -k \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -H</span><span style="color: #032F62;"> &quot;Host: app.your-domain.com&quot;</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #032F62;">  https://203.0.113.10</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">421</span></span></code></pre>
+<p>The <code>421</code> status code indicated that the server was not configured to
+handle the request for that domain, which was exactly what we wanted.</p>
+<h2 id="hardening-the-nodes">Hardening the nodes</h2>
+<p>With the primary vulnerability addressed, there were a few more steps to
+harden the nodes themselves.</p>
+<h3 id="ssh-access">SSH Access</h3>
+<p>There were three ports that were open in each of these nodes: 22, 80, and
+443. The first step was to harden SSH access (port 22) by disabling
+password-based authentication in favor of public keys. It would also be
+prudent to restrict SSH access to a specific bastion host or a set of
+known IP addresses.</p>
+<h3 id="firewall-configuration">Firewall Configuration</h3>
+<p>My initial approach was to configure the firewall on each node using
+<code>nftables</code>. However, I learned the hard way that this was not the right
+approach, as it seemed to conflict with the internal traffic rules
+managed by the k3s cluster.</p>
+<p>A much better solution is to use Kubernetes <code>NetworkPolicy</code> resources.
+k3s comes with an embedded <a rel="external" href="https://docs.k3s.io/networking/networking-services#network-policy-controller">network policy
+controller</a>,
+which allows you to define firewall rules declaratively at the cluster
+level. This avoids conflicts and keeps all your configuration within
+the Kubernetes ecosystem.</p>
+<p>To restrict traffic to the ingress controller to only come from
+Cloudflare's IP ranges (found at
+<a rel="external" href="https://www.cloudflare.com/ips/">cloudflare.com/ips</a>), I created a
+<code>NetworkPolicy</code> resource like this. Note that this policy only allows
+traffic on port 443. Since we set the SSL/TLS mode to "Full (Strict)"
+in Cloudflare, all traffic is encrypted, and port 80 is no longer
+needed.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="yaml"><span class="giallo-l"><span style="color: #22863A;">apiVersion</span><span>:</span><span style="color: #032F62;"> networking.k8s.io/v1</span></span>
+<span class="giallo-l"><span style="color: #22863A;">kind</span><span>:</span><span style="color: #032F62;"> NetworkPolicy</span></span>
+<span class="giallo-l"><span style="color: #22863A;">metadata</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  name</span><span>:</span><span style="color: #032F62;"> traefik-ingress-from-cloudflare</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  namespace</span><span>:</span><span style="color: #032F62;"> kube-system</span></span>
+<span class="giallo-l"><span style="color: #22863A;">spec</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  podSelector</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">    matchLabels</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      app.kubernetes.io/name</span><span>:</span><span style="color: #032F62;"> traefik</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # This policy defines ingress (inbound) rules.</span></span>
+<span class="giallo-l"><span style="color: #22863A;">  policyTypes</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #032F62;"> Ingress</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #22863A;">  ingress</span><span>:</span></span>
+<span class="giallo-l"><span>  -</span><span style="color: #22863A;"> from</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">      # This is a partial list as an example</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">      # IPv4 Ranges</span></span>
+<span class="giallo-l"><span>      -</span><span style="color: #22863A;"> ipBlock</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          cidr</span><span>:</span><span style="color: #032F62;"> 173.245.48.0/20</span></span>
+<span class="giallo-l"><span>      -</span><span style="color: #22863A;"> ipBlock</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          cidr</span><span>:</span><span style="color: #032F62;"> 103.21.244.0/22</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">      # IPv6 Ranges</span></span>
+<span class="giallo-l"><span>      -</span><span style="color: #22863A;"> ipBlock</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          cidr</span><span>:</span><span style="color: #032F62;"> 2400:cb00::/32</span></span>
+<span class="giallo-l"><span>      -</span><span style="color: #22863A;"> ipBlock</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #22863A;">          cidr</span><span>:</span><span style="color: #032F62;"> 2606:4700::/32</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #22863A;">    ports</span><span>:</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    # Allow traffic on the standard web ports</span></span>
+<span class="giallo-l"><span>    -</span><span style="color: #22863A;"> protocol</span><span>:</span><span style="color: #032F62;"> TCP</span></span>
+<span class="giallo-l"><span style="color: #22863A;">      port</span><span>:</span><span style="color: #005CC5;"> 443</span></span></code></pre><h3 id="verifying-open-ports">Verifying Open Ports</h3>
+<p>It's good practice to periodically scan your nodes from an external
+network to confirm which ports are open. I used the
+<a rel="external" href="https://github.com/RustScan/RustScan">RustScan</a> utility for this, and
+found it to be a nice tool.</p>
+<p>To check if port 443 is open on a bare metal node:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> rustscan</span><span style="color: #005CC5;"> -a 203.0.113.10 -p 443</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">.----.</span><span style="color: #032F62;"> .-. .-. .----..---.  .----. .---.   .--.  .-. .-.</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">|</span><span> {}  }</span><span style="color: #D73A49;">|</span><span> { }</span><span style="color: #D73A49;"> |</span><span>{ {__ {_   _}{ {__  /  ___} / {} \ |  `| |</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">|</span><span style="color: #6F42C1;"> .-.</span><span style="color: #005CC5;"> \|</span><span style="color: #032F62;"> {_}</span><span style="color: #D73A49;"> |</span><span style="color: #6F42C1;">.-._}</span><span style="color: #032F62;"> }</span><span style="color: #D73A49;"> | |</span><span style="color: #6F42C1;">  .-._}</span><span style="color: #032F62;"> }</span><span style="color: #005CC5;">\ </span><span style="color: #032F62;">    }/  /</span><span style="color: #005CC5;">\  \|</span><span style="color: #D73A49;"> |</span><span style="color: #6F42C1;">\</span><span style="color: #D73A49;">  |</span></span>
+<span class="giallo-l"><span style="color: #032F62;">`</span><span style="color: #6F42C1;">-&#39; `-&#39;</span><span style="color: #032F62;">`</span><span style="color: #6F42C1;">-----&#39;`----&#39;</span><span style="color: #032F62;">  `</span><span style="color: #6F42C1;">-&#39;  `----&#39;</span><span style="color: #032F62;">  `</span><span style="color: #6F42C1;">---&#39; `-&#39;</span><span style="color: #032F62;">  `</span><span style="color: #6F42C1;">-&#39;`-&#39;</span><span style="color: #032F62;"> `</span><span style="color: #6F42C1;">-&#39;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">The Modern Day Port Scanner.</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">________________________________________</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">: http://discord.skerritt.blog         :</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">: https://github.com/RustScan/RustScan :</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> --------------------------------------</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">RustScan: Making sure &#39;closed&#39; isn&#39;t</span><span style="color: #032F62;"> just a state of mind.</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Open</span><span style="color: #032F62;"> 203.0.113.10:443</span></span>
+<span class="giallo-l"><span>[~] Starting Script(</span><span style="color: #6F42C1;">s</span><span>)</span></span>
+<span class="giallo-l"><span>[~] Starting Nmap 7.98 (</span><span style="color: #6F42C1;"> https://nmap.org</span><span> ) at 2025-12-16 10:28 +0530</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Initiating</span><span style="color: #032F62;"> Ping Scan at 10:28</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Scanning</span><span style="color: #005CC5;"> 203.0.113.10</span><span> [2</span><span style="color: #032F62;"> ports]</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Completed</span><span style="color: #032F62;"> Ping Scan at 10:28, 0.22s elapsed</span><span> (1</span><span style="color: #032F62;"> total hosts</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Initiating</span><span style="color: #032F62;"> Parallel DNS resolution of</span><span style="color: #005CC5;"> 1</span><span style="color: #032F62;"> host. at 10:28</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Completed</span><span style="color: #032F62;"> Parallel DNS resolution of</span><span style="color: #005CC5;"> 1</span><span style="color: #032F62;"> host. at 10:28, 0.24s elapsed</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">DNS</span><span style="color: #032F62;"> resolution of</span><span style="color: #005CC5;"> 1</span><span style="color: #032F62;"> IPs took 0.24s. Mode: Async</span><span> [#: 1, OK: 1, NX: 0, DR: 0, SF: 0, TR: 1, CN: 0]</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Initiating</span><span style="color: #032F62;"> Connect Scan at 10:28</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Scanning</span><span style="color: #005CC5;"> 203.0.113.10</span><span> [1</span><span style="color: #032F62;"> port]</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Discovered</span><span style="color: #032F62;"> open port 443/tcp on</span><span style="color: #005CC5;"> 203.0.113.10</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Completed</span><span style="color: #032F62;"> Connect Scan at 10:28, 0.21s elapsed</span><span> (1</span><span style="color: #032F62;"> total ports</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Nmap</span><span style="color: #032F62;"> scan report for</span><span style="color: #005CC5;"> 203.0.113.10</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Host</span><span style="color: #032F62;"> is up, received syn-ack</span><span> (0.22s</span><span style="color: #032F62;"> latency</span><span>).</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Scanned</span><span style="color: #032F62;"> at 2025-12-16 10:28:22 IST for 1s</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">PORT</span><span style="color: #032F62;">    STATE SERVICE REASON</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">443/tcp</span><span style="color: #032F62;"> open  https   syn-ack</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Read</span><span style="color: #032F62;"> data files from: /nix/store/hil6r8hvx4cmcw4367pkw5jqphf37ijf-nmap-7.98/bin/../share/nmap</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">Nmap</span><span style="color: #032F62;"> done:</span><span style="color: #005CC5;"> 1</span><span style="color: #032F62;"> IP address</span><span> (1</span><span style="color: #032F62;"> host up</span><span>) scanned in 0.68 seconds</span></span></code></pre>
+<p>This confirmed that port 443 was open. You can similarly check that the
+Kubernetes API port wasn't exposed. You can pass a list of ports to
+check like this:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> rustscan</span><span style="color: #005CC5;"> -a 203.0.113.10 -p</span><span style="color: #032F62;"> 22,80,443,6443</span></span></code></pre>
+<p>Or can even ask it to search for open ports within a specific range:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">$</span><span style="color: #032F62;"> rustscan</span><span style="color: #005CC5;"> -a 203.0.113.10 -r</span><span style="color: #032F62;"> 6000-7000</span></span></code></pre><h1 id="tradeoffs">Tradeoffs</h1>
+<p>This was a significant amount of work. So, what are the trade-offs
+compared to using a managed Kubernetes service like EKS or GKE? The key
+differences can be broken down into four main areas: management
+overhead, cost, availability, and the Kubernetes distribution itself.</p>
+<h2 id="management-overhead">Management Overhead</h2>
+<p>With a bare metal setup, you are fully responsible for the entire stack.
+This includes:</p>
+<ul>
+<li><strong>Operating System</strong>: You must handle OS updates, security patching,
+and any OS-level configuration.</li>
+<li><strong>Kubernetes Control Plane</strong>: The lifecycle of all Kubernetes
+components (etcd, API server, etc.) is your responsibility. This
+includes upgrades, backups, and recovery.</li>
+<li><strong>Networking</strong>: While we used vRack for the private network, you are
+still responsible for configuring it correctly on each node.</li>
+</ul>
+<p>In contrast, a managed service like EKS abstracts away the control
+plane management entirely, allowing you to focus on your applications.</p>
+<h2 id="cost">Cost</h2>
+<p>The primary advantage of this approach is the significant cost savings.</p>
+<h3 id="our-bare-metal-setup">Our Bare Metal Setup</h3>
+<p>Each of our bare metal nodes had the following configuration:</p>
+<ul>
+<li>RAM: 32 GB ECC</li>
+<li>Data disks: ~2 TB SSD NVMe</li>
+<li>CPU: 6c/12t (AMD Ryzen 5 5600X)</li>
+</ul>
+<p>A single machine in the Canada region cost around $56 USD per month.
+For our three-node cluster, this totaled ~$168 USD. Adding the
+Cloudflare Load Balancer at $10/month, the total monthly cost was
+approximately <strong>$178 USD</strong>.</p>
+<h3 id="equivalent-aws-eks-setup">Equivalent AWS EKS Setup</h3>
+<p>A direct comparison is difficult as AWS doesn't offer a 6-core machine.
+The closest comparable instance is the <code>r6g.xlarge</code> (4 vCPU, 32 GB RAM).</p>
+<ul>
+<li><strong>Nodes</strong>: At an on-demand price of ~$160 USD/month per instance,
+three nodes would cost ~$480 USD.</li>
+<li><strong>EKS Control Plane</strong>: EKS adds a fixed fee of ~$72 USD per month.</li>
+<li><strong>Total</strong>: This brings the baseline cost to <strong>~$552 USD per month</strong>,
+even for less powerful nodes. This doesn't include variable costs
+like NAT gateway usage or data transfer fees, which would increase
+the total further.</li>
+</ul>
+<p>The bare metal approach is roughly one-third the cost of a comparable
+managed EKS cluster.</p>
+<h2 id="availability">Availability</h2>
+<p>This is where managed cloud providers like AWS have a distinct
+advantage. Pretty much all AWS regions have a minimum of three
+Availability Zones (AZs), providing a high degree of confidence for
+fault tolerance.</p>
+<p>In comparison, most OVHcloud regions do not have multiple AZs. At the
+time of writing, only their Paris region offers three AZs, but the
+available servers are from their more expensive "Scale" line, with
+starting prices around ~$550 USD per node. While these servers come with
+a higher CPU specification for that price, the issue is the lack of
+availability for lower-cost models in their multi-AZ regions.</p>
+<p>While we could potentially build a multi-region Kubernetes cluster to
+mitigate this, it would introduce higher latency and complexity.</p>
+<h2 id="kubernetes-distribution">Kubernetes Distribution</h2>
+<p>It's also worth noting that we are comparing different Kubernetes
+distributions. Our setup used k3s, a lightweight, certified
+distribution designed for simplicity. Managed services like EKS use the
+standard, full-featured Kubernetes distribution. For most use cases,
+k3s is perfectly capable, but it's a factor to consider if your
+workloads have specific dependencies on features that might differ
+between the two.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>Building a Kubernetes cluster on bare metal is a significant
+undertaking. We successfully created a highly-available,
+cost-effective, and secure platform using OVHcloud servers, k3s, and
+Cloudflare.</p>
+<p>The journey highlighted some of the rough edges of bare metal
+automation, particularly with Terraform providers that don't always
+offer a smooth, declarative experience. However, by combining different
+services—using Cloudflare for load balancing and security—we were able
+to build a robust system that met all our initial objectives.</p>
+<p>While a managed Kubernetes service is often the right choice to reduce
+operational burden, this bare metal approach provides a powerful and
+significantly cheaper alternative for performance-sensitive workloads
+or when you need more control over your infrastructure. It requires more
+upfront investment in time and expertise, but the result is a highly
+performant and cost-efficient Kubernetes cluster.</p>
+<p>If you want production-ready managed Kubernetes clusters, you might be
+interested in our <a rel="external" href="https://academy.fpblock.com/products/kube360/">Kube360 product</a>.
+Also, if you want a bare metal-based k8s cluster or any kind of DevOps
+consulting, you can <a rel="external" href="https://academy.fpblock.com/contact-us/">contact us here</a>;
+we are the experts.</p>
+
+    </div>
+
+    <div class="disqus-section">
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {
+            this.page.url = "https://psibi.in&#x2F;posts&#x2F;2025-12-18-ovhcloud-k8s.html&#x2F;";
+            this.page.identifier = "&#x2F;posts&#x2F;2025-12-18-ovhcloud-k8s.html&#x2F;";
+            };
+
+            (function() {
+            var d = document, s = d.createElement('script');
+
+            s.src = '//psibi.disqus.com/embed.js';
+
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 Sibi</span>
+        </div>
+    </footer>
+
+    
+    <script>
+        (function() {
+            document.querySelectorAll('.article-body h2, .article-body h3, .article-body h4').forEach(function(h) {
+                if (!h.id) return;
+                var a = document.createElement('a');
+                a.href = '#' + h.id;
+                a.className = 'heading-link';
+                a.textContent = '#';
+                a.setAttribute('aria-hidden', 'true');
+                h.appendChild(a);
+            });
+        })();
+    </script>
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var links = document.querySelectorAll('.nav-link');
+            links.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            if (path === '/' || path === '') {
+                links[0].classList.add('active');
+            } else if (path.startsWith('/about')) {
+                links[1].classList.add('active');
+            } else if (path.startsWith('/contact')) {
+                links[2].classList.add('active');
+            } else if (path.startsWith('/posts')) {
+                links[3].classList.add('active');
+            } else if (path.startsWith('/read')) {
+                links[4].classList.add('active');
+            } else if (path.startsWith('/search')) {
+                links[5].classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>

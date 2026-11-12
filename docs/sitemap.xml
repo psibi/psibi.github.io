@@ -71,12 +71,20 @@
         <lastmod>2018-07-28</lastmod>
     </url>
     <url>
+        <loc>https://psibi.in/posts/2018-09-20-yesod-postgres-kubernetes-deployment.html/</loc>
+        <lastmod>2018-09-20</lastmod>
+    </url>
+    <url>
         <loc>https://psibi.in/posts/2019-09-23-fakedata-perf.html/</loc>
         <lastmod>2019-09-23</lastmod>
     </url>
     <url>
         <loc>https://psibi.in/posts/2020-06-16-xmobar-zurihac.html/</loc>
         <lastmod>2020-06-16</lastmod>
+    </url>
+    <url>
+        <loc>https://psibi.in/posts/2020-07-22-cloud-preparation-checklist.html/</loc>
+        <lastmod>2020-07-22</lastmod>
     </url>
     <url>
         <loc>https://psibi.in/posts/2021-05-22-credstash.html/</loc>
@@ -91,8 +99,24 @@
         <lastmod>2022-01-01</lastmod>
     </url>
     <url>
+        <loc>https://psibi.in/posts/2022-03-24-canary-deployment-istio.html/</loc>
+        <lastmod>2022-03-24</lastmod>
+    </url>
+    <url>
         <loc>https://psibi.in/posts/2024-08-04-rustic-babel.html/</loc>
         <lastmod>2024-08-04</lastmod>
+    </url>
+    <url>
+        <loc>https://psibi.in/posts/2025-06-30-rust-haskell-reflections.html/</loc>
+        <lastmod>2025-06-30</lastmod>
+    </url>
+    <url>
+        <loc>https://psibi.in/posts/2025-12-01-absurd-future.html/</loc>
+        <lastmod>2025-12-01</lastmod>
+    </url>
+    <url>
+        <loc>https://psibi.in/posts/2025-12-18-ovhcloud-k8s.html/</loc>
+        <lastmod>2025-12-18</lastmod>
     </url>
     <url>
         <loc>https://psibi.in/posts/job-watcher/</loc>
@@ -126,7 +150,13 @@
         <loc>https://psibi.in/tags/</loc>
     </url>
     <url>
+        <loc>https://psibi.in/tags/async/</loc>
+    </url>
+    <url>
         <loc>https://psibi.in/tags/aws/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/bare-metal/</loc>
     </url>
     <url>
         <loc>https://psibi.in/tags/blogging/</loc>
@@ -144,10 +174,16 @@
         <loc>https://psibi.in/tags/debugging/</loc>
     </url>
     <url>
+        <loc>https://psibi.in/tags/devops/</loc>
+    </url>
+    <url>
         <loc>https://psibi.in/tags/elm/</loc>
     </url>
     <url>
         <loc>https://psibi.in/tags/emacs/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/future/</loc>
     </url>
     <url>
         <loc>https://psibi.in/tags/ghc/</loc>
@@ -162,7 +198,19 @@
         <loc>https://psibi.in/tags/haskell/</loc>
     </url>
     <url>
+        <loc>https://psibi.in/tags/infallible/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/istio/</loc>
+    </url>
+    <url>
         <loc>https://psibi.in/tags/javascript/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/k3s/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/kubernetes/</loc>
     </url>
     <url>
         <loc>https://psibi.in/tags/linux/</loc>
@@ -181,6 +229,9 @@
     </url>
     <url>
         <loc>https://psibi.in/tags/org-mode/</loc>
+    </url>
+    <url>
+        <loc>https://psibi.in/tags/ovhcloud/</loc>
     </url>
     <url>
         <loc>https://psibi.in/tags/performance/</loc>
